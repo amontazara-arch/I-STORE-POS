@@ -16,7 +16,7 @@
         %22background_color%22: %22%23ffffff%22,
         %22theme_color%22: %22%23ffffff%22,
         %22icons%22: [{
-            %22src%22: %22https://cdn-icons-png.flaticon.com/512/5968/5968292.png%22,
+            %22src%22: %22https://i.ibb.co/6Z802g3/istore-logo.png%22,
             %22sizes%22: %22512x512%22,
             %22type%22: %22image/png%22
         }]
@@ -37,7 +37,7 @@
         }
     </style>
 </head>
-<body class="flex h-screen overflow-hidden text-gray-800">
+<body class="flex flex-col lg:flex-row h-screen overflow-hidden text-gray-800">
 
     <!-- واجهة تسجيل الدخول، إنشاء حساب، واستعادة كلمة المرور -->
     <div id="auth-screen" class="fixed inset-0 bg-gray-950 z-50 flex items-center justify-center p-4">
@@ -127,9 +127,23 @@
         </div>
     </div>
 
-    <!-- القائمة الجانبية -->
-    <aside class="w-64 bg-gray-900 text-gray-300 flex flex-col shadow-2xl z-20 h-full transition-all duration-300" id="sidebar">
-        <div class="py-5 flex flex-col items-center justify-center bg-gray-950 border-b border-gray-800 shadow-sm">
+    <!-- الشريط العلوي للهواتف فقط -->
+    <header class="lg:hidden bg-gray-900 text-white flex justify-between items-center p-4 z-30 shadow-md">
+        <div class="font-modern flex items-baseline tracking-tight" dir="ltr">
+            <span class="text-orange-500 text-3xl font-black">i</span>
+            <span class="text-white text-2xl font-bold uppercase tracking-wide">store</span>
+        </div>
+        <button onclick="toggleMobileSidebar()" class="text-white text-2xl focus:outline-none">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- القائمة الجانبية (متجاوبة للهاتف والكمبيوتر) -->
+    <aside class="w-full lg:w-64 bg-gray-900 text-gray-300 flex flex-col shadow-2xl z-40 h-full transition-all duration-300 fixed lg:static inset-y-0 right-0 transform translate-x-full lg:translate-x-0" id="sidebar">
+        <div class="py-5 flex flex-col items-center justify-center bg-gray-950 border-b border-gray-800 shadow-sm relative">
+            <button onclick="toggleMobileSidebar()" class="lg:hidden absolute left-4 text-gray-400 hover:text-white text-xl">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
             <div class="font-modern flex items-baseline tracking-tight" dir="ltr">
                 <span class="text-orange-500 text-4xl font-black">i</span>
                 <span class="text-white text-3xl font-bold uppercase tracking-wide">store</span>
@@ -138,37 +152,43 @@
         </div>
         
         <div class="flex-1 overflow-y-auto p-3 space-y-1 mt-1 pb-10">
-            <button onclick="switchView('dashboard-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-white">
+            <button onclick="switchView('dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-white">
                 <i class="fa-solid fa-home pl-3 text-gray-400"></i> الرئيسية
             </button>
-            <button onclick="switchView('pos-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('pos-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-cash-register pl-3 text-gray-400"></i> نقطة البيع POS
             </button>
-            <button onclick="switchView('add-item-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('add-item-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-cubes pl-3 text-gray-400"></i> إدارة المخزن
             </button>
-            <button onclick="switchView('sales-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
-                <i class="fa-solid fa-file-invoice pl-3 text-gray-400"></i> سجل المبيعات والراجع
+            <button onclick="switchView('values-dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-yellow-400 font-bold">
+                <i class="fa-solid fa-coins pl-3"></i> القيمة (المتغيرة والثابتة)
             </button>
-            <button onclick="switchView('customers-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('sales-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+                <i class="fa-solid fa-file-invoice pl-3 text-gray-400"></i> سجل المبيعات
+            </button>
+            <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-red-300 font-bold">
+                <i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات (الراجع)
+            </button>
+            <button onclick="switchView('customers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-address-book pl-3 text-gray-400"></i> كشف حساب الزبائن
             </button>
-            <button onclick="switchView('my-debts-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('my-debts-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-file-invoice-dollar pl-3 text-red-400"></i> الديون التي علي
             </button>
-            <button onclick="switchView('vouchers-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('vouchers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-receipt pl-3 text-gray-400"></i> القبض والدفع والشعارات
             </button>
-            <button onclick="switchView('expenses-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('expenses-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-hand-holding-dollar pl-3 text-gray-400"></i> المصروفات
             </button>
-            <button onclick="switchView('audit-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
+            <button onclick="switchView('audit-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg transition flex items-center text-gray-300">
                 <i class="fa-solid fa-shield-halved pl-3 text-amber-400"></i> سجل الرقابة والحذف
             </button>
-            <button onclick="syncWithCloud()" class="w-full text-right px-4 py-2.5 mt-2 bg-blue-700 hover:bg-blue-600 rounded-lg transition flex items-center text-white">
+            <button onclick="syncWithCloud(); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 mt-2 bg-blue-700 hover:bg-blue-600 rounded-lg transition flex items-center text-white">
                 <i class="fa-solid fa-sync pl-3"></i> مزامنة وفحص السحابة
             </button>
-            <button onclick="logoutApp()" class="w-full text-right px-4 py-2.5 mt-1 bg-red-800 hover:bg-red-700 rounded-lg transition flex items-center text-white font-bold">
+            <button onclick="logoutApp(); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 mt-1 bg-red-800 hover:bg-red-700 rounded-lg transition flex items-center text-white font-bold">
                 <i class="fa-solid fa-right-from-bracket pl-3"></i> تسجيل الخروج
             </button>
         </div>
@@ -187,7 +207,10 @@
             <div id="dashboard-view" class="app-view active max-w-5xl mx-auto">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <button onclick="switchView('sales-view')" class="flex flex-col items-center justify-center p-4 bg-[#c8102e] rounded shadow hover:shadow-lg transition text-white h-32">
-                        <i class="fa-solid fa-tag text-3xl mb-2"></i><span class="font-bold">سجل المبيعات والراجع</span>
+                        <i class="fa-solid fa-tag text-3xl mb-2"></i><span class="font-bold">سجل المبيعات</span>
+                    </button>
+                    <button onclick="switchView('returns-view')" class="flex flex-col items-center justify-center p-4 bg-red-800 rounded shadow hover:shadow-lg transition text-white h-32 border-2 border-red-400">
+                        <i class="fa-solid fa-rotate-left text-3xl mb-2"></i><span class="font-bold">سجل المرتجعات (الراجع)</span>
                     </button>
                     <button onclick="switchView('pos-view')" class="flex flex-col items-center justify-center p-4 bg-[#9e005d] rounded shadow hover:shadow-lg transition text-white h-32">
                         <i class="fa-solid fa-cash-register text-3xl mb-2"></i><span class="font-bold">نقطة بيع POS</span>
@@ -195,21 +218,86 @@
                     <button onclick="switchView('add-item-view')" class="flex flex-col items-center justify-center p-4 bg-[#00aeef] rounded shadow hover:shadow-lg transition text-white h-32">
                         <i class="fa-solid fa-cubes text-3xl mb-2"></i><span class="font-bold">إدارة المخزن</span>
                     </button>
+                    <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded shadow hover:shadow-lg transition text-white h-32">
+                        <i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيمة (المتغيرة والثابتة)</span>
+                    </button>
                     <button onclick="switchView('customers-view')" class="flex flex-col items-center justify-center p-4 bg-[#1d71b8] rounded shadow hover:shadow-lg transition text-white h-32">
                         <i class="fa-solid fa-address-book text-3xl mb-2"></i><span class="font-bold">كشف حساب الزبائن</span>
                     </button>
                     <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded shadow hover:shadow-lg transition text-white h-32">
                         <i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">الديون التي علي</span>
                     </button>
-                    <button onclick="switchView('vouchers-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded shadow hover:shadow-lg transition text-white h-32">
-                        <i class="fa-solid fa-receipt text-3xl mb-2"></i><span class="font-bold">القبض والدفع</span>
-                    </button>
                     <button onclick="switchView('expenses-view')" class="flex flex-col items-center justify-center p-4 bg-[#8cc63f] rounded shadow hover:shadow-lg transition text-white h-32">
                         <i class="fa-solid fa-hand-holding-dollar text-3xl mb-2"></i><span class="font-bold">المصروفات</span>
                     </button>
-                    <button onclick="switchView('audit-view')" class="flex flex-col items-center justify-center p-4 bg-gray-800 rounded shadow hover:shadow-lg transition text-white h-32">
-                        <i class="fa-solid fa-shield-halved text-3xl mb-2 text-amber-400"></i><span class="font-bold">سجل الرقابة</span>
-                    </button>
+                </div>
+            </div>
+
+            <!-- لوحة اختيار قسم القيمة (المتغيرة أو الثابتة) -->
+            <div id="values-dashboard-view" class="app-view max-w-4xl mx-auto">
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-6 border-b pb-4">
+                        <h2 class="text-2xl font-bold text-gray-800">إدارة الجرد والقيم</h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-4 py-2 rounded text-sm font-bold">عودة</button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <button onclick="switchView('variable-values-view')" class="flex flex-col items-center justify-center p-8 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl shadow-lg transition transform hover:-translate-y-1">
+                            <i class="fa-solid fa-boxes-stacked text-5xl mb-3"></i>
+                            <span class="text-xl font-bold">قيمة المواد المتغيرة (مرتبطة بالمخزن)</span>
+                            <span class="text-xs text-indigo-200 mt-2">تحديث تلقائي من مواد المخزن (كمية × سعر الشراء)</span>
+                        </button>
+                        <button onclick="switchView('fixed-values-view')" class="flex flex-col items-center justify-center p-8 bg-teal-600 hover:bg-teal-700 text-white rounded-2xl shadow-lg transition transform hover:-translate-y-1">
+                            <i class="fa-solid fa-toolbox text-5xl mb-3"></i>
+                            <span class="text-xl font-bold">قيمة المواد الثابتة</span>
+                            <span class="text-xs text-teal-200 mt-2">المجهر، السبات (الكاوي)، والمعدات الثابتة</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- شاشة قيمة المواد المتغيرة (المرتبطة بالمخزن تلقائياً) -->
+            <div id="variable-values-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-indigo-700">قيمة المواد المتغيرة (مرتبطة ومحدثة من المخزن تلقائياً)</h2>
+                        <button onclick="switchView('values-dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة للقيمة</button>
+                    </div>
+                    <div class="bg-indigo-50 border border-indigo-200 rounded p-4 mb-6 flex justify-between items-center">
+                        <span class="text-indigo-900 font-bold">إجمالي قيمة المواد المتغيرة في المخزن:</span>
+                        <span class="text-2xl font-black text-indigo-700" id="totalVariableDisplay">0 د.ع</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mb-4">* يتم جلب هذه المواد وقيمتها تلقائياً من المخزن (الكمية الحالية × سعر الشراء لكل مادة).</p>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[500px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">المادة (من المخزن)</th><th class="p-3 border">الكمية الحالية</th><th class="p-3 border">سعر الشراء</th><th class="p-3 border">إجمالي القيمة</th></tr></thead>
+                            <tbody id="variableTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- شاشة قيمة المواد الثابتة -->
+            <div id="fixed-values-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-teal-700">قيمة المواد الثابتة (المجهر، السبات، إلخ)</h2>
+                        <button onclick="switchView('values-dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة للقيمة</button>
+                    </div>
+                    <div class="bg-teal-50 border border-teal-200 rounded p-4 mb-6 flex justify-between items-center">
+                        <span class="text-teal-900 font-bold">إجمالي قيمة المواد الثابتة:</span>
+                        <span class="text-2xl font-black text-teal-700" id="totalFixedDisplay">0 د.ع</span>
+                    </div>
+                    <form id="addFixedItemForm" onsubmit="saveFixedItem(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <input type="text" id="fixedItemName" required placeholder="اسم المعدة (مثل: مجهر تريو)..." class="border p-2 rounded bg-white">
+                        <input type="number" id="fixedItemPrice" required placeholder="القيمة / السعر..." class="border p-2 rounded bg-white">
+                        <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-2 rounded">إضافة للثابتة</button>
+                    </form>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[500px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">المعدة الثابتة</th><th class="p-3 border">القيمة</th><th class="p-3 border">التاريخ</th><th class="p-3 border text-center">إجراء</th></tr></thead>
+                            <tbody id="fixedTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -230,10 +318,12 @@
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <h3 class="font-bold mb-4">المواد المتوفرة</h3>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">المادة</th><th class="p-3 border">الكمية</th><th class="p-3 border">سعر الشراء</th><th class="p-3 border">سعر البيع</th><th class="p-3 border text-center">إجراء</th></tr></thead>
-                        <tbody id="inventoryTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[600px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">المادة</th><th class="p-3 border">الكمية</th><th class="p-3 border">سعر الشراء</th><th class="p-3 border">سعر البيع</th><th class="p-3 border text-center">إجراءات</th></tr></thead>
+                            <tbody id="inventoryTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -258,16 +348,30 @@
                             <div>
                                 <label class="block text-sm font-bold mb-1">نوع البيع:</label>
                                 <select id="saleType" onchange="toggleCustomerInput()" class="w-full border p-2 rounded bg-white">
-                                    <option value="cash">بيع نقدي (مع خيار الطباعة)</option>
+                                    <option value="cash">بيع نقدي</option>
                                     <option value="debt">بيع آجل (على الدين)</option>
                                 </select>
                             </div>
-                            <div id="customerInputDiv" class="hidden">
-                                <label class="block text-sm font-bold mb-1">اسم الزبون (الدائن):</label>
-                                <input type="text" id="posCustomerName" placeholder="أدخل اسم الزبون..." class="w-full border p-2 rounded">
+                            <div id="customerInputDiv" class="hidden relative">
+                                <label class="block text-sm font-bold mb-1">اسم الزبون (الدائن) - ابحث أو اختر:</label>
+                                <input type="text" id="posCustomerName" onkeyup="filterCustomerSearch()" placeholder="اكتب اسم الزبون للبحث..." class="w-full border p-2 rounded bg-white">
+                                <div id="customerSearchDropdown" class="absolute z-50 bg-white border rounded shadow-lg w-full max-h-40 overflow-y-auto hidden"></div>
                             </div>
                             <button onclick="checkout()" class="w-full bg-fuchsia-600 text-white py-3 rounded font-bold hover:bg-fuchsia-700">إتمام البيع</button>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- نافذة منبثقة لخيارات طباعة الوصل عند البيع -->
+            <div id="print-options-modal" class="fixed inset-0 bg-gray-900 bg-opacity-60 z-50 flex items-center justify-center p-4 hidden">
+                <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center">
+                    <div class="text-green-600 text-5xl mb-3"><i class="fa-solid fa-circle-check"></i></div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">تمت عملية البيع بنجاح!</h3>
+                    <p class="text-sm text-gray-600 mb-6">هل تريد طباعة وصل لهذه العملية؟</p>
+                    <div class="flex gap-3">
+                        <button onclick="executePrintChoice(true)" class="flex-1 bg-fuchsia-600 hover:bg-fuchsia-700 text-white font-bold py-3 rounded-lg transition shadow">نعم، اطبع الوصل</button>
+                        <button onclick="executePrintChoice(false)" class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 rounded-lg transition">لا، تخطي</button>
                     </div>
                 </div>
             </div>
@@ -277,23 +381,55 @@
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
                         <div class="bg-blue-50 p-4 rounded border"><h4 class="text-sm font-bold text-gray-600">إجمالي المبيعات</h4><p class="text-2xl font-black text-blue-700" id="totalSalesDisplay">0 د.ع</p></div>
-                        <div class="bg-green-50 p-4 rounded border"><h4 class="text-sm font-bold text-gray-600">إجمالي الأرباح الإجمالية</h4><p class="text-2xl font-black text-green-700" id="grossProfitDisplay">0 د.ع</p></div>
-                        <div class="bg-fuchsia-50 p-4 rounded border"><h4 class="text-sm font-bold text-gray-600">صافي الربح (بعد المصروفات)</h4><p class="text-2xl font-black text-fuchsia-700" id="netProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-green-50 p-4 rounded border"><h4 class="text-sm font-bold text-gray-600">إجمالي أرباح المبيعات</h4><p class="text-2xl font-black text-green-700" id="grossProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-fuchsia-50 p-4 rounded border"><h4 class="text-sm font-bold text-gray-600">المجموع الكلي مع المصروفات وخسائر الراجع</h4><p class="text-2xl font-black text-fuchsia-700" id="netProfitDisplay">0 د.ع</p></div>
                     </div>
                 </div>
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h2 class="text-xl font-bold">سجل فواتير المبيعات والمرتجعات</h2>
+                        <h2 class="text-xl font-bold">سجل المبيعات (كل منتج في سطر مستقل للإرجاع الفردي)</h2>
                         <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button>
                     </div>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">رقم الفاتورة</th><th class="p-3 border">النوع</th><th class="p-3 border">الزبون</th><th class="p-3 border">المواد</th><th class="p-3 border">الإجمالي</th><th class="p-3 border">الربح</th><th class="p-3 border text-center">إجراء</th></tr></thead>
-                        <tbody id="salesTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[700px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">رقم الفاتورة</th><th class="p-3 border">النوع</th><th class="p-3 border">الزبون</th><th class="p-3 border">المنتج المباع</th><th class="p-3 border">السعر</th><th class="p-3 border">الربح</th><th class="p-3 border text-center">إجراء (إرجاع المنتج)</th></tr></thead>
+                            <tbody id="salesTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- 5. كشف حساب الزبائن -->
+            <!-- 5. سجل المرتجعات (الراجع) -->
+            <div id="returns-view" class="app-view max-w-6xl mx-auto">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-red-700"><i class="fa-solid fa-rotate-left pl-2"></i> سجل المرتجعات والراجع (يرجع للمخزن إذا كان طبيعياً)</h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button>
+                    </div>
+                    <!-- حقل البحث في الراجع -->
+                    <div class="mb-4">
+                        <input type="text" id="searchReturnsInput" onkeyup="filterReturnsTable()" placeholder="🔍 ابحث عن اسم منتج مباع أو زبون في الراجع..." class="w-full border p-3 rounded bg-gray-50 font-bold text-sm">
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="p-3 border">رقم الفاتورة</th>
+                                    <th class="p-3 border">الزبون</th>
+                                    <th class="p-3 border">المنتج المرتجع</th>
+                                    <th class="p-3 border">حالة الراجع</th>
+                                    <th class="p-3 border">مبلغ التكلفة / التالف</th>
+                                    <th class="p-3 border">التاريخ</th>
+                                    <th class="p-3 border text-center">تغيير الحالة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="returnsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. كشف حساب الزبائن -->
             <div id="customers-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">كشف حساب الزبائن والديون</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
@@ -303,10 +439,12 @@
                         <button onclick="addNewCustomerAccount()" class="bg-blue-600 text-white px-5 py-2 rounded font-bold text-sm">إضافة حساب</button>
                     </div>
                     <input type="text" id="searchCustomerInput" onkeyup="filterCustomersList()" placeholder="🔍 ابحث عن اسم الزبون..." class="w-full border p-3 rounded bg-gray-50 font-bold mb-4">
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">اسم الزبون</th><th class="p-3 border">إجمالي الدين الحالي</th><th class="p-3 border text-center">الإجراء</th></tr></thead>
-                        <tbody id="customersTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[400px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">اسم الزبون</th><th class="p-3 border">إجمالي الدين الحالي</th><th class="p-3 border text-center">الإجراء</th></tr></thead>
+                            <tbody id="customersTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -314,22 +452,33 @@
             <div id="customer-detail-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex justify-between items-center mb-6 border-b pb-4">
-                        <div><h2 class="text-xl font-bold text-blue-700" id="detailCustomerName">اسم الزبون</h2><p class="text-sm text-gray-500">سجل الديون والإعفاءات</p></div>
+                        <div><h2 class="text-xl font-bold text-blue-700" id="detailCustomerName">اسم الزبون</h2><p class="text-sm text-gray-500">سجل الديون، الخدمات الخارجية (رصيد)، والإعفاءات</p></div>
                         <button onclick="switchView('customers-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة للزبائن</button>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-gray-50 p-4 rounded border"><h3 class="font-bold mb-2 text-sm text-gray-600">تغيير الاسم</h3><div class="flex gap-2"><input type="text" id="newCustomerNameInput" class="border p-2 rounded flex-1 text-sm"><button onclick="updateCustomerName()" class="bg-blue-600 text-white px-3 py-2 rounded text-xs font-bold">تحديث</button></div></div>
-                        <div class="bg-gray-50 p-4 rounded border"><h3 class="font-bold mb-2 text-sm text-gray-600">تسجيل تسديد (قبض)</h3><div class="flex gap-2"><input type="number" id="quickPayAmount" placeholder="المبلغ..." class="border p-2 rounded flex-1 text-sm"><button onclick="quickPayDebt()" class="bg-green-600 text-white px-3 py-2 rounded text-xs font-bold">قبض</button></div></div>
-                        <div class="bg-amber-50 p-4 rounded border border-amber-200"><h3 class="font-bold mb-2 text-sm text-amber-800">إعفاء الزبون</h3><div class="flex gap-2"><input type="number" id="exemptionAmount" placeholder="الخصم..." class="border p-2 rounded flex-1 text-sm bg-white"><button onclick="exemptCustomerDebt()" class="bg-amber-600 text-white px-3 py-2 rounded text-xs font-bold">إعفاء</button></div></div>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-gray-50 p-4 rounded border"><h3 class="font-bold mb-2 text-xs text-gray-600">تغيير الاسم</h3><div class="flex gap-2"><input type="text" id="newCustomerNameInput" class="border p-2 rounded flex-1 text-xs"><button onclick="updateCustomerName()" class="bg-blue-600 text-white px-2 py-2 rounded text-xs font-bold">تحديث</button></div></div>
+                        <div class="bg-indigo-50 p-4 rounded border border-indigo-200"><h3 class="font-bold mb-2 text-xs text-indigo-800">إضافة شيء خارجي (رصيد، إلخ)</h3><div class="space-y-2"><input type="text" id="extItemDesc" placeholder="الوصف (مثل: شحن رصيد زين)" class="border p-1.5 rounded w-full text-xs bg-white"><div class="flex gap-1"><input type="number" id="extItemAmount" placeholder="المبلغ" class="border p-1.5 rounded flex-1 text-xs bg-white"><button onclick="addExternalItemDebt()" class="bg-indigo-600 text-white px-2 py-1 rounded text-xs font-bold">إضافة</button></div></div></div>
+                        <div class="bg-green-50 p-4 rounded border border-green-200"><h3 class="font-bold mb-2 text-xs text-green-800">تسجيل تسديد (قبض)</h3><div class="flex gap-2"><input type="number" id="quickPayAmount" placeholder="المبلغ..." class="border p-2 rounded flex-1 text-xs"><button onclick="quickPayDebt()" class="bg-green-600 text-white px-2 py-2 rounded text-xs font-bold">قبض</button></div></div>
+                        <div class="bg-amber-50 p-4 rounded border border-amber-200"><h3 class="font-bold mb-2 text-xs text-amber-800">إعفاء الزبون</h3><div class="flex gap-2"><input type="number" id="exemptionAmount" placeholder="الخصم..." class="border p-2 rounded flex-1 text-xs bg-white"><button onclick="exemptCustomerDebt()" class="bg-amber-600 text-white px-2 py-2 rounded text-xs font-bold">إعفاء</button></div></div>
                     </div>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">البيان</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th></tr></thead>
-                        <tbody id="customerInvoicesBody"></tbody>
-                    </table>
+                    
+                    <!-- أزرار الطباعة والوصولات المخصصة للزبون -->
+                    <div class="flex flex-wrap gap-3 mb-6 bg-gray-50 p-3 rounded-lg border">
+                        <button onclick="printCustomerVoucher('قبض')" class="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="fa-solid fa-receipt pl-1"></i> طباعة وصل قبض</button>
+                        <button onclick="printCustomerVoucher('شراء')" class="bg-purple-700 hover:bg-purple-800 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="fa-solid fa-tag pl-1"></i> طباعة وصل شراء</button>
+                        <button onclick="printA4StatementOfAccount()" class="bg-blue-800 hover:bg-blue-900 text-white px-4 py-2 rounded text-sm font-bold shadow"><i class="fa-solid fa-file-pdf pl-1"></i> طباعة كشف حساب (ورقة A4)</button>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[400px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">البيان</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th></tr></thead>
+                            <tbody id="customerInvoicesBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- 6. الديون التي علي -->
+            <!-- 7. الديون التي علي -->
             <div id="my-debts-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-red-700">الديون التي علي (للمجهزين)</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
@@ -337,19 +486,30 @@
                     <form id="addMyDebtForm" onsubmit="saveMyDebt(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                         <input type="text" id="myDebtSupplier" required placeholder="اسم المجهّز..." class="border p-2 rounded bg-white">
                         <input type="number" id="myDebtAmount" required placeholder="المبلغ..." class="border p-2 rounded bg-white">
-                        <button type="submit" class="bg-red-600 text-white font-bold py-2 rounded">تسجيل دين</button>
+                        <button type="submit" class="bg-red-600 text-white font-bold py-2 rounded cursor-pointer">تسجيل دين</button>
                     </form>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">المجهّز</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th><th class="p-3 border text-center">إجراء</th></tr></thead>
-                        <tbody id="myDebtsTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[500px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">المجهّز</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th><th class="p-3 border text-center">إجراء</th></tr></thead>
+                            <tbody id="myDebtsTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- 7. السندات -->
+            <!-- 8. السندات -->
             <div id="vouchers-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">سندات القبض والدفع والشعار</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">سندات القبض والدفع وتخصيص شكل الوصل</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
+                    
+                    <!-- خانة تعديل شكل الوصل الحر -->
+                    <div class="mb-6 bg-amber-50 p-4 rounded-lg border border-amber-300">
+                        <label class="block font-bold text-sm mb-2 text-amber-900"><i class="fa-solid fa-pen-to-square"></i> تخصيص وتعديل قالب وصل المبيعات والشراء (HTML / CSS):</label>
+                        <p class="text-xs text-amber-700 mb-2">يمكنك تعديل التصميم، النصوص، والترتيب هنا بحرية تامة وسيتم اعتماده عند الطباعة:</p>
+                        <textarea id="customReceiptTemplateInput" class="w-full border p-3 rounded bg-white text-xs font-mono" rows="6" placeholder="أدخل كود القالب المخصص هنا..."></textarea>
+                        <button onclick="saveCustomReceiptTemplate()" class="mt-2 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-xs font-bold shadow">حفظ قالب الوصل المخصص</button>
+                    </div>
+
                     <div class="mb-6 bg-gray-50 p-4 rounded border"><label class="block font-bold text-sm mb-1">رابط الشعار (Logo URL):</label><input type="text" id="logoUrlInput" placeholder="رابط الصورة..." class="w-full border p-2 rounded bg-white text-sm"></div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="bg-green-50 p-4 rounded border border-green-200 flex flex-col justify-between">
@@ -357,37 +517,42 @@
                             <button onclick="issueVoucher('قبض')" class="w-full bg-green-600 text-white py-2 rounded font-bold text-sm mt-3">طباعة وصل القبض</button>
                         </div>
                         <div class="bg-amber-50 p-4 rounded border border-amber-200 flex flex-col justify-between">
-                            <div><h3 class="font-bold text-amber-800 mb-3">وصل دفع</h3><input type="text" id="vouchSupp" placeholder="اسم الجهة..." class="w-full border p-2 rounded mb-2 bg-white text-sm"><input type="number" id="vouchRecAmount" placeholder="المبلغ..." class="w-full border p-2 rounded mb-2 bg-white text-sm"><textarea id="vouchRecText" class="w-full border p-2 rounded mb-2 bg-white text-sm" rows="2">دفعنا بموجبه إلى السيد.</textarea></div>
+                            <div><h3 class="font-bold text-amber-800 mb-3">وصل دفع</h3><input type="text" id="vouchSupp" placeholder="اسم الجهة..." class="w-full border p-2 rounded mb-2 bg-white text-sm"><input type="number" id="vouchRecAmount" placeholder="المبلغ..." class="w-full border p-2 rounded mb-2 bg-white text-sm"><textarea id="vouchRecText" class="w-full border p-2 rounded mb-2 bg-white text-sm" rows="2">دفعنا بموجبـه إلى السيد.</textarea></div>
                             <button onclick="issueVoucher('دفع')" class="w-full bg-amber-600 text-white py-2 rounded font-bold text-sm mt-3">طباعة وصل الدفع</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 8. المصروفات -->
+            <!-- 9. المصروفات -->
             <div id="expenses-view" class="app-view max-w-5xl mx-auto">
-                <div class="bg-white rounded-lg shadow p-6">
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">المصروفات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
+                    
                     <form id="addExpenseForm" onsubmit="saveExpense(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <input type="text" id="expDesc" required placeholder="الوصف" class="border p-2 rounded">
-                        <input type="number" id="expAmount" required placeholder="المبلغ" class="border p-2 rounded">
+                        <input type="text" id="expDesc" required placeholder="وصف المصروف..." class="border p-2 rounded">
+                        <input type="number" id="expAmount" required placeholder="المبلغ..." class="border p-2 rounded">
                         <button type="submit" class="bg-[#8cc63f] text-white font-bold py-2 rounded">إضافة مصروف</button>
                     </form>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">الوصف</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th></tr></thead>
-                        <tbody id="expensesTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[400px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">الوصف</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th><th class="p-3 border text-center">إجراء</th></tr></thead>
+                            <tbody id="expensesTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <!-- 9. سجل الرقابة -->
+            <!-- 10. سجل الرقابة -->
             <div id="audit-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-lg shadow p-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-red-600">سجل الرقابة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button></div>
-                    <table class="w-full text-right border-collapse">
-                        <thead><tr class="bg-gray-100"><th class="p-3 border">النوع</th><th class="p-3 border">التفاصيل</th><th class="p-3 border">الوقت</th></tr></thead>
-                        <tbody id="auditTableBody"></tbody>
-                    </table>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[500px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">النوع</th><th class="p-3 border">التفاصيل</th><th class="p-3 border">الوقت</th></tr></thead>
+                            <tbody id="auditTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -401,8 +566,20 @@
         const MASTER_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymoU1aupzGe0xYzU1cEbbmZYvvneN0SnB9r3nxzpMyd8fGBmfTo05byAcfdpR8DcA_Ww/exec";
         
         let currentStoreUser = localStorage.getItem('iStoreCurrentStore') || null;
-        let inventory = [], salesHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], invoiceTotal = 0, currentActiveCustomer = null, customLogoUrl = "";
+        let inventory = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], invoiceTotal = 0, currentActiveCustomer = null, customLogoUrl = "";
+        let fixedItems = [];
+        let customReceiptTemplate = "";
         let pendingResetUser = "";
+        let lastCompletedSale = null;
+
+        function toggleMobileSidebar(forceClose = false) {
+            const sidebar = document.getElementById('sidebar');
+            if (forceClose) {
+                sidebar.classList.add('translate-x-full');
+            } else {
+                sidebar.classList.toggle('translate-x-full');
+            }
+        }
 
         function showIndicator(text, isError = false) {
             const indicator = document.getElementById('save-indicator');
@@ -480,7 +657,7 @@
                 localStorage.setItem('iStoreCurrentStore', u);
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
-                inventory = []; salesHistory = []; expensesList = []; debtsList = []; myDebtsList = []; auditLog = [];
+                inventory = []; salesHistory = []; returnsHistory = []; expensesList = []; debtsList = []; myDebtsList = []; auditLog = []; fixedItems = [];
                 refreshAllUI();
                 hideIndicator("تم إنشاء المحل بنجاح ✓");
             }).catch(err => {
@@ -544,12 +721,16 @@
             if(storeData) {
                 inventory = storeData.inventory || [];
                 salesHistory = storeData.salesHistory || [];
+                returnsHistory = storeData.returnsHistory || [];
                 expensesList = storeData.expensesList || [];
                 debtsList = storeData.debtsList || [];
                 myDebtsList = storeData.myDebtsList || [];
                 auditLog = storeData.auditLog || [];
+                fixedItems = storeData.fixedItems || [];
                 customLogoUrl = storeData.customLogoUrl || "";
+                customReceiptTemplate = storeData.customReceiptTemplate || "";
                 document.getElementById('logoUrlInput').value = customLogoUrl;
+                document.getElementById('customReceiptTemplateInput').value = customReceiptTemplate;
                 localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(storeData));
             }
             refreshAllUI();
@@ -557,7 +738,7 @@
 
         function saveDataToCloud() {
             if(!currentStoreUser) return;
-            const appData = { inventory, salesHistory, expensesList, debtsList, myDebtsList, auditLog, customLogoUrl };
+            const appData = { inventory, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, customLogoUrl, customReceiptTemplate };
             localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(appData));
             showIndicator("جاري الحفظ والمزامنة...");
             fetch(MASTER_WEB_APP_URL, {
@@ -582,20 +763,26 @@
                     const appData = JSON.parse(dataStr);
                     inventory = appData.inventory || [];
                     salesHistory = appData.salesHistory || [];
+                    returnsHistory = appData.returnsHistory || [];
                     expensesList = appData.expensesList || [];
                     debtsList = appData.debtsList || [];
                     myDebtsList = appData.myDebtsList || [];
                     auditLog = appData.auditLog || [];
+                    fixedItems = appData.fixedItems || [];
                     customLogoUrl = appData.customLogoUrl || "";
+                    customReceiptTemplate = appData.customReceiptTemplate || "";
                     document.getElementById('logoUrlInput').value = customLogoUrl;
+                    document.getElementById('customReceiptTemplateInput').value = customReceiptTemplate;
                 } catch(e) {}
             }
             refreshAllUI();
         }
 
         function refreshAllUI() {
-            updateInventoryTable(); updatePOSGrid(); updateSalesTable();
+            updateInventoryTable(); updatePOSGrid(); updateSalesTable(); updateReturnsTable();
             updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable();
+            updateVariableTable(); updateFixedTable();
+            if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer);
         }
 
         window.onload = function() {
@@ -628,12 +815,83 @@
             }
         }
 
+        function editItem(index) {
+            let item = inventory[index];
+            let newName = prompt("تعديل اسم المادة:", item.name);
+            if(newName === null) return;
+            let newQty = prompt("تعديل الكمية:", item.quantity);
+            if(newQty === null) return;
+            let newBuy = prompt("تعديل سعر الشراء:", item.buyPrice || 0);
+            if(newBuy === null) return;
+            let newPrice = prompt("تعديل سعر البيع:", item.price);
+            if(newPrice === null) return;
+
+            let oldDetails = `${item.name} (كمية: ${item.quantity}, شراء: ${item.buyPrice||0}, بيع: ${item.price})`;
+            
+            item.name = newName.trim();
+            item.quantity = Number(newQty);
+            item.buyPrice = Number(newBuy);
+            item.price = Number(newPrice);
+
+            let newDetails = `${item.name} (كمية: ${item.quantity}, شراء: ${item.buyPrice}, بيع: ${item.price})`;
+            auditLog.unshift({ type: 'تعديل مادة', details: `تعديل من [${oldDetails}] إلى [${newDetails}]`, date: new Date().toLocaleString('ar-IQ') });
+
+            saveDataToCloud();
+            refreshAllUI();
+            alert("تم تعديل المادة وتسجيل التغيير في سجل الرقابة بنجاح!");
+        }
+
         function updateInventoryTable() {
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="5" class="p-4 text-center text-gray-400">لا توجد مواد</td></tr>' : '';
             inventory.forEach((item, index) => {
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-green-600 font-bold">${item.quantity}</td><td class="p-3 border text-gray-600">${(item.buyPrice||0).toLocaleString()} د.ع</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()} د.ع</td><td class="p-3 border text-center"><button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-sm font-bold">حذف</button></td></tr>`;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-green-600 font-bold">${item.quantity}</td><td class="p-3 border text-gray-600">${(item.buyPrice||0).toLocaleString()} د.ع</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()} د.ع</td><td class="p-3 border text-center space-x-2 space-x-reverse"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded text-sm font-bold">تعديل</button><button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-sm font-bold">حذف</button></td></tr>`;
             });
+        }
+
+        function updateVariableTable() {
+            const tbody = document.getElementById('variableTableBody');
+            tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد مواد في المخزن</td></tr>' : '';
+            let totalVariableValue = 0;
+            inventory.forEach((item) => {
+                let itemTotalVal = (item.quantity || 0) * (item.buyPrice || 0);
+                totalVariableValue += itemTotalVal;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-green-600 font-bold">${item.quantity}</td><td class="p-3 border text-gray-600">${(item.buyPrice || 0).toLocaleString()} د.ع</td><td class="p-3 border text-indigo-600 font-bold">${itemTotalVal.toLocaleString()} د.ع</td></tr>`;
+            });
+            document.getElementById('totalVariableDisplay').innerText = totalVariableValue.toLocaleString() + ' د.ع';
+        }
+
+        function saveFixedItem(event) {
+            event.preventDefault();
+            let name = document.getElementById('fixedItemName').value.trim();
+            let price = Number(document.getElementById('fixedItemPrice').value);
+            fixedItems.push({ name, price, date: new Date().toLocaleDateString('ar-IQ') });
+            auditLog.unshift({ type: 'إضافة معدة ثابتة', details: `إضافة: ${name} بقيمة ${price.toLocaleString()} د.ع`, date: new Date().toLocaleString('ar-IQ') });
+            document.getElementById('addFixedItemForm').reset();
+            saveDataToCloud();
+            updateFixedTable();
+            updateAuditTable();
+        }
+
+        function deleteFixedItem(index) {
+            if(confirm("حذف هذه المعدة الثابتة؟")) {
+                let deleted = fixedItems.splice(index, 1)[0];
+                auditLog.unshift({ type: 'حذف معدة ثابتة', details: `حذف: ${deleted.name}`, date: new Date().toLocaleString('ar-IQ') });
+                saveDataToCloud();
+                updateFixedTable();
+                updateAuditTable();
+            }
+        }
+
+        function updateFixedTable() {
+            const tbody = document.getElementById('fixedTableBody');
+            tbody.innerHTML = fixedItems.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد معدات ثابتة مسجلة</td></tr>' : '';
+            let total = 0;
+            fixedItems.forEach((item, idx) => {
+                total += item.price;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${item.price.toLocaleString()} د.ع</td><td class="p-3 border text-sm text-gray-500">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-xs font-bold">حذف</button></td></tr>`;
+            });
+            document.getElementById('totalFixedDisplay').innerText = total.toLocaleString() + ' د.ع';
         }
 
         function updatePOSGrid() {
@@ -682,16 +940,63 @@
             document.getElementById('customerInputDiv').style.display = type === 'debt' ? 'block' : 'none';
         }
 
+        function filterCustomerSearch() {
+            let query = document.getElementById('posCustomerName').value.trim().toLowerCase();
+            let dropdown = document.getElementById('customerSearchDropdown');
+            let customersMap = {};
+            debtsList.forEach(d => { if(!customersMap[d.customer]) customersMap[d.customer] = 0; });
+            let uniqueCusts = Object.keys(customersMap);
+
+            if(!query || uniqueCusts.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            let filtered = uniqueCusts.filter(c => c.toLowerCase().includes(query));
+            if(filtered.length === 0) {
+                dropdown.classList.add('hidden');
+                return;
+            }
+
+            dropdown.innerHTML = '';
+            filtered.forEach(cust => {
+                dropdown.innerHTML += `<div onclick="selectCustomerFromDropdown('${cust}')" class="p-2.5 hover:bg-gray-100 cursor-pointer font-bold text-sm border-b">${cust}</div>`;
+            });
+            dropdown.classList.remove('hidden');
+        }
+
+        function selectCustomerFromDropdown(name) {
+            document.getElementById('posCustomerName').value = name;
+            document.getElementById('customerSearchDropdown').classList.add('hidden');
+        }
+
         function checkout() {
             if(invoiceTotal === 0) return alert("الفاتورة فارغة!");
             let saleType = document.getElementById('saleType').value;
             let customerName = document.getElementById('posCustomerName').value.trim();
             if(saleType === 'debt' && !customerName) return alert("أدخل اسم الزبون!");
+            
+            // خصم الكميات من المخزن عند البيع
+            currentInvoiceItems.forEach(invItem => {
+                let storeItem = inventory.find(i => i.name === invItem.name);
+                if(storeItem) {
+                    storeItem.quantity = Math.max(0, storeItem.quantity - 1);
+                }
+            });
+
             let totalBuyCost = currentInvoiceItems.reduce((sum, i) => sum + (i.buyPrice || 0), 0);
             let invoiceProfit = invoiceTotal - totalBuyCost;
             let itemsNamesStr = currentInvoiceItems.map(i => `${i.name}`).join(', ');
 
-            let saleRecord = { id: Math.floor(Math.random() * 1000000), type: saleType === 'cash' ? 'نقدي' : 'آجل', customer: saleType === 'debt' ? customerName : 'زبون نقدي', date: new Date().toLocaleString('ar-IQ'), total: invoiceTotal, profit: invoiceProfit, items: [...currentInvoiceItems], returned: false };
+            let saleRecord = { 
+                id: Math.floor(Math.random() * 1000000), 
+                type: saleType === 'cash' ? 'نقدي' : 'آجل', 
+                customer: saleType === 'debt' ? customerName : 'زبون نقدي', 
+                date: new Date().toLocaleString('ar-IQ'), 
+                total: invoiceTotal, 
+                profit: invoiceProfit, 
+                items: currentInvoiceItems.map(i => ({ ...i, returned: false })) 
+            };
             salesHistory.push(saleRecord);
 
             if(saleType === 'debt') {
@@ -699,39 +1004,209 @@
             }
 
             auditLog.unshift({ type: 'بيع', details: `بيع بقيمة ${invoiceTotal.toLocaleString()} د.ع`, date: new Date().toLocaleString('ar-IQ') });
-            saveDataToCloud(); refreshAllUI();
-            if(saleType === 'cash' && confirm("تمت البيعة! هل تريد الطباعة؟")) printSaleReceipt(saleRecord);
-            currentInvoiceItems = []; invoiceTotal = 0; document.getElementById('posCustomerName').value = ''; renderInvoice(); switchView('sales-view');
+            saveDataToCloud(); 
+            
+            lastCompletedSale = saleRecord;
+
+            currentInvoiceItems = []; invoiceTotal = 0; document.getElementById('posCustomerName').value = ''; renderInvoice(); 
+            refreshAllUI();
+            
+            // إظهار نافذة خيار طباعة الوصل
+            document.getElementById('print-options-modal').classList.remove('hidden');
         }
 
-        function printSaleReceipt(sale) {
+        function executePrintChoice(shouldPrint) {
+            document.getElementById('print-options-modal').classList.add('hidden');
+            if(shouldPrint && lastCompletedSale) {
+                printSaleReceipt(lastCompletedSale, lastCompletedSale.type === 'آجل' ? lastCompletedSale.customer : null);
+            }
+            lastCompletedSale = null;
+            switchView('sales-view');
+        }
+
+        function printSaleReceipt(sale, customerName) {
             let area = document.getElementById('printable-area');
-            let itemsHtml = sale.items.map(i => `<tr><td>${i.name}</td><td>${i.price.toLocaleString()} د.ع</td></tr>`).join('');
-            let logoImg = customLogoUrl ? `<br/><img src="${customLogoUrl}" style="max-height: 80px; margin: 10px auto;" />` : '';
-            area.innerHTML = `<div style="text-align: center; font-family: Tajawal; padding: 25px; direction: rtl;"><h2>iStore - وصل مبيعات</h2><p>رقم الفاتورة: #${sale.id}</p><table style="width: 100%; text-align: right;"><tr><th>المادة</th><th>السعر</th></tr>${itemsHtml}</table><h3>الإجمالي: ${sale.total.toLocaleString()} د.ع</h3>${logoImg}</div>`;
+            let itemsHtml = sale.items.map(i => `<tr><td style="padding:4px; border-bottom:1px solid #eee;">${i.name}</td><td style="padding:4px; border-bottom:1px solid #eee; text-align:left;">${i.price.toLocaleString()} د.ع</td></tr>`).join('');
+            let logoImg = customLogoUrl ? `<img src="${customLogoUrl}" style="max-height: 70px; margin: 10px auto; display:block;" />` : '';
+            
+            let prevDebt = 0;
+            if(customerName) {
+                // حساب الديون السابقة (ما عدا فاتورة البيع الحالية التي أُضيفت للتو)
+                debtsList.filter(d => d.customer === customerName && d.id !== sale.id).forEach(d => { prevDebt += d.amount; });
+            }
+            let grandTotal = sale.total + prevDebt;
+
+            let defaultHtml = `
+            <div style="font-family: Tajawal; padding: 15px; direction: rtl; max-width: 400px; margin: auto; background:#fff;">
+                ${logoImg}
+                <h2 style="text-align: center; margin: 5px 0; font-size:18px;">iStore - وصل مبيعات</h2>
+                <p style="text-align: center; font-size:12px; color:#555;">رقم الفاتورة: #${sale.id} | التاريخ: ${sale.date}</p>
+                ${customerName ? `<p style="font-size:13px; font-weight:bold;">الزبون: ${customerName}</p>` : ''}
+                <hr style="border: 1px dashed #000; margin: 8px 0;">
+                <table style="width: 100%; font-size:13px; border-collapse: collapse;">
+                    <thead><tr style="background:#f3f4f6;"><th style="text-align:right; padding:4px;">المادة المأخوذة</th><th style="text-align:left; padding:4px;">السعر</th></tr></thead>
+                    <tbody>${itemsHtml}</tbody>
+                </table>
+                <hr style="border: 1px dashed #000; margin: 8px 0;">
+                <div style="font-size: 13px;">
+                    <p style="display:flex; justify-content:space-between; margin:4px 0;"><strong>مجموع المشتريات الحالية:</strong> <span>${sale.total.toLocaleString()} د.ع</span></p>
+                    ${customerName ? `
+                        <p style="display:flex; justify-content:space-between; margin:4px 0; color: #b91c1c;"><strong>الديون السابقة:</strong> <span>${prevDebt.toLocaleString()} د.ع</span></p>
+                        <p style="display:flex; justify-content:space-between; margin:4px 0; font-size:15px; font-weight:bold; color: #1d4ed8; border-top:1px solid #ddd; padding-top:4px; margin-top:4px;"><strong>المجموع الكلي:</strong> <span>${grandTotal.toLocaleString()} د.ع</span></p>
+                    ` : ''}
+                </div>
+                <p style="text-align: center; margin-top: 15px; font-size: 11px; color: #777;">شكراً لتعاملكم معنا</p>
+            </div>`;
+
+            if(customReceiptTemplate && customReceiptTemplate.trim() !== '') {
+                let customHtml = customReceiptTemplate
+                    .replace(/{invoiceId}/g, sale.id)
+                    .replace(/{date}/g, sale.date)
+                    .replace(/{customer}/g, customerName || 'زبون نقدي')
+                    .replace(/{items}/g, itemsHtml)
+                    .replace(/{total}/g, sale.total.toLocaleString())
+                    .replace(/{prevDebt}/g, prevDebt.toLocaleString())
+                    .replace(/{grandTotal}/g, grandTotal.toLocaleString());
+                area.innerHTML = customHtml;
+            } else {
+                area.innerHTML = defaultHtml;
+            }
+
             window.print();
         }
 
-        function returnSale(saleId) {
-            if(!confirm("إلغاء الفاتورة (راجع)؟")) return;
+        function saveCustomReceiptTemplate() {
+            customReceiptTemplate = document.getElementById('customReceiptTemplateInput').value;
+            saveDataToCloud();
+            alert("تم حفظ قالب الوصل المخصص بنجاح!");
+        }
+
+        function returnSingleItem(saleId, itemIndex) {
             let sale = salesHistory.find(s => s.id === saleId);
-            if(!sale || sale.returned) return;
-            sale.returned = true; sale.profit = 0; sale.total = 0;
-            saveDataToCloud(); refreshAllUI(); alert("تم الراجع بنجاح");
+            if(!sale || sale.items[itemIndex].returned) return;
+
+            let item = sale.items[itemIndex];
+            let isDamaged = confirm(`هل المنتج (${item.name}) تالف؟ \n\n[موافق] = تالف (يُحسب ضمن الخسائر)\n[إلغاء] = راجع طبيعي (يرجع للمخزن تلقائياً)`);
+
+            item.returned = true;
+
+            if(!isDamaged) {
+                let storeItem = inventory.find(i => i.name === item.name);
+                if(storeItem) {
+                    storeItem.quantity += 1;
+                } else {
+                    inventory.push({ name: item.name, quantity: 1, buyPrice: item.buyPrice || 0, price: item.price });
+                }
+            }
+
+            returnsHistory.unshift({
+                invoiceId: sale.id,
+                customer: sale.customer,
+                itemName: item.name,
+                status: isDamaged ? 'تالف' : 'راجع طبيعي',
+                lossAmount: isDamaged ? (item.buyPrice || 0) : 0,
+                date: new Date().toLocaleString('ar-IQ')
+            });
+
+            auditLog.unshift({ 
+                type: 'مرتجعات (راجع فردي)', 
+                details: `إرجاع المنتج (${item.name}) من الفاتورة #${sale.id} (${isDamaged ? 'تالف' : 'راجع طبيعي - رجع للمخزن'})`, 
+                date: new Date().toLocaleString('ar-IQ') 
+            });
+
+            saveDataToCloud(); 
+            refreshAllUI(); 
+            alert(`تم إرجاع المنتج (${item.name}) بمفرده بنجاح!`);
+        }
+
+        function toggleReturnStatus(index) {
+            let ret = returnsHistory[index];
+            let storeItem = inventory.find(i => i.name === ret.itemName);
+
+            if(ret.status === 'تالف') {
+                ret.status = 'راجع طبيعي';
+                ret.lossAmount = 0;
+                if(storeItem) {
+                    storeItem.quantity += 1;
+                } else {
+                    inventory.push({ name: ret.itemName, quantity: 1, buyPrice: 0, price: 0 });
+                }
+            } else {
+                let sale = salesHistory.find(s => s.id === ret.invoiceId);
+                let targetItem = sale ? sale.items.find(i => i.name === ret.itemName) : null;
+                ret.status = 'تالف';
+                ret.lossAmount = targetItem ? (targetItem.buyPrice || 0) : 0;
+                if(storeItem) {
+                    storeItem.quantity = Math.max(0, storeItem.quantity - 1);
+                }
+            }
+            saveDataToCloud();
+            refreshAllUI();
         }
 
         function updateSalesTable() {
             const tbody = document.getElementById('salesTableBody');
-            tbody.innerHTML = salesHistory.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد مبيعات</td></tr>' : '';
-            let totalSales = 0, grossProfit = 0, totalExpenses = 0;
+            tbody.innerHTML = '';
+            let totalSales = 0, grossProfit = 0, totalExpenses = 0, totalDamagedLoss = 0;
+
             expensesList.forEach(e => totalExpenses += e.amount);
+            returnsHistory.forEach(r => totalDamagedLoss += (r.lossAmount || 0));
+
+            if(salesHistory.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد مبيعات</td></tr>';
+            }
+
             salesHistory.forEach(s => {
-                if(!s.returned) { totalSales += s.total; grossProfit += (s.profit || 0); }
-                tbody.innerHTML += `<tr class="border-b bg-white ${s.returned ? 'bg-red-50 text-gray-400 line-through' : ''}"><td class="p-3 border font-bold">#${s.id}</td><td class="p-3 border">${s.type}</td><td class="p-3 border">${s.customer}</td><td class="p-3 border text-sm">${s.items.map(i=>i.name).join(', ')}</td><td class="p-3 border font-bold text-fuchsia-600">${s.total.toLocaleString()} د.ع</td><td class="p-3 border font-bold text-green-600">${(s.profit||0).toLocaleString()} د.ع</td><td class="p-3 border text-center">${!s.returned ? `<button onclick="returnSale(${s.id})" class="bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold">راجع</button>` : 'ملغاة'}</td></tr>`;
+                s.items.forEach((item, itemIdx) => {
+                    let itemBuy = item.buyPrice || 0;
+                    let itemProfit = item.price - itemBuy;
+
+                    if(!item.returned) { 
+                        totalSales += item.price; 
+                        grossProfit += itemProfit; 
+                    }
+
+                    tbody.innerHTML += `
+                        <tr class="border-b bg-white ${item.returned ? 'bg-red-50 text-gray-400 line-through' : ''}">
+                            <td class="p-3 border font-bold">#${s.id}</td>
+                            <td class="p-3 border">${s.type}</td>
+                            <td class="p-3 border">${s.customer}</td>
+                            <td class="p-3 border font-bold text-gray-800">${item.name}</td>
+                            <td class="p-3 border font-bold text-fuchsia-600">${item.price.toLocaleString()} د.ع</td>
+                            <td class="p-3 border font-bold text-green-600">${itemProfit.toLocaleString()} د.ع</td>
+                            <td class="p-3 border text-center">
+                                ${!item.returned ? `<button onclick="returnSingleItem(${s.id},${itemIdx})" class="bg-red-100 hover:bg-red-200 text-red-600 px-3 py-1 rounded text-xs font-bold transition">إرجاع هذا المنتج</button>` : '<span class="text-xs text-red-500 font-bold">مرتجع</span>'}
+                            </td>
+                        </tr>`;
+                });
             });
+            
+            let netTotalWithExpensesAndLoss = grossProfit - totalExpenses - totalDamagedLoss;
+
             document.getElementById('totalSalesDisplay').innerText = totalSales.toLocaleString() + ' د.ع';
             document.getElementById('grossProfitDisplay').innerText = grossProfit.toLocaleString() + ' د.ع';
-            document.getElementById('netProfitDisplay').innerText = (grossProfit - totalExpenses).toLocaleString() + ' د.ع';
+            document.getElementById('netProfitDisplay').innerText = netTotalWithExpensesAndLoss.toLocaleString() + ' د.ع';
+        }
+
+        function updateReturnsTable() {
+            const tbody = document.getElementById('returnsTableBody');
+            tbody.innerHTML = returnsHistory.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد مرتجعات مسجلة</td></tr>' : '';
+            returnsHistory.forEach((ret, idx) => {
+                let statusBadge = ret.status === 'تالف' 
+                    ? `<span class="bg-red-100 text-red-700 px-2.5 py-1 rounded-full text-xs font-bold">تالف (خسارة)</span>` 
+                    : `<span class="bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full text-xs font-bold">راجع طبيعي (بالمخزن)</span>`;
+
+                tbody.innerHTML += `<tr class="border-b bg-white return-row" data-search="${(ret.itemName + ' ' + ret.customer).toLowerCase()}"><td class="p-3 border font-bold text-red-600">#${ret.invoiceId}</td><td class="p-3 border">${ret.customer}</td><td class="p-3 border text-sm font-bold text-gray-800">${ret.itemName}</td><td class="p-3 border">${statusBadge}</td><td class="p-3 border font-bold">${ret.lossAmount > 0 ? ret.lossAmount.toLocaleString() + ' د.ع' : '0 د.ع'}</td><td class="p-3 border text-sm text-gray-500">${ret.date}</td><td class="p-3 border text-center"><button onclick="toggleReturnStatus(${idx})" class="bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1 rounded text-xs font-bold transition">تبديل الحالة</button></td></tr>`;
+            });
+        }
+
+        function filterReturnsTable() {
+            let input = document.getElementById('searchReturnsInput').value.toLowerCase();
+            let rows = document.getElementsByClassName('return-row');
+            for(let i=0; i<rows.length; i++) {
+                let text = rows[i].getAttribute('data-search');
+                rows[i].style.display = text.includes(input) ? '' : 'none';
+            }
         }
 
         function addNewCustomerAccount() {
@@ -780,38 +1255,133 @@
             saveDataToCloud(); alert("تم التحديث"); openCustomerDetail(newName);
         }
 
+        function addExternalItemDebt() {
+            let desc = document.getElementById('extItemDesc').value.trim();
+            let amount = Number(document.getElementById('extItemAmount').value);
+            if(!desc || !amount || amount <= 0) return alert("يرجى إدخال الوصف والمبلغ بشكل صحيح!");
+            debtsList.push({ id: Math.floor(Math.random() * 1000000), customer: currentActiveCustomer, amount: amount, date: new Date().toLocaleDateString('ar-IQ'), details: `خدمة خارجية: ${desc}` });
+            document.getElementById('extItemDesc').value = '';
+            document.getElementById('extItemAmount').value = '';
+            saveDataToCloud();
+            refreshAllUI();
+            alert("تم إضافة الخدمة الخارجية إلى دين الزبون بنجاح!");
+        }
+
         function quickPayDebt() {
             let amount = Number(document.getElementById('quickPayAmount').value);
             if(!amount || amount <= 0) return alert("أدخل مبلغاً صحيحاً!");
-            debtsList.push({ id: Math.floor(Math.random() * 1000000), customer: currentActiveCustomer, amount: -amount, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض` });
+            debtsList.push({ id: Math.floor(Math.random() * 1000000), customer: currentActiveCustomer, amount: -amount, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد)` });
             saveDataToCloud(); document.getElementById('quickPayAmount').value = ''; alert("تم القبض"); openCustomerDetail(currentActiveCustomer);
         }
 
         function exemptCustomerDebt() {
             let amount = Number(document.getElementById('exemptionAmount').value);
             if(!amount || amount <= 0) return alert("أدخل المبلغ!");
-            debtsList.push({ id: Math.floor(Math.random() * 1000000), customer: currentActiveCustomer, amount: -amount, date: new Date().toLocaleDateString('ar-IQ'), details: `إعفاء` });
+            debtsList.push({ id: Math.floor(Math.random() * 1000000), customer: currentActiveCustomer, amount: -amount, date: new Date().toLocaleDateString('ar-IQ'), details: `إعفاء (خصم)` });
             saveDataToCloud(); document.getElementById('exemptionAmount').value = ''; alert("تم الإعفاء"); openCustomerDetail(currentActiveCustomer);
+        }
+
+        function printCustomerVoucher(type) {
+            customLogoUrl = document.getElementById('logoUrlInput').value.trim();
+            let amountStr = prompt(`أدخل مبلغ وصل الـ (${type}) للزبون ${currentActiveCustomer}:`);
+            let amount = Number(amountStr);
+            if(isNaN(amount) || amount <= 0) return;
+            
+            let area = document.getElementById('printable-area');
+            let title = type === 'قبض' ? 'وصل قبض نقدي' : 'وصل شراء / خدمات';
+            let desc = type === 'قبض' ? 'استلمنا من السيد (ة):' : 'خدمات ومشتريات السيد (ة):';
+            
+            area.innerHTML = `<div style="text-align: center; font-family: Tajawal; padding: 25px; direction: rtl; max-width: 400px; margin: auto;">
+                <h2>iStore - ${title}</h2>
+                <hr style="border: 1px dashed #000; margin: 10px 0;">
+                <p><strong>التاريخ:</strong> ${new Date().toLocaleString('ar-IQ')}</p>
+                <p><strong>${desc}</strong> ${currentActiveCustomer}</p>
+                <h3 style="background: #f3f4f6; padding: 10px; border-radius: 5px;">المبلغ: ${amount.toLocaleString()} د.ع</h3>
+                ${customLogoUrl?`<img src="${customLogoUrl}" style="max-height:70px;margin:15px auto;display:block;" />`:''}
+                <p style="margin-top: 30px; font-size: 12px; color: #666;">التوقيع / الختم: ........................</p>
+            </div>`;
+            window.print();
+        }
+
+        function printA4StatementOfAccount() {
+            customLogoUrl = document.getElementById('logoUrlInput').value.trim();
+            let customerTransactions = debtsList.filter(d => d.customer === currentActiveCustomer);
+            let totalDebt = 0;
+            customerTransactions.forEach(d => totalDebt += d.amount);
+
+            let rowsHtml = customerTransactions.map(d => `<tr><td style="border:1px solid #ddd; padding:8px;">${d.date}</td><td style="border:1px solid #ddd; padding:8px;">${d.details}</td><td style="border:1px solid #ddd; padding:8px; font-weight:bold; color:${d.amount<0?'green':'red'};">${d.amount.toLocaleString()} د.ع</td></tr>`).join('');
+
+            let area = document.getElementById('printable-area');
+            area.innerHTML = `<div style="font-family: Tajawal; padding: 40px; direction: rtl; max-width: 800px; margin: auto; background: #fff;">
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #333; padding-bottom: 15px; margin-bottom: 20px;">
+                    <div>
+                        <h1 style="margin: 0; font-size: 24px; color: #1d71b8;">كشف حساب زبون تفصيلي</h1>
+                        <p style="margin: 5px 0 0; color: #555;">النظام المحاسبي المتكامل - iStore POS</p>
+                    </div>
+                    <div>
+                        ${customLogoUrl?`<img src="${customLogoUrl}" style="max-height: 70px;" />`:''}
+                    </div>
+                </div>
+                <div style="margin-bottom: 20px; background: #f9fafb; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <p style="margin: 5px 0;"><strong>اسم الزبون:</strong> ${currentActiveCustomer}</p>
+                    <p style="margin: 5px 0;"><strong>تاريخ إصدار الكشف:</strong> ${new Date().toLocaleString('ar-IQ')}</p>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; text-align: right; margin-bottom: 20px;">
+                    <thead>
+                        <tr style="background-color: #f3f4f6;">
+                            <th style="border:1px solid #ddd; padding:10px;">التاريخ</th>
+                            <th style="border:1px solid #ddd; padding:10px;">البيان / الحركة</th>
+                            <th style="border:1px solid #ddd; padding:10px;">المبلغ (دين / تسديد)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+                <div style="text-align: left; background: #eff6ff; padding: 15px; border-radius: 8px; border: 1px solid #bfdbfe;">
+                    <h3 style="margin: 0; color: #1e40af; font-size: 20px;">إجمالي الذمة المالية الحالية: ${totalDebt.toLocaleString()} د.ع</h3>
+                </div>
+                <div style="display: flex; justify-content: space-between; margin-top: 50px; text-align: center;">
+                    <div><p>توقيع المحاسب</p><br>----------------------</div>
+                    <div><p>توقيع واستلام الزبون</p><br>----------------------</div>
+                </div>
+            </div>`;
+            window.print();
         }
 
         function saveMyDebt(event) {
             event.preventDefault();
-            myDebtsList.push({ id: Math.floor(Math.random() * 1000000), supplier: document.getElementById('myDebtSupplier').value.trim(), amount: Number(document.getElementById('myDebtAmount').value), date: new Date().toLocaleDateString('ar-IQ') });
-            document.getElementById('addMyDebtForm').reset(); saveDataToCloud(); updateMyDebtsTable();
+            let supplier = document.getElementById('myDebtSupplier').value.trim();
+            let amount = Number(document.getElementById('myDebtAmount').value);
+            if(!supplier || isNaN(amount)) return alert("يرجى إدخال اسم المجهّز والمبلغ بشكل صحيح!");
+            
+            myDebtsList.push({ id: Math.floor(Math.random() * 1000000), supplier: supplier, amount: amount, date: new Date().toLocaleDateString('ar-IQ') });
+            document.getElementById('addMyDebtForm').reset(); 
+            saveDataToCloud(); 
+            updateMyDebtsTable();
+            alert("تم تسجيل الدين بنجاح!");
         }
 
         function payMyDebt(index) {
-            if(confirm("تسديد وإزالة؟")) { myDebtsList.splice(index, 1); saveDataToCloud(); updateMyDebtsTable(); }
+            if(confirm("هل تريد تسديد هذا الدين وإزالته؟")) { 
+                myDebtsList.splice(index, 1); 
+                saveDataToCloud(); 
+                updateMyDebtsTable(); 
+            }
         }
 
         function updateMyDebtsTable() {
             const tbody = document.getElementById('myDebtsTableBody');
-            tbody.innerHTML = ''; let total = 0;
-            if(myDebtsList.length === 0) tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد ديون</td></tr>';
-            myDebtsList.forEach((d, idx) => {
-                total += d.amount;
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${d.supplier}</td><td class="p-3 border text-red-600 font-bold">${d.amount.toLocaleString()} د.ع</td><td class="p-3 border text-sm">${d.date}</td><td class="p-3 border text-center"><button onclick="payMyDebt(${idx})" class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold">سداد</button></td></tr>`;
-            });
+            tbody.innerHTML = ''; 
+            let total = 0;
+            if(!myDebtsList || myDebtsList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد ديون مسجلة</td></tr>';
+            } else {
+                myDebtsList.forEach((d, idx) => {
+                    total += Number(d.amount || 0);
+                    tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${d.supplier}</td><td class="p-3 border text-red-600 font-bold">${Number(d.amount).toLocaleString()} د.ع</td><td class="p-3 border text-sm">${d.date}</td><td class="p-3 border text-center"><button onclick="payMyDebt(${idx})" class="bg-green-100 text-green-700 px-3 py-1 rounded text-xs font-bold cursor-pointer">سداد</button></td></tr>`;
+                });
+            }
             document.getElementById('totalMyDebtsDisplay').innerText = total.toLocaleString() + ' د.ع';
         }
 
@@ -832,11 +1402,20 @@
             document.getElementById('addExpenseForm').reset(); saveDataToCloud(); refreshAllUI();
         }
 
+        function deleteExpense(index) {
+            if(confirm("حذف هذا المصروف؟")) {
+                expensesList.splice(index, 1);
+                saveDataToCloud();
+                refreshAllUI();
+            }
+        }
+
         function updateExpensesTable() {
             const tbody = document.getElementById('expensesTableBody');
-            tbody.innerHTML = expensesList.length === 0 ? '<tr><td colspan="3" class="p-4 text-center text-gray-400">لا توجد مصروفات</td></tr>' : '';
-            expensesList.forEach(exp => {
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${exp.desc}</td><td class="p-3 border text-red-500 font-bold">${exp.amount.toLocaleString()} د.ع</td><td class="p-3 border text-sm">${exp.date}</td></tr>`;
+            tbody.innerHTML = expensesList.length === 0 ? '<tr><td colspan="4" class="p-4 text-center text-gray-400">لا توجد مصروفات إضافية</td></tr>' : '';
+
+            expensesList.forEach((exp, idx) => {
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${exp.desc}</td><td class="p-3 border text-red-500 font-bold">${exp.amount.toLocaleString()} د.ع</td><td class="p-3 border text-sm">${exp.date}</td><td class="p-3 border text-center"><button onclick="deleteExpense(${idx})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-xs font-bold">حذف</button></td></tr>`;
             });
         }
 
