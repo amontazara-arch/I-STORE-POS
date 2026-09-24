@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>iStore POS & ERP System</title>
+    <!-- الأيقونة الأصلية للشعار (الدائرة البرتقالية وحرف i المودرن) للابتوب والمتصفح -->
+    <link rel="icon" type="image/png" href="https://i.ibb.co/6Z802g3/istore-logo.png">
+    <link rel="apple-touch-icon" href="https://i.ibb.co/6Z802g3/istore-logo.png">
     <!-- إعدادات PWA وتثبيت التطبيق بالأيقونة الأصلية المطابقة لشعارك -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
@@ -303,24 +306,43 @@
 
             <!-- 2. المخزن -->
             <div id="add-item-view" class="app-view max-w-5xl mx-auto">
+                <!-- قسم إدارة أيقونات وأقسام المواد -->
                 <div class="bg-white rounded-lg shadow p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h2 class="text-xl font-bold">إدارة المخزن وإضافة المواد</h2>
+                        <h2 class="text-xl font-bold text-orange-600"><i class="fa-solid fa-icons"></i> إدارة أقسام وأيقونات المواد (اكسسوارات، شاشات، إلخ)</h2>
                         <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded text-sm">عودة</button>
                     </div>
-                    <form id="addItemForm" onsubmit="saveItem(event)" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <form id="addCategoryForm" onsubmit="saveCategory(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <input type="text" id="catName" required placeholder="اسم القسم (مثل: اكسسوارات، شاشات)..." class="border p-3 rounded">
+                        <input type="text" id="catImage" placeholder="رابط صورة الأيقونة (اختياري)..." class="border p-3 rounded">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white font-bold py-3 rounded">إضافة قسم جديد</button>
+                    </form>
+                    <div id="categoriesListContainer" class="flex flex-wrap gap-3 mt-4"></div>
+                </div>
+
+                <!-- قسم إضافة المواد -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold">إضافة مادة جديدة للمخزن</h2>
+                    </div>
+                    <form id="addItemForm" onsubmit="saveItem(event)" class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <input type="text" id="itemName" required placeholder="اسم المادة" class="border p-3 rounded">
+                        <select id="itemCategorySelect" required class="border p-3 rounded bg-white font-bold text-gray-700">
+                            <option value="">اختر القسم / الأيقونة...</option>
+                        </select>
+                        <input type="text" id="itemImage" placeholder="رابط صورة المادة (اختياري)..." class="border p-3 rounded">
                         <input type="number" id="itemQuantity" required placeholder="الكمية الافتتاحية" class="border p-3 rounded">
                         <input type="number" id="itemBuyPrice" required placeholder="سعر الشراء" class="border p-3 rounded">
                         <input type="number" id="itemPrice" required placeholder="سعر البيع" class="border p-3 rounded">
                         <button type="submit" class="col-span-full bg-orange-500 text-white font-bold py-3 rounded">حفظ المادة في المخزن</button>
                     </form>
                 </div>
+
                 <div class="bg-white rounded-lg shadow p-6">
-                    <h3 class="font-bold mb-4">المواد المتوفرة</h3>
+                    <h3 class="font-bold mb-4">المواد المتوفرة في المخزن</h3>
                     <div class="overflow-x-auto">
-                        <table class="w-full text-right border-collapse min-w-[600px]">
-                            <thead><tr class="bg-gray-100"><th class="p-3 border">المادة</th><th class="p-3 border">الكمية</th><th class="p-3 border">سعر الشراء</th><th class="p-3 border">سعر البيع</th><th class="p-3 border text-center">إجراءات</th></tr></thead>
+                        <table class="w-full text-right border-collapse min-w-[700px]">
+                            <thead><tr class="bg-gray-100"><th class="p-3 border">الصورة</th><th class="p-3 border">المادة</th><th class="p-3 border">القسم</th><th class="p-3 border">الكمية</th><th class="p-3 border">سعر الشراء</th><th class="p-3 border">سعر البيع</th><th class="p-3 border text-center">إجراءات</th></tr></thead>
                             <tbody id="inventoryTableBody"></tbody>
                         </table>
                     </div>
@@ -335,7 +357,20 @@
                 </div>
                 <div class="flex flex-col lg:flex-row gap-6">
                     <div class="w-full lg:w-2/3 bg-white p-4 rounded shadow">
-                        <input type="text" id="searchPos" onkeyup="filterPOS()" placeholder="🔍 ابحث عن مادة في المخزن..." class="w-full border p-3 mb-4 rounded bg-gray-50 font-bold">
+                        <!-- حقل البحث الشامل (يظهر المادة حتى من خارج الأيقونات) -->
+                        <div class="mb-4">
+                            <input type="text" id="searchPos" onkeyup="filterPOS()" placeholder="🔍 ابحث عن أي مادة في المخزن (شامل لكل الأقسام)..." class="w-full border p-3 rounded-lg bg-gray-50 font-bold border-orange-400 focus:ring-2 focus:ring-orange-500 outline-none">
+                        </div>
+
+                        <!-- عرض الأيقونات / الأقسام -->
+                        <div id="pos-categories-container" class="mb-4 flex flex-wrap gap-3"></div>
+
+                        <!-- زر الرجوع لكل الأقسام إذا كنا داخل قسم معين -->
+                        <div id="pos-back-bar" class="hidden mb-4">
+                            <button onclick="clearCategorySelection()" class="bg-gray-800 text-white px-4 py-2 rounded-lg text-sm font-bold"><i class="fa-solid fa-arrow-right"></i> العودة لكل الأقسام</button>
+                        </div>
+
+                        <!-- شبكة عرض المواد (داخل القسم أو النتائج) -->
                         <div id="pos-items-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
                     </div>
                     <div class="w-full lg:w-1/3 bg-white p-4 rounded shadow flex flex-col">
@@ -566,11 +601,12 @@
         const MASTER_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymoU1aupzGe0xYzU1cEbbmZYvvneN0SnB9r3nxzpMyd8fGBmfTo05byAcfdpR8DcA_Ww/exec";
         
         let currentStoreUser = localStorage.getItem('iStoreCurrentStore') || null;
-        let inventory = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], invoiceTotal = 0, currentActiveCustomer = null, customLogoUrl = "";
+        let inventory = [], categoriesList = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], invoiceTotal = 0, currentActiveCustomer = null, customLogoUrl = "";
         let fixedItems = [];
         let customReceiptTemplate = "";
         let pendingResetUser = "";
         let lastCompletedSale = null;
+        let currentSelectedCategory = null;
 
         function toggleMobileSidebar(forceClose = false) {
             const sidebar = document.getElementById('sidebar');
@@ -657,7 +693,7 @@
                 localStorage.setItem('iStoreCurrentStore', u);
                 document.getElementById('auth-screen').classList.add('hidden');
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
-                inventory = []; salesHistory = []; returnsHistory = []; expensesList = []; debtsList = []; myDebtsList = []; auditLog = []; fixedItems = [];
+                inventory = []; categoriesList = []; salesHistory = []; returnsHistory = []; expensesList = []; debtsList = []; myDebtsList = []; auditLog = []; fixedItems = [];
                 refreshAllUI();
                 hideIndicator("تم إنشاء المحل بنجاح ✓");
             }).catch(err => {
@@ -720,6 +756,7 @@
         function loadDataFromServerData(storeData) {
             if(storeData) {
                 inventory = storeData.inventory || [];
+                categoriesList = storeData.categoriesList || [];
                 salesHistory = storeData.salesHistory || [];
                 returnsHistory = storeData.returnsHistory || [];
                 expensesList = storeData.expensesList || [];
@@ -738,7 +775,7 @@
 
         function saveDataToCloud() {
             if(!currentStoreUser) return;
-            const appData = { inventory, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, customLogoUrl, customReceiptTemplate };
+            const appData = { inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, customLogoUrl, customReceiptTemplate };
             localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(appData));
             showIndicator("جاري الحفظ والمزامنة...");
             fetch(MASTER_WEB_APP_URL, {
@@ -762,6 +799,7 @@
                 try {
                     const appData = JSON.parse(dataStr);
                     inventory = appData.inventory || [];
+                    categoriesList = appData.categoriesList || [];
                     salesHistory = appData.salesHistory || [];
                     returnsHistory = appData.returnsHistory || [];
                     expensesList = appData.expensesList || [];
@@ -779,9 +817,18 @@
         }
 
         function refreshAllUI() {
-            updateInventoryTable(); updatePOSGrid(); updateSalesTable(); updateReturnsTable();
-            updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable();
-            updateVariableTable(); updateFixedTable();
+            updateCategoriesUI();
+            updateInventoryTable(); 
+            updatePOSCategories();
+            updatePOSGrid(); 
+            updateSalesTable(); 
+            updateReturnsTable();
+            updateExpensesTable(); 
+            updateCustomersTable(); 
+            updateMyDebtsTable(); 
+            updateAuditTable();
+            updateVariableTable(); 
+            updateFixedTable();
             if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer);
         }
 
@@ -801,10 +848,70 @@
             document.getElementById(viewId).classList.add('active');
         }
 
+        // إدارة الأقسام / الأيقونات
+        function saveCategory(event) {
+            event.preventDefault();
+            let name = document.getElementById('catName').value.trim();
+            let image = document.getElementById('catImage').value.trim();
+            if(!name) return;
+            categoriesList.push({ name, image });
+            document.getElementById('addCategoryForm').reset();
+            saveDataToCloud();
+            refreshAllUI();
+            alert("تم إضافة القسم بنجاح!");
+        }
+
+        function deleteCategory(index) {
+            if(confirm("حذف هذا القسم؟")) {
+                let cat = categoriesList.splice(index, 1)[0];
+                saveDataToCloud();
+                refreshAllUI();
+            }
+        }
+
+        function updateCategoriesUI() {
+            const container = document.getElementById('categoriesListContainer');
+            const select = document.getElementById('itemCategorySelect');
+            
+            container.innerHTML = categoriesList.length === 0 ? '<span class="text-gray-400 text-sm">لا توجد أقسام مسجلة</span>' : '';
+            
+            let previousSelected = select.value;
+
+            select.innerHTML = '<option value="">اختر القسم / الأيقونة...</option>';
+
+            categoriesList.forEach((cat, idx) => {
+                container.innerHTML += `<div class="bg-gray-50 border px-3 py-2 rounded-lg flex items-center gap-2 shadow-sm"><span class="font-bold text-sm">${cat.name}</span><button onclick="deleteCategory(${idx})" class="text-red-500 hover:text-red-700 text-xs ml-2"><i class="fa-solid fa-trash"></i></button></div>`;
+                select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+            });
+
+            if(previousSelected) {
+                select.value = previousSelected;
+            }
+        }
+
         function saveItem(event) {
             event.preventDefault();
-            inventory.push({ name: document.getElementById('itemName').value, quantity: Number(document.getElementById('itemQuantity').value), buyPrice: Number(document.getElementById('itemBuyPrice').value), price: Number(document.getElementById('itemPrice').value) });
-            document.getElementById('addItemForm').reset(); saveDataToCloud(); refreshAllUI();
+            let selectedCat = document.getElementById('itemCategorySelect').value;
+
+            inventory.push({ 
+                name: document.getElementById('itemName').value.trim(), 
+                category: selectedCat,
+                image: document.getElementById('itemImage').value.trim(),
+                quantity: Number(document.getElementById('itemQuantity').value), 
+                buyPrice: Number(document.getElementById('itemBuyPrice').value), 
+                price: Number(document.getElementById('itemPrice').value) 
+            });
+
+            document.getElementById('itemName').value = '';
+            document.getElementById('itemImage').value = '';
+            document.getElementById('itemQuantity').value = '';
+            document.getElementById('itemBuyPrice').value = '';
+            document.getElementById('itemPrice').value = '';
+            
+            document.getElementById('itemCategorySelect').value = selectedCat;
+
+            saveDataToCloud(); 
+            refreshAllUI();
         }
 
         function deleteItem(index) {
@@ -819,6 +926,10 @@
             let item = inventory[index];
             let newName = prompt("تعديل اسم المادة:", item.name);
             if(newName === null) return;
+            let newCat = prompt("تعديل القسم (مثل: اكسسوارات، شاشات):", item.category || "");
+            if(newCat === null) return;
+            let newImg = prompt("تعديل رابط الصورة:", item.image || "");
+            if(newImg === null) return;
             let newQty = prompt("تعديل الكمية:", item.quantity);
             if(newQty === null) return;
             let newBuy = prompt("تعديل سعر الشراء:", item.buyPrice || 0);
@@ -826,26 +937,26 @@
             let newPrice = prompt("تعديل سعر البيع:", item.price);
             if(newPrice === null) return;
 
-            let oldDetails = `${item.name} (كمية: ${item.quantity}, شراء: ${item.buyPrice||0}, بيع: ${item.price})`;
-            
             item.name = newName.trim();
+            item.category = newCat.trim();
+            item.image = newImg.trim();
             item.quantity = Number(newQty);
             item.buyPrice = Number(newBuy);
             item.price = Number(newPrice);
 
-            let newDetails = `${item.name} (كمية: ${item.quantity}, شراء: ${item.buyPrice}, بيع: ${item.price})`;
-            auditLog.unshift({ type: 'تعديل مادة', details: `تعديل من [${oldDetails}] إلى [${newDetails}]`, date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل مادة', details: `تعديل المادة: ${item.name}`, date: new Date().toLocaleString('ar-IQ') });
 
             saveDataToCloud();
             refreshAllUI();
-            alert("تم تعديل المادة وتسجيل التغيير في سجل الرقابة بنجاح!");
+            alert("تم تعديل المادة بنجاح!");
         }
 
         function updateInventoryTable() {
             const tbody = document.getElementById('inventoryTableBody');
-            tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="5" class="p-4 text-center text-gray-400">لا توجد مواد</td></tr>' : '';
+            tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="7" class="p-4 text-center text-gray-400">لا توجد مواد</td></tr>' : '';
             inventory.forEach((item, index) => {
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-green-600 font-bold">${item.quantity}</td><td class="p-3 border text-gray-600">${(item.buyPrice||0).toLocaleString()} د.ع</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()} د.ع</td><td class="p-3 border text-center space-x-2 space-x-reverse"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded text-sm font-bold">تعديل</button><button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-sm font-bold">حذف</button></td></tr>`;
+                let imgTag = item.image ? `<img src="${item.image}" class="w-10 h-10 object-cover rounded mx-auto" />` : '<span class="text-xs text-gray-400">بدون صوره</span>';
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${imgTag}</td><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-gray-600">${item.category || 'عام'}</td><td class="p-3 border text-green-600 font-bold">${item.quantity}</td><td class="p-3 border text-gray-600">${(item.buyPrice||0).toLocaleString()} د.ع</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()} د.ع</td><td class="p-3 border text-center space-x-2 space-x-reverse"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded text-sm font-bold">تعديل</button><button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-sm font-bold">حذف</button></td></tr>`;
             });
         }
 
@@ -894,21 +1005,63 @@
             document.getElementById('totalFixedDisplay').innerText = total.toLocaleString() + ' د.ع';
         }
 
+        function updatePOSCategories() {
+            const container = document.getElementById('pos-categories-container');
+            container.innerHTML = '';
+            categoriesList.forEach(cat => {
+                let imgHtml = cat.image ? `<img src="${cat.image}" class="w-12 h-12 object-cover rounded-full mx-auto mb-1 border" />` : '<div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center mx-auto mb-1 font-bold"><i class="fa-solid fa-box"></i></div>';
+                container.innerHTML += `<div onclick="selectCategory('${cat.name}')" class="border-2 ${currentSelectedCategory === cat.name ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'} rounded-xl p-3 cursor-pointer hover:border-orange-400 transition text-center w-28 shadow-sm"><div class="flex flex-col items-center">${imgHtml}<span class="font-bold text-xs mt-1 truncate w-full">${cat.name}</span></div></div>`;
+            });
+        }
+
+        function selectCategory(catName) {
+            currentSelectedCategory = catName;
+            document.getElementById('pos-back-bar').classList.remove('hidden');
+            updatePOSCategories();
+            updatePOSGrid();
+        }
+
+        function clearCategorySelection() {
+            currentSelectedCategory = null;
+            document.getElementById('pos-back-bar').classList.add('hidden');
+            updatePOSCategories();
+            updatePOSGrid();
+        }
+
         function updatePOSGrid() {
             const posGrid = document.getElementById('pos-items-grid');
-            posGrid.innerHTML = inventory.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">المخزن فارغ</div>' : '';
-            inventory.forEach((item) => {
-                posGrid.innerHTML += `<div onclick="addItemToInvoice('${item.name}', ${item.price}, ${item.buyPrice || 0})" class="border rounded-xl p-4 cursor-pointer hover:border-fuchsia-500 transition text-center bg-white item-card"><h3 class="font-bold item-title">${item.name}</h3><p class="text-sm text-gray-500 mt-2 font-black bg-gray-100 py-1 rounded">${Number(item.price).toLocaleString()} د.ع</p></div>`;
+            let filteredItems = inventory;
+
+            if(currentSelectedCategory) {
+                filteredItems = inventory.filter(i => i.category === currentSelectedCategory);
+            }
+
+            posGrid.innerHTML = filteredItems.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا توجد مواد متوفرة هنا</div>' : '';
+            
+            filteredItems.forEach((item) => {
+                let imgHtml = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-lg mx-auto mb-2" />` : '<div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center mx-auto mb-2 text-xl"><i class="fa-solid fa-box"></i></div>';
+                posGrid.innerHTML += `<div onclick="addItemToInvoice('${item.name}', ${item.price}, ${item.buyPrice || 0})" class="border rounded-xl p-4 cursor-pointer hover:border-fuchsia-500 transition text-center bg-white item-card"><div class="flex flex-col items-center">${imgHtml}<h3 class="font-bold item-title text-sm">${item.name}</h3><p class="text-xs text-gray-500 mt-1 font-black bg-gray-100 px-2 py-1 rounded">${Number(item.price).toLocaleString()} د.ع</p></div></div>`;
             });
         }
 
         function filterPOS() {
-            let input = document.getElementById('searchPos').value.toLowerCase();
-            let items = document.getElementsByClassName('item-card');
-            for (let i = 0; i < items.length; i++) {
-                let title = items[i].getElementsByClassName('item-title')[0].innerText.toLowerCase();
-                items[i].style.display = title.includes(input) ? "" : "none";
+            let input = document.getElementById('searchPos').value.toLowerCase().trim();
+            const posGrid = document.getElementById('pos-items-grid');
+
+            if(!input) {
+                updatePOSGrid();
+                return;
             }
+
+            document.getElementById('pos-back-bar').classList.remove('hidden');
+            let searchResults = inventory.filter(item => item.name.toLowerCase().includes(input) || (item.category && item.category.toLowerCase().includes(input)));
+
+            posGrid.innerHTML = searchResults.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا توجد نتائج مطابقة لبحثك</div>' : '';
+            
+            searchResults.forEach((item) => {
+                let imgHtml = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-lg mx-auto mb-2" />` : '<div class="w-16 h-16 bg-gray-100 text-gray-400 rounded-lg flex items-center justify-center mx-auto mb-2 text-xl"><i class="fa-solid fa-box"></i></div>';
+                posGrid.innerHTML += `<div onclick="addItemToInvoice('${item.name}', ${item.price}, ${item.buyPrice || 0})" class="border rounded-xl p-4 cursor-pointer hover:border-fuchsia-500 transition text-center bg-white item-card"><div class="flex flex-col items-center">${imgHtml}<h3 class="font-bold item-title text-sm">${item.name}</h3><span class="text-[10px] text-orange-600 font-bold">${item.category || 'عام'}</span><p class="text-xs text-gray-500 mt-1 font-black bg-gray-100 px-2 py-1 rounded">${Number(item.price).toLocaleString()} د.ع</p></div></div>`;
+            });
         }
 
         let currentInvoiceItems = [];
@@ -976,7 +1129,6 @@
             let customerName = document.getElementById('posCustomerName').value.trim();
             if(saleType === 'debt' && !customerName) return alert("أدخل اسم الزبون!");
             
-            // خصم الكميات من المخزن عند البيع
             currentInvoiceItems.forEach(invItem => {
                 let storeItem = inventory.find(i => i.name === invItem.name);
                 if(storeItem) {
@@ -1011,7 +1163,6 @@
             currentInvoiceItems = []; invoiceTotal = 0; document.getElementById('posCustomerName').value = ''; renderInvoice(); 
             refreshAllUI();
             
-            // إظهار نافذة خيار طباعة الوصل
             document.getElementById('print-options-modal').classList.remove('hidden');
         }
 
@@ -1031,7 +1182,6 @@
             
             let prevDebt = 0;
             if(customerName) {
-                // حساب الديون السابقة (ما عدا فاتورة البيع الحالية التي أُضيفت للتو)
                 debtsList.filter(d => d.customer === customerName && d.id !== sale.id).forEach(d => { prevDebt += d.amount; });
             }
             let grandTotal = sale.total + prevDebt;
@@ -1095,7 +1245,7 @@
                 if(storeItem) {
                     storeItem.quantity += 1;
                 } else {
-                    inventory.push({ name: item.name, quantity: 1, buyPrice: item.buyPrice || 0, price: item.price });
+                    inventory.push({ name: item.name, category: item.category || 'عام', image: item.image || '', quantity: 1, buyPrice: item.buyPrice || 0, price: item.price });
                 }
             }
 
@@ -1129,7 +1279,7 @@
                 if(storeItem) {
                     storeItem.quantity += 1;
                 } else {
-                    inventory.push({ name: ret.itemName, quantity: 1, buyPrice: 0, price: 0 });
+                    inventory.push({ name: ret.itemName, category: 'عام', image: '', quantity: 1, buyPrice: 0, price: 0 });
                 }
             } else {
                 let sale = salesHistory.find(s => s.id === ret.invoiceId);
