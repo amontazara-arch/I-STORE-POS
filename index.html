@@ -3,10 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Ultimate Edition v3.8</title>
+    <title>iStore POS & ERP System - Firebase Realtime Edition v4.0</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- استدعاء مكتبات Firebase SDK المطلوبة للربط الحقيقي اللحظي -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCiLG_AUDzMOQh1Yf8yTwzz4-Dmk7wXa2M",
+            authDomain: "posistore-18462.firebaseapp.com",
+            databaseURL: "https://posistore-18462-default-rtdb.firebaseio.com",
+            projectId: "posistore-18462",
+            storageBucket: "posistore-18462.firebasestorage.app",
+            messagingSenderId: "705995178904",
+            appId: "1:705995178904:web:5a27aeca82515a889661ed",
+            measurementId: "G-G5H1HEX6H8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        window.fbDB = db;
+        window.fbRef = ref;
+        window.fbSet = set;
+        window.fbOnValue = onValue;
+        window.fbGet = get;
+        window.fbChild = child;
+
+        // إطلاق الحدث بعد تهيئة قواعد البيانات لتكون جاهزة في النظام
+        window.dispatchEvent(new Event('firebase-ready'));
+    </script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;700;900&family=Tajawal:wght@400;500;700;900&family=Cairo:wght@400;700;900&family=Amiri:wght@400;700&display=swap');
         body { font-family: 'Tajawal', sans-serif; background-color: #f3f4f6; }
@@ -43,7 +74,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة الذكية المتزامنة مع التنبيهات المخصصة</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -98,9 +129,6 @@
             </div>
         </div>
     </div>
-
-    <!-- زر المزامنة الذاتي التلقائي المخفي -->
-    <button id="auto-sync-btn" onclick="forceSyncWithCloud()" class="hidden"></button>
 
     <!-- نافذة تعديل القسم -->
     <div id="edit-cat-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
@@ -186,7 +214,7 @@
     <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto pb-16">
         <div class="p-4 md:p-8">
             <div id="save-indicator" class="fixed top-4 left-4 z-40 text-xs font-bold hidden px-4 py-2 rounded-lg shadow-lg bg-blue-600 text-white transition-all">
-                <i class="fa-solid fa-circle-notch fa-spin pr-1"></i> <span id="indicator-text">جاري المزامنة...</span>
+                <i class="fa-solid fa-circle-notch fa-spin pr-1"></i> <span id="indicator-text">جاري الحفظ في السحابة...</span>
             </div>
 
             <!-- 1. الرئيسية -->
@@ -697,10 +725,10 @@
     <!-- شريط المزامنة والجرس في الأسفل (ثابت أسفل الشاشة) -->
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
         <div class="flex items-center gap-2">
-            <button onclick="forceSyncWithCloud()" id="manual-sync-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow transition">
-                <i class="fa-solid fa-rotate"></i> مزامنة الآن
-            </button>
-            <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن تلقائياً</span>
+            <span class="bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase)
+            </span>
+            <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن لحظياً</span>
         </div>
         <div class="flex items-center gap-3">
             <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-400 hover:text-orange-300 transition flex items-center gap-1.5 bg-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer border border-gray-700" title="التحكم بصوت الإشعارات">
@@ -714,8 +742,6 @@
     <div id="printable-area" class="hidden p-0 m-0 bg-white font-sans text-black"></div>
 
     <script>
-        const MASTER_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbymoU1aupzGe0xYzU1cEbbmZYvvneN0SnB9r3nxzpMyd8fGBmfTo05byAcfdpR8DcA_Ww/exec";
-        
         let currentStoreUser = localStorage.getItem('iStoreCurrentStore') || null;
         let currentDeviceId = localStorage.getItem('iStoreDeviceId') || ('Device_' + Math.floor(Math.random()*9000+1000));
         localStorage.setItem('iStoreDeviceId', currentDeviceId);
@@ -727,7 +753,6 @@
 
         let globalNotificationMode = 'active'; 
         let chatNotificationMode = 'active'; 
-
         let alertedStockState = {};
 
         function playBeepSound() {
@@ -911,7 +936,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "3.8", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "4.0", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -985,7 +1010,6 @@
                         updateFavicon(dataUrl);
                     }
                     hideIndicator("تم ✓"); triggerDataChangeInstant();
-                    forceSyncWithCloud();
                 }
                 img.src = e.target.result;
             }
@@ -997,162 +1021,209 @@
             customReceiptBgUrl = document.getElementById('receiptBgUrlInput').value.trim();
             updateFavicon(customLogoUrl);
             triggerDataChangeInstant();
-            forceSyncWithCloud();
             sysAlert("تم حفظ إعدادات الشعار والخلفية ومزامنتها بنجاح!", "نجاح", "success");
         }
 
         function switchAuthBox(mode) { ['login','register','forgot','reset'].forEach(m => document.getElementById(m+'-form-box').classList.add('hidden')); document.getElementById(mode+'-form-box').classList.remove('hidden'); }
         
         function handleLogin() {
-            let u = document.getElementById('loginUsername').value.trim().toLowerCase(); let p = document.getElementById('loginPassword').value.trim();
-            if(!u || !p) return sysAlert("يرجى إدخال البيانات!", "خطأ", "error"); showIndicator("جاري الدخول...");
-            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}&t=${Date.now()}`).then(res => res.json()).then(data => {
-                if(data.success) { 
-                    currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
-                    document.getElementById('auth-screen').classList.add('hidden'); 
-                    document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`; 
-                    loadDataFromServerData(data.storeData); 
-                    hideIndicator("نجاح ✓"); 
-                } else { 
-                    sysAlert(data.message, "خطأ", "error"); hideIndicator("فشل", true); 
+            let u = document.getElementById('loginUsername').value.trim().toLowerCase(); 
+            let p = document.getElementById('loginPassword').value.trim();
+            if(!u || !p) return sysAlert("يرجى إدخال البيانات!", "خطأ", "error"); 
+            showIndicator("جاري التحقق من السحابة...");
+
+            const userRef = window.fbRef(window.fbDB, 'stores/' + u);
+            window.fbGet(userRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    let data = snapshot.val();
+                    if (data.pass === p) {
+                        currentStoreUser = u; 
+                        localStorage.setItem('iStoreCurrentStore', u); 
+                        document.getElementById('auth-screen').classList.add('hidden'); 
+                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`; 
+                        loadDataFromServerData(data);
+                        initRealtimeListener(u);
+                        hideIndicator("تم الدخول بنجاح ✓");
+                    } else {
+                        sysAlert("كلمة المرور غير صحيحة!", "خطأ", "error");
+                        hideIndicator("فشل", true);
+                    }
+                } else {
+                    sysAlert("اسم المحل غير موجود! يرجى إنشاء حساب جديد.", "خطأ", "error");
+                    hideIndicator("فشل", true);
                 }
-            }).catch(() => { 
-                currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
-                document.getElementById('auth-screen').classList.add('hidden'); 
-                document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`; 
-                loadDataFromLocal(u); 
-                hideIndicator("وضع محلي متزامن", true); 
+            }).catch((error) => {
+                sysAlert("حدث خطأ في الاتصال بالشبكة.", "خطأ", "error");
+                hideIndicator("فشل الاتصال", true);
             });
         }
 
         function handleRegister() {
-            let u = document.getElementById('regUsername').value.trim().toLowerCase(); let email = document.getElementById('regEmail').value.trim(); let p = document.getElementById('regPassword').value.trim();
-            if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); showIndicator("جاري الإنشاء...");
-            fetch(MASTER_WEB_APP_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify({ action: "register", user: u, email, pass: p }) }).then(() => {
-                currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); document.getElementById('auth-screen').classList.add('hidden'); document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
-                inventory = []; categoriesList = []; salesHistory = []; returnsHistory = []; expensesList = []; debtsList = []; myDebtsList = []; auditLog = []; fixedItems = []; cashiersList = ["الرئيسي", "مقتدى"]; defaultCashier = "الرئيسي"; chatMessages = []; refreshAllUI(); hideIndicator("تم بنجاح ✓");
+            let u = document.getElementById('regUsername').value.trim().toLowerCase(); 
+            let email = document.getElementById('regEmail').value.trim(); 
+            let p = document.getElementById('regPassword').value.trim();
+            if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
+            showIndicator("جاري إنشاء الحساب...");
+
+            const userRef = window.fbRef(window.fbDB, 'stores/' + u);
+            window.fbGet(userRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    sysAlert("اسم المحل هذا مستخدم مسبقاً، اختر اسمًا آخر.", "خطأ", "error");
+                    hideIndicator("فشل", true);
+                } else {
+                    let initialData = {
+                        pass: p,
+                        email: email,
+                        inventory: [],
+                        categoriesList: [],
+                        salesHistory: [],
+                        returnsHistory: [],
+                        expensesList: [],
+                        debtsList: [],
+                        myDebtsList: [],
+                        auditLog: [],
+                        fixedItems: [],
+                        cashiersList: ["الرئيسي", "مقتدى"],
+                        defaultCashier: "الرئيسي",
+                        customLogoUrl: "",
+                        customReceiptBgUrl: "",
+                        chatMessages: []
+                    };
+                    window.fbSet(userRef, initialData).then(() => {
+                        currentStoreUser = u; 
+                        localStorage.setItem('iStoreCurrentStore', u); 
+                        document.getElementById('auth-screen').classList.add('hidden'); 
+                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
+                        loadDataFromServerData(initialData);
+                        initRealtimeListener(u);
+                        hideIndicator("تم إنشاء المحل بنجاح ✓");
+                    });
+                }
             });
         }
 
-        function requestResetCode() { let u = document.getElementById('forgotUsername').value.trim().toLowerCase(); let email = document.getElementById('forgotEmail').value.trim(); if(!u || !email) return sysAlert("أكمل البيانات", "خطأ", "error"); showIndicator("جاري الإرسال..."); fetch(`${MASTER_WEB_APP_URL}?action=forgot&user=${encodeURIComponent(u)}&email=${encodeURIComponent(email)}`).then(res => res.json()).then(data => { if(data.success) { pendingResetUser = u; switchAuthBox('reset'); hideIndicator("تم الإرسال ✓"); } else sysAlert(data.message, "خطأ", "error"); }); }
-        function confirmNewPassword() { let code = document.getElementById('resetCodeInput').value.trim(); let newPass = document.getElementById('newPasswordInput').value.trim(); if(!code || !newPass) return sysAlert("أكمل الحقول", "خطأ", "error"); fetch(MASTER_WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "reset_confirm", user: pendingResetUser, code, newPass }) }).then(() => { sysAlert("تم التغيير بنجاح", "نجاح", "success"); switchAuthBox('login'); }); }
-        function logoutApp() { currentStoreUser = null; localStorage.removeItem('iStoreCurrentStore'); document.getElementById('auth-screen').classList.remove('hidden'); switchAuthBox('login'); }
+        function requestResetCode() { 
+            let u = document.getElementById('forgotUsername').value.trim().toLowerCase(); 
+            let email = document.getElementById('forgotEmail').value.trim(); 
+            if(!u || !email) return sysAlert("أكمل البيانات", "خطأ", "error"); 
+            showIndicator("جاري التحقق..."); 
+            
+            const userRef = window.fbRef(window.fbDB, 'stores/' + u);
+            window.fbGet(userRef).then((snapshot) => {
+                if(snapshot.exists() && snapshot.val().email === email) {
+                    pendingResetUser = u; 
+                    switchAuthBox('reset'); 
+                    hideIndicator("تم التحقق ✓");
+                } else {
+                    sysAlert("اسم المستخدم أو البريد الالكتروني غير مطابق!", "خطأ", "error");
+                    hideIndicator("فشل", true);
+                }
+            });
+        }
+
+        function confirmNewPassword() { 
+            let code = document.getElementById('resetCodeInput').value.trim(); 
+            let newPass = document.getElementById('newPasswordInput').value.trim(); 
+            if(!newPass) return sysAlert("أدخل كلمة المرور الجديدة", "خطأ", "error"); 
+            
+            showIndicator("جاري التحديث...");
+            const passRef = window.fbRef(window.fbDB, `stores/${pendingResetUser}/pass`);
+            window.fbSet(passRef, newPass).then(() => {
+                sysAlert("تم تغيير كلمة المرور بنجاح", "نجاح", "success"); 
+                switchAuthBox('login');
+                hideIndicator("تم بنجاح ✓");
+            });
+        }
+
+        function logoutApp() { 
+            currentStoreUser = null; 
+            localStorage.removeItem('iStoreCurrentStore'); 
+            document.getElementById('auth-screen').classList.remove('hidden'); 
+            switchAuthBox('login'); 
+        }
 
         function loadDataFromServerData(data) {
             if(data) {
-                inventory=data.inventory||[]; categoriesList=data.categoriesList||[]; salesHistory=data.salesHistory||[]; returnsHistory=data.returnsHistory||[]; expensesList=data.expensesList||[]; debtsList=data.debtsList||[]; myDebtsList=data.myDebtsList||[]; auditLog=data.auditLog||[]; fixedItems=data.fixedItems||[]; 
-                cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي";
-                customLogoUrl=data.customLogoUrl||""; customReceiptBgUrl=data.customReceiptBgUrl||""; 
+                inventory = data.inventory || []; 
+                categoriesList = data.categoriesList || []; 
+                salesHistory = data.salesHistory || []; 
+                returnsHistory = data.returnsHistory || []; 
+                expensesList = data.expensesList || []; 
+                debtsList = data.debtsList || []; 
+                myDebtsList = data.myDebtsList || []; 
+                auditLog = data.auditLog || []; 
+                fixedItems = data.fixedItems || []; 
+                cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; 
+                defaultCashier = data.defaultCashier || "الرئيسي";
+                customLogoUrl = data.customLogoUrl || ""; 
+                customReceiptBgUrl = data.customReceiptBgUrl || ""; 
                 chatMessages = data.chatMessages || [];
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
-                document.getElementById('logoUrlInput').value=customLogoUrl; document.getElementById('receiptBgUrlInput').value=customReceiptBgUrl;
+                
+                document.getElementById('logoUrlInput').value = customLogoUrl; 
+                document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
                 updateFavicon(customLogoUrl);
-                localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(data));
             }
             refreshAllUI();
         }
 
-        function loadDataFromLocal(user) {
-            const dataStr = localStorage.getItem(`iStoreData_${user}`);
-            if(dataStr) {
-                try {
-                    const data = JSON.parse(dataStr);
-                    inventory=data.inventory||[]; categoriesList=data.categoriesList||[]; salesHistory=data.salesHistory||[]; returnsHistory=data.returnsHistory||[]; expensesList=data.expensesList||[]; debtsList=data.debtsList||[]; myDebtsList=data.myDebtsList||[]; auditLog=data.auditLog||[]; fixedItems=data.fixedItems||[]; 
-                    cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي";
-                    customLogoUrl=data.customLogoUrl||""; customReceiptBgUrl=data.customReceiptBgUrl||""; 
-                    chatMessages = data.chatMessages || [];
-                    if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
-                    if(data.layoutSettings) layoutSettings = data.layoutSettings;
-                    document.getElementById('logoUrlInput').value=customLogoUrl; document.getElementById('receiptBgUrlInput').value=customReceiptBgUrl;
-                    updateFavicon(customLogoUrl);
-                } catch(e) {}
-            }
-            refreshAllUI();
+        // الاستماع الفوري واللحظي للتغييرات من أي جهاز آخر عبر Firebase
+        function initRealtimeListener(user) {
+            if(!user || !window.fbDB) return;
+            const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
+            window.fbOnValue(storeRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    let remoteData = snapshot.val();
+                    // التحقق من التغييرات لتجنب إعادة الرسم المفرط وتحديث الواجهة بسلاسة
+                    inventory = remoteData.inventory || [];
+                    categoriesList = remoteData.categoriesList || [];
+                    salesHistory = remoteData.salesHistory || [];
+                    returnsHistory = remoteData.returnsHistory || [];
+                    expensesList = remoteData.expensesList || [];
+                    debtsList = remoteData.debtsList || [];
+                    myDebtsList = remoteData.myDebtsList || [];
+                    auditLog = remoteData.auditLog || [];
+                    fixedItems = remoteData.fixedItems || [];
+                    chatMessages = remoteData.chatMessages || [];
+                    
+                    refreshAllUI();
+                }
+            });
         }
 
         function triggerDataChangeInstant() {
-            if(!currentStoreUser) return;
-            const appData = { inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
-            localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(appData));
-            
-            if(navigator.onLine) {
-                fetch(MASTER_WEB_APP_URL, { method: "POST", mode: "no-cors", body: JSON.stringify({ action: "save", user: currentStoreUser, data: appData }) }).catch(()=>{});
-            }
-        }
+            if(!currentStoreUser || !window.fbDB) return;
+            showIndicator("جاري الحفظ...");
 
-        // دالة المزامنة القسرية المتجاوزة للكاش بشكل كامل لضمان جلب البيانات الجديدة من أي جهاز فوراً
-        function forceSyncWithCloud() {
-            if(!currentStoreUser) return;
-            let syncLabel = document.getElementById('sync-status-label');
-            if(syncLabel) syncLabel.innerText = "● جاري المزامنة...";
-            
-            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(currentStoreUser)}&pass=&t=${Date.now()}`)
-                .then(res => res.json())
-                .then(data => {
-                    if(data && data.success && data.storeData) {
-                        let remote = data.storeData;
-                        // تحديث فوري وشامل في حال وجود أي تغيير بالسحابة
-                        if(remote.inventory && (
-                            JSON.stringify(remote.inventory) !== JSON.stringify(inventory) || 
-                            JSON.stringify(remote.salesHistory) !== JSON.stringify(salesHistory) ||
-                            JSON.stringify(remote.categoriesList) !== JSON.stringify(categoriesList) ||
-                            JSON.stringify(remote.debtsList) !== JSON.stringify(debtsList)
-                        )) {
-                            inventory = remote.inventory || [];
-                            salesHistory = remote.salesHistory || [];
-                            categoriesList = remote.categoriesList || [];
-                            debtsList = remote.debtsList || [];
-                            myDebtsList = remote.myDebtsList || [];
-                            expensesList = remote.expensesList || [];
-                            returnsHistory = remote.returnsHistory || [];
-                            customLogoUrl = remote.customLogoUrl || customLogoUrl;
-                            customReceiptBgUrl = remote.customReceiptBgUrl || customReceiptBgUrl;
-                            chatMessages = remote.chatMessages || chatMessages;
-                            
-                            localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(remote));
-                            refreshAllUI();
-                        }
-                    }
-                    if(syncLabel) syncLabel.innerText = "● متزامن تلقائياً";
-                })
-                .catch(() => {
-                    if(syncLabel) syncLabel.innerText = "● وضع محلي";
+            const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
+            window.fbGet(storeRef).then((snapshot) => {
+                let currentPass = snapshot.exists() ? snapshot.val().pass : "1234";
+                let appData = {
+                    pass: currentPass,
+                    inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages
+                };
+                
+                window.fbSet(storeRef, appData).then(() => {
+                    hideIndicator("تم الحفظ والمزامنة لحظياً ✓");
+                }).catch(() => {
+                    hideIndicator("فشل الحفظ", true);
                 });
+            });
         }
 
-        // تفعيل الزر الذاتي كل ثانية للتحديث التلقائي المستمر بين اللابتوب والهاتف
-        setInterval(() => {
-            let syncBtn = document.getElementById('auto-sync-btn');
-            if(syncBtn) syncBtn.click();
-        }, 1000);
-
-        window.addEventListener('storage', (event) => {
-            if(!currentStoreUser) return;
-            if(event.key === `iStoreData_${currentStoreUser}` && event.newValue) {
-                try {
-                    let parsed = JSON.parse(event.newValue);
-                    if(parsed.chatMessages && parsed.chatMessages.length !== chatMessages.length) {
-                        if(parsed.chatMessages.length > chatMessages.length) {
-                            let lastMsg = parsed.chatMessages[parsed.chatMessages.length - 1];
-                            if(lastMsg.deviceId !== currentDeviceId && chatNotificationMode !== 'disabled') {
-                                playBeepSound();
-                                if (Notification.permission === "granted") {
-                                    new Notification("رسالة جديدة في iStore", {
-                                        body: `${lastMsg.deviceId}: ${lastMsg.text}`
-                                    });
-                                }
-                                document.getElementById('sidebar-chat-bell').classList.remove('hidden');
-                            }
-                        }
-                        chatMessages = parsed.chatMessages;
-                        updateChatUI();
+        window.addEventListener('firebase-ready', () => {
+            if(currentStoreUser) {
+                document.getElementById('auth-screen').classList.add('hidden'); 
+                document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
+                
+                const userRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
+                window.fbGet(userRef).then((snapshot) => {
+                    if (snapshot.exists()) {
+                        loadDataFromServerData(snapshot.val());
+                        initRealtimeListener(currentStoreUser);
                     }
-                    if(parsed.inventory && JSON.stringify(parsed.inventory) !== JSON.stringify(inventory)) {
-                        inventory = parsed.inventory;
-                        refreshAllUI();
-                    }
-                } catch(e) {}
+                });
             }
         });
 
@@ -1180,8 +1251,6 @@
             if(currentStoreUser) { 
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
-                loadDataFromLocal(currentStoreUser); 
-                forceSyncWithCloud();
             } else { 
                 document.getElementById('auth-screen').classList.remove('hidden'); 
             } 
@@ -1192,7 +1261,6 @@
             document.getElementById(viewId).classList.add('active'); 
             if(viewId === 'chat-view') {
                 document.getElementById('sidebar-chat-bell').classList.add('hidden');
-                lastKnownChatCount = chatMessages.length;
             }
         }
 
@@ -1272,7 +1340,7 @@
             picsartLayouts[docT][pT] = picsartLayouts[docT][pT].filter(x => x.id !== id);
             closeEditElementModal(); renderPicsartCanvas(); renderPicsartSidebar();
         }
-        function savePicsartLayout() { triggerDataChangeInstant(); forceSyncWithCloud(); sysAlert("تم حفظ وتخصيص ومزامنة الوصل بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
+        function savePicsartLayout() { triggerDataChangeInstant(); sysAlert("تم حفظ وتخصيص ومزامنة الوصل بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
 
         function printSaleReceipt(sale, cust, cashierName) {
             let area = document.getElementById('printable-area');
@@ -1388,15 +1456,15 @@
             window.print();
         }
 
-        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إضافة القسم ومزامنته", "نجاح", "success"); }
-        function deleteCategory(index) { sysConfirm("تأكيد", "حذف هذا القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
+        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة القسم ومزامنته", "نجاح", "success"); }
+        function deleteCategory(index) { sysConfirm("تأكيد", "حذف هذا القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function openEditCatModal(index) { const cat = categoriesList[index]; document.getElementById('editCatIndex').value = index; document.getElementById('editCatOldName').value = cat.name; document.getElementById('editCatName').value = cat.name; document.getElementById('editCatImage').value = cat.image || ''; document.getElementById('edit-cat-modal').classList.remove('hidden'); }
         function closeEditCatModal() { document.getElementById('edit-cat-modal').classList.add('hidden'); }
         function saveEditedCategory() {
             let index = document.getElementById('editCatIndex').value; let oldName = document.getElementById('editCatOldName').value; let newName = document.getElementById('editCatName').value.trim();
             categoriesList[index].name = newName; categoriesList[index].image = document.getElementById('editCatImage').value.trim();
             if(oldName !== newName) inventory.forEach(i => { if(i.category === oldName) i.category = newName; });
-            closeEditCatModal(); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم التحديث ومزامنة القسم", "نجاح", "success");
+            closeEditCatModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم التحديث ومزامنة القسم", "نجاح", "success");
         }
         function updateCategoriesUI() {
             const container = document.getElementById('categoriesListContainer'); const select = document.getElementById('itemCategorySelect');
@@ -1424,9 +1492,9 @@
                 let el = document.getElementById(id);
                 if(el) el.value = id === 'itemMinAlert' ? '5' : '';
             });
-            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنتها مع اللابتوب والهاتف", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنتها لحظياً مع كل الأجهزة", "نجاح", "success");
         }
-        function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
+        function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function editItem(index) {
             const item = inventory[index]; document.getElementById('editItemIndex').value = index;
             document.getElementById('editItemName').value = item.name; document.getElementById('editItemBarcode').value = item.barcode || '';
@@ -1442,7 +1510,7 @@
             item.quantity = Number(document.getElementById('editItemQuantity').value); 
             item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 5;
             item.buyPrice = Number(document.getElementById('editItemBuyPrice').value); item.price = Number(document.getElementById('editItemPrice').value);
-            closeEditItemModal(); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم تحديث ومزامنة المادة", "نجاح", "success");
+            closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث ومزامنة المادة", "نجاح", "success");
         }
         function updateInventoryTable() {
             const tbody = document.getElementById('inventoryTableBody'); tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
@@ -1473,8 +1541,8 @@
             inventory.forEach(i => { let t = (i.quantity||0)*(i.buyPrice||0); total += t; tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${i.name}</td><td class="p-3 border">${i.quantity}</td><td class="p-3 border">${(i.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-indigo-600 font-bold">${t.toLocaleString()}</td></tr>`; });
             document.getElementById('totalVariableDisplay').innerText = total.toLocaleString() + ' د.ع';
         }
-        function saveFixedItem(e) { e.preventDefault(); fixedItems.push({ name: document.getElementById('fixedItemName').value.trim(), price: Number(document.getElementById('fixedItemPrice').value), date: new Date().toLocaleDateString('ar-IQ') }); document.getElementById('fixedItemName').value=''; document.getElementById('fixedItemPrice').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); updateFixedTable(); }
-        function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); forceSyncWithCloud(); updateFixedTable(); }); }
+        function saveFixedItem(e) { e.preventDefault(); fixedItems.push({ name: document.getElementById('fixedItemName').value.trim(), price: Number(document.getElementById('fixedItemPrice').value), date: new Date().toLocaleDateString('ar-IQ') }); document.getElementById('fixedItemName').value=''; document.getElementById('fixedItemPrice').value=''; triggerDataChangeInstant(); updateFixedTable(); }
+        function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); updateFixedTable(); }); }
         function updateFixedTable() { const b = document.getElementById('fixedTableBody'); b.innerHTML = ''; let total = 0; fixedItems.forEach((item, idx) => { total += item.price; b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${item.price.toLocaleString()}</td><td class="p-3 border">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; }); document.getElementById('totalFixedDisplay').innerText = total.toLocaleString() + ' د.ع'; }
 
         function filterPOSStockType(type) {
@@ -1607,7 +1675,6 @@
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: name, amount: 0, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
             auditLog.unshift({ type: 'حساب جديد', details: `فتح حساب آجل للزبون: ${name}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant();
-            forceSyncWithCloud();
             refreshAllUI();
             sysAlert(`تم إضافة الحساب الآجل "${name}" ومزامنته بنجاح!`, "نجاح", "success");
         }
@@ -1634,7 +1701,7 @@
                 saleTypeLabel = 'آجل (دفع جزء نقداً)';
                 cashPaid = Number(document.getElementById('posCashPaidInput').value) || 0;
                 if(cashPaid >= invoiceTotal) {
-                    return sysAlert("المبلغ المدفوع نقداً أكبر من أو يساوي إجمالي الفاتورة! يناقض حالة البيع الآجل مع الدفع الجزئي.", "خطأ", "error");
+                    return sysAlert("المبلغ المدفوع نقداً أكبر من أو يساوي إجمالي الفاتورة!", "خطأ", "error");
                 }
                 remainingDebt = invoiceTotal - cashPaid;
             }
@@ -1664,7 +1731,6 @@
 
             auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${invoiceTotal.toLocaleString()} للزبون: ${cust || 'زبون نقدي'}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant(); 
-            forceSyncWithCloud();
             lastCompletedSale = sale; 
             currentInvoiceItems = []; 
             invoiceTotal = 0; 
@@ -1702,7 +1768,6 @@
                     defaultCashier = cleaned;
                     auditLog.unshift({ type: 'كاشير جديد', details: `إضافة كاشير: ${cleaned}`, date: new Date().toLocaleString('ar-IQ') });
                     triggerDataChangeInstant();
-                    forceSyncWithCloud();
                     setupCashierModalDropdown();
                 });
             } else {
@@ -1751,7 +1816,7 @@
             returnsHistory.unshift({ id: Date.now(), invoiceId: sale.id, customer: sale.customer, itemName: item.name, qty: item.qty || 1, status: initialStatus, lossAmount: lossVal, date: new Date().toLocaleString('ar-IQ') });
             if(initialStatus === 'سليم') { let s = inventory.find(i => i.name === item.name); if(s) s.quantity += (item.qty || 1); }
             auditLog.unshift({ type: 'مرتجع', details: `إرجاع مادة: ${item.name} (${initialStatus})`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنتها بنجاح", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنتها بنجاح", "نجاح", "success");
         }
 
         function updateReturnsTable() {
@@ -1775,7 +1840,7 @@
                 if(matchedInv) matchedInv.quantity += (r.qty || 1);
                 if(itemObj) itemObj.returnStatus = 'سليم';
             }
-            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم تبديل ومزامنة حالة المرتجع", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل ومزامنة حالة المرتجع", "نجاح", "success");
         }
 
         function updateCustomersTable() {
@@ -1790,7 +1855,7 @@
             if(!n) return sysAlert("أدخل اسم الزبون", "خطأ", "error");
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: n, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `رصيد افتتاحى / فتح حساب` });
             auditLog.unshift({ type: 'حساب زبون', details: `إضافة حساب زبون: ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إضافة ومزامنة حساب الزبون بنجاح", "نجاح", "success");
+            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة ومزامنة حساب الزبون بنجاح", "نجاح", "success");
         }
         function openCustomerDetail(name) {
             currentActiveCustomer = name; document.getElementById('detailCustomerName').innerText = name; document.getElementById('newCustomerNameInput').value = name;
@@ -1827,23 +1892,23 @@
             debtsList.forEach(d => { if(d.customer === currentActiveCustomer) d.customer = n; });
             salesHistory.forEach(s => { if(s.customer === currentActiveCustomer) s.customer = n; });
             auditLog.unshift({ type: 'تعديل زبون', details: `تعديل اسم الزبون من ${currentActiveCustomer} إلى ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(n); sysAlert("تم التعديل والمزامنة", "نجاح", "success");
+            triggerDataChangeInstant(); openCustomerDetail(n); sysAlert("تم التعديل والمزامنة", "نجاح", "success");
         }
         function addExternalItemDebt() {
             let d = document.getElementById('extItemDesc').value.trim(); let a = Number(document.getElementById('extItemAmount').value);
             if(!d || !a) return; debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: a, date: new Date().toLocaleDateString('ar-IQ'), details: d });
-            document.getElementById('extItemDesc').value=''; document.getElementById('extItemAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer);
+            document.getElementById('extItemDesc').value=''; document.getElementById('extItemAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer);
         }
         function quickPayDebt() {
             let a = Number(document.getElementById('quickPayAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد من الزبون)` });
             auditLog.unshift({ type: 'تسديد زبون', details: `قبض مبلغ ${a.toLocaleString()} من الزبون: ${currentActiveCustomer}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض ومزامنة السند بنجاح", "نجاح", "success");
+            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض ومزامنة السند بنجاح", "نجاح", "success");
         }
         function exemptCustomerDebt() {
             let a = Number(document.getElementById('exemptionAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `خصم / إعفاء` });
-            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم والمزامنة", "نجاح", "success");
+            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم والمزامنة", "نجاح", "success");
         }
         
         function saveMyDebt(e) {
@@ -1866,7 +1931,6 @@
             document.getElementById('myDebtAmount').value = '';
             document.getElementById('myDebtDetails').value = '';
             triggerDataChangeInstant();
-            forceSyncWithCloud();
             updateMyDebtsTable();
             sysAlert("تم تسجيل وحفظ ومزامنة الدين للمجهز", "نجاح", "success");
         }
@@ -1902,7 +1966,6 @@
                 });
                 auditLog.unshift({ type: 'تسديد مجهز', details: `تسديد مبلغ ${amount.toLocaleString()} للمجهز: ${supplierName}`, date: new Date().toLocaleString('ar-IQ') });
                 triggerDataChangeInstant();
-                forceSyncWithCloud();
                 updateMyDebtsTable();
                 sysAlert("تم تقليل ومزامنة المبلغ بنجاح", "نجاح", "success");
             });
@@ -1929,7 +1992,6 @@
 
                 auditLog.unshift({ type: 'تصفية مجهز', details: `إجراء تصفية حساب للمجهز ${supplierName} برصيد صافي: ${net}`, date: new Date().toLocaleString('ar-IQ') });
                 triggerDataChangeInstant();
-                forceSyncWithCloud();
                 updateMyDebtsTable();
                 sysAlert("تمت تصفية ومزامنة الحساب بنجاح!", "نجاح", "success");
             });
@@ -1955,8 +2017,8 @@
             tbody.innerHTML = records.length === 0 ? '<tr><td colspan="2" class="text-center p-4 text-gray-400">لا توجد حركات</td></tr>' : '';
             
             records.forEach(r => {
-                let isDebt = r.amount > 0; // ما أخذ مني (يطلبني - ديون) [يمين]
-                let isPayment = r.amount < 0; // ما أخذت منه (تسديدات - أطلبه) [يسار]
+                let isDebt = r.amount > 0; 
+                let isPayment = r.amount < 0; 
 
                 let rightCol = isDebt ? `<div class="font-bold text-red-600">${r.details}: ${r.amount.toLocaleString()} د.ع <span class="text-xs text-gray-400 block">${r.date}</span></div>` : '';
                 let leftCol = isPayment ? `<div class="font-bold text-green-600">${r.details}: ${Math.abs(r.amount).toLocaleString()} د.ع <span class="text-xs text-gray-400 block">${r.date}</span></div>` : '';
@@ -2048,16 +2110,16 @@
         function saveExpense(e) {
             e.preventDefault(); expensesList.push({ desc: document.getElementById('expDesc').value, amount: Number(document.getElementById('expAmount').value), date: new Date().toLocaleDateString('ar-IQ') });
             auditLog.unshift({ type: 'مصروف', details: `تسجيل مصروف: ${document.getElementById('expDesc').value} بمبلغ ${document.getElementById('expAmount').value}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('expDesc').value=''; document.getElementById('expAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI();
+            document.getElementById('expDesc').value=''; document.getElementById('expAmount').value=''; triggerDataChangeInstant(); refreshAllUI();
         }
-        function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
+        function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function updateExpensesTable() {
             const b = document.getElementById('expensesTableBody'); b.innerHTML = '';
             expensesList.forEach((e, i) => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${e.desc}</td><td class="p-3 border text-red-500">${e.amount.toLocaleString()}</td><td class="p-3 border">${e.date}</td><td class="p-3 border text-center"><button onclick="deleteExpense(${i})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; });
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تحديث آلية المزامنة القسرية عبر تجاوز الكاش بشكل كامل', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'ربط النظام بقاعدة بيانات Firebase Realtime السحابية للمزامنة الفورية', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
@@ -2076,7 +2138,6 @@
             chatMessages.push(newMsg);
             document.getElementById('chatInputText').value = '';
             triggerDataChangeInstant();
-            forceSyncWithCloud();
             updateChatUI();
         }
 
