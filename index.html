@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Ultimate Edition v3.7</title>
+    <title>iStore POS & ERP System - Ultimate Edition v3.8</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -911,7 +911,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "3.7", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "3.8", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -1081,7 +1081,7 @@
             }
         }
 
-        // دالة المزامنة القسرية المتجاوزة للكاش (تمنع تخزين المؤقت لطلبات الجلب وتضمن المزامنة الفورية)
+        // دالة المزامنة القسرية المتجاوزة للكاش بشكل كامل لضمان جلب البيانات الجديدة من أي جهاز فوراً
         function forceSyncWithCloud() {
             if(!currentStoreUser) return;
             let syncLabel = document.getElementById('sync-status-label');
@@ -1092,16 +1092,20 @@
                 .then(data => {
                     if(data && data.success && data.storeData) {
                         let remote = data.storeData;
-                        let localStr = localStorage.getItem(`iStoreData_${currentStoreUser}`);
-                        let local = localStr ? JSON.parse(localStr) : null;
-                        
-                        // مقارنة بسيطة لطول أو محتوى المخزن لجلب الأحدث فوراً
-                        if(remote.inventory && (!local || JSON.stringify(remote.inventory) !== JSON.stringify(inventory) || JSON.stringify(remote.salesHistory) !== JSON.stringify(salesHistory))) {
+                        // تحديث فوري وشامل في حال وجود أي تغيير بالسحابة
+                        if(remote.inventory && (
+                            JSON.stringify(remote.inventory) !== JSON.stringify(inventory) || 
+                            JSON.stringify(remote.salesHistory) !== JSON.stringify(salesHistory) ||
+                            JSON.stringify(remote.categoriesList) !== JSON.stringify(categoriesList) ||
+                            JSON.stringify(remote.debtsList) !== JSON.stringify(debtsList)
+                        )) {
                             inventory = remote.inventory || [];
                             salesHistory = remote.salesHistory || [];
                             categoriesList = remote.categoriesList || [];
                             debtsList = remote.debtsList || [];
                             myDebtsList = remote.myDebtsList || [];
+                            expensesList = remote.expensesList || [];
+                            returnsHistory = remote.returnsHistory || [];
                             customLogoUrl = remote.customLogoUrl || customLogoUrl;
                             customReceiptBgUrl = remote.customReceiptBgUrl || customReceiptBgUrl;
                             chatMessages = remote.chatMessages || chatMessages;
@@ -1117,7 +1121,7 @@
                 });
         }
 
-        // تفعيل زر المزامنة الذاتي التلقائي كل ثانية
+        // تفعيل الزر الذاتي كل ثانية للتحديث التلقائي المستمر بين اللابتوب والهاتف
         setInterval(() => {
             let syncBtn = document.getElementById('auto-sync-btn');
             if(syncBtn) syncBtn.click();
@@ -2053,7 +2057,7 @@
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'نقل زر المزامنة وجرس التنبيهات إلى الشريط السفلي وتفعيل التجاوز التلقائي للكاش', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'تحديث آلية المزامنة القسرية عبر تجاوز الكاش بشكل كامل', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
