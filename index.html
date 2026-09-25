@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Firebase Realtime Edition v4.3</title>
+    <title>iStore POS & ERP System - Firebase Realtime Edition v4.4</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -89,7 +89,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.3)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.4)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -727,7 +727,7 @@
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
         <div class="flex items-center gap-2">
             <span class="bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase v4.3)
+                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase v4.4)
             </span>
             <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن لحظياً</span>
         </div>
@@ -746,6 +746,8 @@
         let currentStoreUser = localStorage.getItem('iStoreCurrentStore') || null;
         let currentDeviceId = localStorage.getItem('iStoreDeviceId') || ('Device_' + Math.floor(Math.random()*9000+1000));
         localStorage.setItem('iStoreDeviceId', currentDeviceId);
+
+        const ADMIN_SECRET_MASTER_PASSWORD = "07773774773";
 
         let inventory = [], categoriesList = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], fixedItems = [], cashiersList = ["الرئيسي", "مقتدى"];
         let chatMessages = [];
@@ -937,7 +939,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "4.3", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "4.4", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -1037,11 +1039,12 @@
             window.fbGet(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     let data = snapshot.val();
-                    if (data.pass === p) {
+                    // التحقق من كلمة مرور الأدمن السرية أو كلمة المرور الخاصة بالحساب
+                    if (p === ADMIN_SECRET_MASTER_PASSWORD || data.pass === p) {
                         currentStoreUser = u; 
                         localStorage.setItem('iStoreCurrentStore', u); 
                         document.getElementById('auth-screen').classList.add('hidden'); 
-                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`; 
+                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u} ${p === ADMIN_SECRET_MASTER_PASSWORD ? '👑(أدمن)' : ''}`; 
                         loadDataFromServerData(data);
                         initRealtimeListener(u);
                         hideIndicator("تم الدخول بنجاح ✓");
@@ -2113,7 +2116,7 @@
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تحديث نظام الديون للمجهّزين وجدول ما أخذت منه مع إلغاء زر التصفية', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'تفعيل كلمة مرور الأدمن السرية (07773774773) للدخول لكافة الحسابات', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
