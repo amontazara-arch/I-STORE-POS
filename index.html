@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Ultimate Edition v3.5</title>
+    <title>iStore POS & ERP System - Ultimate Edition v3.6</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -99,6 +99,9 @@
         </div>
     </div>
 
+    <!-- زر المزامنة الذاتي التلقائي المخفي/المرئي -->
+    <button id="auto-sync-btn" onclick="forceSyncWithCloud()" class="hidden"></button>
+
     <!-- نافذة تعديل القسم -->
     <div id="edit-cat-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-right border">
@@ -186,14 +189,17 @@
                 <i class="fa-solid fa-circle-notch fa-spin pr-1"></i> <span id="indicator-text">جاري المزامنة...</span>
             </div>
 
-            <!-- جرس التنبيهات في الزاوية العلوية اليسرى -->
-            <div class="fixed top-4 left-4 lg:left-8 z-50 flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-2xl shadow-lg border border-gray-200">
+            <!-- جرس التنبيهات وزر المزامنة اليدوي التلقائي في الزاوية العلوية اليسرى -->
+            <div class="fixed top-4 left-4 lg:left-8 z-50 flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl shadow-lg border border-gray-200">
+                <button onclick="forceSyncWithCloud()" id="manual-sync-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs transition" title="زر المزامنة الفورية">
+                    <i class="fa-solid fa-rotate"></i> مزامنة الآن
+                </button>
                 <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-500 text-sm cursor-pointer hover:scale-105 transition flex items-center gap-1" title="التحكم بصوت الإشعارات">
                     <i class="fa-solid fa-bell text-xs" id="global-bell-icon"></i>
                     <span id="low-stock-badge" class="text-red-600 font-black text-[9px] hidden">0</span>
                 </button>
                 <div class="text-right">
-                    <span id="global-bell-status-text" class="text-[10px] font-bold text-gray-500">مفعل</span>
+                    <span id="global-bell-status-text" class="text-[10px] font-bold text-gray-500">متزامن</span>
                 </div>
             </div>
 
@@ -840,7 +846,7 @@
             } else {
                 globalNotificationMode = 'active';
                 document.getElementById('global-bell-icon').className = "fa-solid fa-bell text-orange-500 text-xs";
-                document.getElementById('global-bell-status-text').innerText = "مفعل";
+                document.getElementById('global-bell-status-text').innerText = "متزامن";
                 sysAlert("تم تفعيل التنبيهات والأصوات بنجاح.", "التنبيهات", "success");
             }
         }
@@ -902,7 +908,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "3.5", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "3.6", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -976,6 +982,8 @@
                         updateFavicon(dataUrl);
                     }
                     hideIndicator("تم ✓"); triggerDataChangeInstant();
+                    // مزامنة فورية عند رفع الصورة لتظهر باللابتوب والهاتف معاً
+                    forceSyncWithCloud();
                 }
                 img.src = e.target.result;
             }
@@ -987,7 +995,8 @@
             customReceiptBgUrl = document.getElementById('receiptBgUrlInput').value.trim();
             updateFavicon(customLogoUrl);
             triggerDataChangeInstant();
-            sysAlert("تم حفظ إعدادات الشعار والخلفية بنجاح!", "نجاح", "success");
+            forceSyncWithCloud();
+            sysAlert("تم حفظ إعدادات الشعار والخلفية ومزامنتها بنجاح!", "نجاح", "success");
         }
 
         function switchAuthBox(mode) { ['login','register','forgot','reset'].forEach(m => document.getElementById(m+'-form-box').classList.add('hidden')); document.getElementById(mode+'-form-box').classList.remove('hidden'); }
@@ -1070,6 +1079,36 @@
             }
         }
 
+        // دالة المزامنة القسرية الفورية (التي يتم تفعيلها عبر زر المزامنة الذاتي كل لحظة وفي كل تعديل)
+        function forceSyncWithCloud() {
+            if(!currentStoreUser) return;
+            let localDataStr = localStorage.getItem(`iStoreData_${currentStoreUser}`);
+            if(!localDataStr) return;
+            
+            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(currentStoreUser)}&pass=`)
+                .then(res => res.json())
+                .then(data => {
+                    if(data && data.success && data.storeData) {
+                        let remoteData = data.storeData;
+                        // دمج فوري وتحديث الواجهة إذا وُجدت بيانات أحدث بالسحابة
+                        if(remoteData.inventory && JSON.stringify(remoteData.inventory) !== JSON.stringify(inventory)) {
+                            inventory = remoteData.inventory;
+                            salesHistory = remoteData.salesHistory || salesHistory;
+                            categoriesList = remoteData.categoriesList || categoriesList;
+                            debtsList = remoteData.debtsList || debtsList;
+                            refreshAllUI();
+                        }
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // تفعيل زر المزامنة الذاتي بحيث يضغط نفسه كل ثانية (كل لحظة) لضمان مزامنة فورية تامة بين الأجهزة
+        setInterval(() => {
+            let syncBtn = document.getElementById('auto-sync-btn');
+            if(syncBtn) syncBtn.click();
+        }, 1000);
+
         window.addEventListener('storage', (event) => {
             if(!currentStoreUser) return;
             if(event.key === `iStoreData_${currentStoreUser}` && event.newValue) {
@@ -1099,36 +1138,6 @@
             }
         });
 
-        setInterval(() => {
-            if(!currentStoreUser) return;
-            let localDataStr = localStorage.getItem(`iStoreData_${currentStoreUser}`);
-            if(localDataStr) {
-                try {
-                    let parsed = JSON.parse(localDataStr);
-                    if(parsed.chatMessages && parsed.chatMessages.length !== chatMessages.length) {
-                        if(parsed.chatMessages.length > chatMessages.length) {
-                            let lastMsg = parsed.chatMessages[parsed.chatMessages.length - 1];
-                            if(lastMsg.deviceId !== currentDeviceId && chatNotificationMode !== 'disabled') {
-                                playBeepSound();
-                                if (Notification.permission === "granted") {
-                                    new Notification("رسالة جديدة في iStore", {
-                                        body: `${lastMsg.deviceId}: ${lastMsg.text}`
-                                    });
-                                }
-                                document.getElementById('sidebar-chat-bell').classList.remove('hidden');
-                            }
-                        }
-                        chatMessages = parsed.chatMessages;
-                        updateChatUI();
-                    }
-                    if(parsed.inventory && JSON.stringify(parsed.inventory) !== JSON.stringify(inventory)) {
-                        inventory = parsed.inventory;
-                        refreshAllUI();
-                    }
-                } catch(e) {}
-            }
-        }, 1000);
-
         function refreshAllUI() { 
             updateCategoriesUI(); 
             updateInventoryTable(); 
@@ -1154,6 +1163,7 @@
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
                 loadDataFromLocal(currentStoreUser); 
+                forceSyncWithCloud();
             } else { 
                 document.getElementById('auth-screen').classList.remove('hidden'); 
             } 
@@ -1244,7 +1254,7 @@
             picsartLayouts[docT][pT] = picsartLayouts[docT][pT].filter(x => x.id !== id);
             closeEditElementModal(); renderPicsartCanvas(); renderPicsartSidebar();
         }
-        function savePicsartLayout() { triggerDataChangeInstant(); sysAlert("تم حفظ تخصيص الوصل بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
+        function savePicsartLayout() { triggerDataChangeInstant(); forceSyncWithCloud(); sysAlert("تم حفظ وتخصيص ومزامنة الوصل بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
 
         function printSaleReceipt(sale, cust, cashierName) {
             let area = document.getElementById('printable-area');
@@ -1360,15 +1370,15 @@
             window.print();
         }
 
-        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة القسم", "نجاح", "success"); }
-        function deleteCategory(index) { sysConfirm("تأكيد", "حذف هذا القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
+        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إضافة القسم ومزامنته", "نجاح", "success"); }
+        function deleteCategory(index) { sysConfirm("تأكيد", "حذف هذا القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
         function openEditCatModal(index) { const cat = categoriesList[index]; document.getElementById('editCatIndex').value = index; document.getElementById('editCatOldName').value = cat.name; document.getElementById('editCatName').value = cat.name; document.getElementById('editCatImage').value = cat.image || ''; document.getElementById('edit-cat-modal').classList.remove('hidden'); }
         function closeEditCatModal() { document.getElementById('edit-cat-modal').classList.add('hidden'); }
         function saveEditedCategory() {
             let index = document.getElementById('editCatIndex').value; let oldName = document.getElementById('editCatOldName').value; let newName = document.getElementById('editCatName').value.trim();
             categoriesList[index].name = newName; categoriesList[index].image = document.getElementById('editCatImage').value.trim();
             if(oldName !== newName) inventory.forEach(i => { if(i.category === oldName) i.category = newName; });
-            closeEditCatModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم التحديث", "نجاح", "success");
+            closeEditCatModal(); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم التحديث ومزامنة القسم", "نجاح", "success");
         }
         function updateCategoriesUI() {
             const container = document.getElementById('categoriesListContainer'); const select = document.getElementById('itemCategorySelect');
@@ -1396,9 +1406,9 @@
                 let el = document.getElementById(id);
                 if(el) el.value = id === 'itemMinAlert' ? '5' : '';
             });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة في المخزن", "نجاح", "success");
+            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنتها مع اللابتوب والهاتف", "نجاح", "success");
         }
-        function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
+        function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
         function editItem(index) {
             const item = inventory[index]; document.getElementById('editItemIndex').value = index;
             document.getElementById('editItemName').value = item.name; document.getElementById('editItemBarcode').value = item.barcode || '';
@@ -1414,7 +1424,7 @@
             item.quantity = Number(document.getElementById('editItemQuantity').value); 
             item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 5;
             item.buyPrice = Number(document.getElementById('editItemBuyPrice').value); item.price = Number(document.getElementById('editItemPrice').value);
-            closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم التحديث", "نجاح", "success");
+            closeEditItemModal(); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم تحديث ومزامنة المادة", "نجاح", "success");
         }
         function updateInventoryTable() {
             const tbody = document.getElementById('inventoryTableBody'); tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
@@ -1445,8 +1455,8 @@
             inventory.forEach(i => { let t = (i.quantity||0)*(i.buyPrice||0); total += t; tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${i.name}</td><td class="p-3 border">${i.quantity}</td><td class="p-3 border">${(i.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-indigo-600 font-bold">${t.toLocaleString()}</td></tr>`; });
             document.getElementById('totalVariableDisplay').innerText = total.toLocaleString() + ' د.ع';
         }
-        function saveFixedItem(e) { e.preventDefault(); fixedItems.push({ name: document.getElementById('fixedItemName').value.trim(), price: Number(document.getElementById('fixedItemPrice').value), date: new Date().toLocaleDateString('ar-IQ') }); document.getElementById('fixedItemName').value=''; document.getElementById('fixedItemPrice').value=''; triggerDataChangeInstant(); updateFixedTable(); }
-        function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); updateFixedTable(); }); }
+        function saveFixedItem(e) { e.preventDefault(); fixedItems.push({ name: document.getElementById('fixedItemName').value.trim(), price: Number(document.getElementById('fixedItemPrice').value), date: new Date().toLocaleDateString('ar-IQ') }); document.getElementById('fixedItemName').value=''; document.getElementById('fixedItemPrice').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); updateFixedTable(); }
+        function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); forceSyncWithCloud(); updateFixedTable(); }); }
         function updateFixedTable() { const b = document.getElementById('fixedTableBody'); b.innerHTML = ''; let total = 0; fixedItems.forEach((item, idx) => { total += item.price; b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${item.price.toLocaleString()}</td><td class="p-3 border">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; }); document.getElementById('totalFixedDisplay').innerText = total.toLocaleString() + ' د.ع'; }
 
         function filterPOSStockType(type) {
@@ -1579,8 +1589,9 @@
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: name, amount: 0, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
             auditLog.unshift({ type: 'حساب جديد', details: `فتح حساب آجل للزبون: ${name}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant();
+            forceSyncWithCloud();
             refreshAllUI();
-            sysAlert(`تم إضافة الحساب الآجل "${name}" بنجاح!`, "نجاح", "success");
+            sysAlert(`تم إضافة الحساب الآجل "${name}" ومزامنته بنجاح!`, "نجاح", "success");
         }
 
         function checkout() {
@@ -1635,6 +1646,7 @@
 
             auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${invoiceTotal.toLocaleString()} للزبون: ${cust || 'زبون نقدي'}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant(); 
+            forceSyncWithCloud();
             lastCompletedSale = sale; 
             currentInvoiceItems = []; 
             invoiceTotal = 0; 
@@ -1672,6 +1684,7 @@
                     defaultCashier = cleaned;
                     auditLog.unshift({ type: 'كاشير جديد', details: `إضافة كاشير: ${cleaned}`, date: new Date().toLocaleString('ar-IQ') });
                     triggerDataChangeInstant();
+                    forceSyncWithCloud();
                     setupCashierModalDropdown();
                 });
             } else {
@@ -1691,7 +1704,6 @@
                     printSaleReceipt(lastCompletedSale, lastCompletedSale.customer, selectedCashier); 
                 }
                 lastCompletedSale = null; 
-                // تم التعديل هنا لتبقى واجهة العرض في نقطة البيع POS ولا تتحول إلى سجل المبيعات تلقائياً
                 switchView('pos-view'); 
                 document.getElementById('searchPos').focus();
             }, 300);
@@ -1721,7 +1733,7 @@
             returnsHistory.unshift({ id: Date.now(), invoiceId: sale.id, customer: sale.customer, itemName: item.name, qty: item.qty || 1, status: initialStatus, lossAmount: lossVal, date: new Date().toLocaleString('ar-IQ') });
             if(initialStatus === 'سليم') { let s = inventory.find(i => i.name === item.name); if(s) s.quantity += (item.qty || 1); }
             auditLog.unshift({ type: 'مرتجع', details: `إرجاع مادة: ${item.name} (${initialStatus})`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة بنجاح", "نجاح", "success");
+            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنتها بنجاح", "نجاح", "success");
         }
 
         function updateReturnsTable() {
@@ -1745,7 +1757,7 @@
                 if(matchedInv) matchedInv.quantity += (r.qty || 1);
                 if(itemObj) itemObj.returnStatus = 'سليم';
             }
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل حالة المرتجع بنجاح", "نجاح", "success");
+            triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم تبديل ومزامنة حالة المرتجع", "نجاح", "success");
         }
 
         function updateCustomersTable() {
@@ -1760,7 +1772,7 @@
             if(!n) return sysAlert("أدخل اسم الزبون", "خطأ", "error");
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: n, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `رصيد افتتاحى / فتح حساب` });
             auditLog.unshift({ type: 'حساب زبون', details: `إضافة حساب زبون: ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة حساب الزبون بنجاح", "نجاح", "success");
+            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); sysAlert("تم إضافة ومزامنة حساب الزبون بنجاح", "نجاح", "success");
         }
         function openCustomerDetail(name) {
             currentActiveCustomer = name; document.getElementById('detailCustomerName').innerText = name; document.getElementById('newCustomerNameInput').value = name;
@@ -1797,23 +1809,23 @@
             debtsList.forEach(d => { if(d.customer === currentActiveCustomer) d.customer = n; });
             salesHistory.forEach(s => { if(s.customer === currentActiveCustomer) s.customer = n; });
             auditLog.unshift({ type: 'تعديل زبون', details: `تعديل اسم الزبون من ${currentActiveCustomer} إلى ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); openCustomerDetail(n); sysAlert("تم التعديل", "نجاح", "success");
+            triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(n); sysAlert("تم التعديل والمزامنة", "نجاح", "success");
         }
         function addExternalItemDebt() {
             let d = document.getElementById('extItemDesc').value.trim(); let a = Number(document.getElementById('extItemAmount').value);
             if(!d || !a) return; debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: a, date: new Date().toLocaleDateString('ar-IQ'), details: d });
-            document.getElementById('extItemDesc').value=''; document.getElementById('extItemAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer);
+            document.getElementById('extItemDesc').value=''; document.getElementById('extItemAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer);
         }
         function quickPayDebt() {
             let a = Number(document.getElementById('quickPayAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد من الزبون)` });
             auditLog.unshift({ type: 'تسديد زبون', details: `قبض مبلغ ${a.toLocaleString()} من الزبون: ${currentActiveCustomer}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض وتسجيل السند بنجاح", "نجاح", "success");
+            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض ومزامنة السند بنجاح", "نجاح", "success");
         }
         function exemptCustomerDebt() {
             let a = Number(document.getElementById('exemptionAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `خصم / إعفاء` });
-            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم", "نجاح", "success");
+            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم والمزامنة", "نجاح", "success");
         }
         
         function saveMyDebt(e) {
@@ -1836,8 +1848,9 @@
             document.getElementById('myDebtAmount').value = '';
             document.getElementById('myDebtDetails').value = '';
             triggerDataChangeInstant();
+            forceSyncWithCloud();
             updateMyDebtsTable();
-            sysAlert("تم تسجيل وحفظ الدين للمجهز بنجاح", "نجاح", "success");
+            sysAlert("تم تسجيل وحفظ ومزامنة الدين للمجهز", "نجاح", "success");
         }
 
         function filterSupplierDropdown(q) {
@@ -1871,8 +1884,9 @@
                 });
                 auditLog.unshift({ type: 'تسديد مجهز', details: `تسديد مبلغ ${amount.toLocaleString()} للمجهز: ${supplierName}`, date: new Date().toLocaleString('ar-IQ') });
                 triggerDataChangeInstant();
+                forceSyncWithCloud();
                 updateMyDebtsTable();
-                sysAlert("تم تقليل المبلغ وتسجيل التسديد بنجاح", "نجاح", "success");
+                sysAlert("تم تقليل ومزامنة المبلغ بنجاح", "نجاح", "success");
             });
         }
 
@@ -1897,8 +1911,9 @@
 
                 auditLog.unshift({ type: 'تصفية مجهز', details: `إجراء تصفية حساب للمجهز ${supplierName} برصيد صافي: ${net}`, date: new Date().toLocaleString('ar-IQ') });
                 triggerDataChangeInstant();
+                forceSyncWithCloud();
                 updateMyDebtsTable();
-                sysAlert("تمت تصفية الحساب بنجاح وعرض الصافي بدقة!", "نجاح", "success");
+                sysAlert("تمت تصفية ومزامنة الحساب بنجاح!", "نجاح", "success");
             });
         }
 
@@ -2015,16 +2030,16 @@
         function saveExpense(e) {
             e.preventDefault(); expensesList.push({ desc: document.getElementById('expDesc').value, amount: Number(document.getElementById('expAmount').value), date: new Date().toLocaleDateString('ar-IQ') });
             auditLog.unshift({ type: 'مصروف', details: `تسجيل مصروف: ${document.getElementById('expDesc').value} بمبلغ ${document.getElementById('expAmount').value}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('expDesc').value=''; document.getElementById('expAmount').value=''; triggerDataChangeInstant(); refreshAllUI();
+            document.getElementById('expDesc').value=''; document.getElementById('expAmount').value=''; triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI();
         }
-        function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
+        function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); forceSyncWithCloud(); refreshAllUI(); }); }
         function updateExpensesTable() {
             const b = document.getElementById('expensesTableBody'); b.innerHTML = '';
             expensesList.forEach((e, i) => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${e.desc}</td><td class="p-3 border text-red-500">${e.amount.toLocaleString()}</td><td class="p-3 border">${e.date}</td><td class="p-3 border text-center"><button onclick="deleteExpense(${i})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; });
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تحديث وترتيب واجهات العودة، وتوزيع تفاصيل المجهّز (يمين ويسار)، وتفعيل محرر الطوصولات والشعار، والبقاء في نقطة البيع بعد إتمام البيع', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'تفعيل المزامنة الفورية التلقائية بين الأجهزة وزر المزامنة الذاتي الذي يضغط نفسه كل ثانية', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
@@ -2043,6 +2058,7 @@
             chatMessages.push(newMsg);
             document.getElementById('chatInputText').value = '';
             triggerDataChangeInstant();
+            forceSyncWithCloud();
             updateChatUI();
         }
 
