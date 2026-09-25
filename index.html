@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Firebase Realtime Edition v4.1</title>
+    <title>iStore POS & ERP System - Firebase Realtime Edition v4.3</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -66,6 +66,22 @@
         </div>
     </div>
 
+    <!-- نافذة تعديل أو إضافة مادة للمجهز من داخل كشف الحساب -->
+    <div id="edit-supplier-item-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-right border modal-box">
+            <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 id="suppModalTitle" class="text-lg font-bold text-red-600">إضافة / تعديل مادة</h3><button onclick="closeSupplierItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
+            <input type="hidden" id="suppEditItemId">
+            <div class="space-y-3">
+                <div><label class="block text-xs font-bold mb-1">نوع المادة</label><input type="text" id="suppItemNameInput" class="w-full border p-2.5 rounded-xl outline-none"></div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div><label class="block text-xs font-bold mb-1">العدد</label><input type="number" id="suppItemQtyInput" class="w-full border p-2 text-center" value="1" min="1"></div>
+                    <div><label class="block text-xs font-bold mb-1">السعر المفرد</label><input type="number" id="suppItemPriceInput" class="w-full border p-2 text-center font-bold text-red-600"></div>
+                </div>
+            </div>
+            <div class="flex gap-3 mt-6"><button onclick="closeSupplierItemModal()" class="flex-1 bg-gray-100 py-3 rounded-xl font-bold">إلغاء</button><button onclick="saveSupplierItemEdit()" class="flex-1 bg-red-600 text-white py-3 rounded-xl font-bold">حفظ</button></div>
+        </div>
+    </div>
+
     <!-- واجهة تسجيل الدخول والإنشاء -->
     <div id="auth-screen" class="fixed inset-0 bg-gray-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-gray-100">
@@ -73,7 +89,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.1)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.3)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -462,14 +478,10 @@
                         <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
                     </div>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div class="bg-red-50 border border-red-200 rounded-2xl p-4 text-center">
                             <p class="text-xs font-bold text-red-800">إجمالي المطلوب</p>
                             <h3 class="text-2xl font-black text-red-700 mt-1" id="totalTheyWantDisplay">0 د.ع</h3>
-                        </div>
-                        <div class="bg-green-50 border border-green-200 rounded-2xl p-4 text-center">
-                            <p class="text-xs font-bold text-green-800">إجمالي ما أطلبهم</p>
-                            <h3 class="text-2xl font-black text-green-700 mt-1" id="totalWeWantDisplay">0 د.ع</h3>
                         </div>
                         <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 text-center">
                             <p class="text-xs font-bold text-indigo-900">الصافي الإجمالي</p>
@@ -477,29 +489,33 @@
                         </div>
                     </div>
 
-                    <form onsubmit="saveMyDebt(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6 bg-gray-50 p-4 rounded-xl border">
-                        <div class="relative">
-                            <input type="text" id="myDebtSupplier" required onkeyup="filterSupplierDropdown(this.value)" placeholder="اسم المجهز..." class="border p-3 rounded-xl outline-none bg-white w-full font-bold">
+                    <form onsubmit="saveMyDebt(event)" class="grid grid-cols-1 md:grid-cols-5 gap-3 mb-6 bg-gray-50 p-4 rounded-xl border items-end">
+                        <div class="relative md:col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم المجهز:</label>
+                            <input type="text" id="myDebtSupplier" required onkeyup="filterSupplierDropdown(this.value)" placeholder="اسم المجهز..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
                             <div id="supplierSearchDropdown" class="absolute z-50 bg-white border rounded-xl shadow-xl w-full max-h-40 overflow-y-auto hidden"></div>
                         </div>
-                        <input type="number" id="myDebtAmount" required placeholder="المبلغ..." class="border p-3 rounded-xl outline-none bg-white font-bold">
-                        <input type="text" id="myDebtDetails" placeholder="البيان (اختياري)..." class="border p-3 rounded-xl outline-none bg-white">
-                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">إضافة / تسجيل دين</button>
+                        <div class="md:col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">نوع المادة:</label>
+                            <input type="text" id="myDebtItemName" required placeholder="نوع المادة..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">العدد:</label>
+                            <input type="number" id="myDebtQty" required value="1" min="1" placeholder="العدد" class="border p-2.5 rounded-xl outline-none bg-white w-full text-center font-bold">
+                        </div>
+                        <div class="md:col-span-1">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">السعر المفرد:</label>
+                            <input type="number" id="myDebtPrice" required placeholder="السعر..." class="border p-2.5 rounded-xl outline-none bg-white w-full text-center font-bold text-red-600">
+                        </div>
+                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">إضافة للمجهّز</button>
                     </form>
-
-                    <div class="mb-4">
-                        <input type="text" id="searchSupplierInput" onkeyup="filterSuppliersTable()" placeholder="🔍 بحث عن اسم المجهز..." class="w-full border p-3 rounded-xl bg-gray-50 font-bold outline-none">
-                    </div>
 
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse">
                             <thead>
                                 <tr class="bg-gray-50">
                                     <th class="p-3 border">المجهّز</th>
-                                    <th class="p-3 border">يطلبني</th>
-                                    <th class="p-3 border">اطلبه</th>
-                                    <th class="p-3 border">الصافي</th>
-                                    <th class="p-3 border text-center">إجراءات</th>
+                                    <th class="p-3 border">إجمالي المبلغ المطلوب</th>
                                     <th class="p-3 border text-center">كشف الحساب</th>
                                 </tr>
                             </thead>
@@ -515,43 +531,29 @@
                     <div class="flex justify-between items-center mb-6 border-b pb-4">
                         <h2 class="text-2xl font-black text-red-700" id="detailSupplierName">اسم المجهز</h2>
                         <div class="flex gap-2">
-                            <button onclick="openSupplierPaymentsLogModal()" class="bg-red-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow hover:bg-red-700 transition cursor-pointer flex items-center gap-1.5"><i class="fa-solid fa-clock-rotate-left"></i> سجل تسديداتي</button>
+                            <button onclick="openSupplierItemModalForAdd()" class="bg-red-600 hover:bg-red-700 text-white px-3.5 py-2 rounded-xl text-xs font-bold shadow transition cursor-pointer flex items-center gap-1.5"><i class="fa-solid fa-plus"></i> إضافة مادة جديدة</button>
                             <button onclick="switchView('my-debts-view')" class="bg-gray-100 px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
                         </div>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div class="bg-red-50 p-4 rounded-xl border text-center">
-                            <h4 class="text-xs font-bold text-red-800">يطلبني</h4>
-                            <p class="text-xl font-black text-red-700 mt-1" id="suppDetailTheyWant">0 د.ع</p>
-                        </div>
-                        <div class="bg-green-50 p-4 rounded-xl border text-center">
-                            <h4 class="text-xs font-bold text-green-800">اطلبه</h4>
-                            <p class="text-xl font-black text-green-700 mt-1" id="suppDetailWeWant">0 د.ع</p>
-                        </div>
-                        <div class="bg-indigo-50 p-4 rounded-xl border text-center">
-                            <h4 class="text-xs font-bold text-indigo-900">الصافي للمجهز</h4>
-                            <p class="text-xl font-black text-indigo-700 mt-1" id="suppDetailNet">0 د.ع</p>
-                        </div>
+                    <div class="bg-red-50 p-4 rounded-xl border text-center mb-6">
+                        <h4 class="text-xs font-bold text-red-800">إجمالي المبلغ المطلوب</h4>
+                        <p class="text-2xl font-black text-red-700 mt-1" id="suppDetailTotal">0 د.ع</p>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse">
                             <thead>
                                 <tr class="bg-gray-100">
-                                    <th class="p-3 border text-right">ما أخذ مني (يطلبني - ديون) [يمين]</th>
-                                    <th class="p-3 border text-left">ما أخذت منه (تسديدات - أطلبه) [يسار]</th>
+                                    <th class="p-3 border">المادة</th>
+                                    <th class="p-3 border">السعر</th>
+                                    <th class="p-3 border">العدد</th>
+                                    <th class="p-3 border">المجموع الكلي</th>
+                                    <th class="p-3 border">التاريخ</th>
+                                    <th class="p-3 border text-center">إجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="supplierInvoicesBody"></tbody>
                         </table>
                     </div>
-                </div>
-            </div>
-
-            <!-- نافذة سجل تسديدات المجهز -->
-            <div id="supplier-payments-log-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
-                <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 text-right border modal-box max-h-[80vh] flex flex-col">
-                    <div class="flex justify-between items-center border-b pb-3 mb-4"><h3 class="font-bold text-lg text-red-700">سجل تسديداتي للمجهز</h3><button onclick="closeSupplierPaymentsLogModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
-                    <div class="flex-1 overflow-y-auto space-y-2" id="supplierPaymentsLogBody"></div>
                 </div>
             </div>
 
@@ -725,7 +727,7 @@
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
         <div class="flex items-center gap-2">
             <span class="bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase v4.1)
+                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase v4.3)
             </span>
             <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن لحظياً</span>
         </div>
@@ -935,7 +937,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "4.1", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "4.3", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -1166,7 +1168,6 @@
             refreshAllUI();
         }
 
-        // الاستماع الفوري واللحظي الدائم للتغييرات من أي جهاز لتحديث الواجهة تلقائياً
         function initRealtimeListener(user) {
             if(!user || !window.fbDB) return;
             const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
@@ -1911,25 +1912,31 @@
         function saveMyDebt(e) {
             e.preventDefault();
             let supplier = document.getElementById('myDebtSupplier').value.trim();
-            let amount = Number(document.getElementById('myDebtAmount').value);
-            let details = document.getElementById('myDebtDetails').value.trim() || 'دين جديد / شراء';
-            if(!supplier || isNaN(amount)) return;
+            let itemName = document.getElementById('myDebtItemName').value.trim();
+            let qty = Number(document.getElementById('myDebtQty').value) || 1;
+            let price = Number(document.getElementById('myDebtPrice').value) || 0;
+            let totalAmount = qty * price;
+
+            if(!supplier || !itemName || !price) return;
 
             myDebtsList.push({
                 id: Date.now(),
                 supplier: supplier,
-                amount: amount,
-                details: details,
+                itemName: itemName,
+                qty: qty,
+                price: price,
+                amount: totalAmount,
                 date: new Date().toLocaleDateString('ar-IQ')
             });
-            auditLog.unshift({ type: 'دين مجهز', details: `تسجيل دين للمجهز ${supplier} بقيمة ${amount.toLocaleString()}`, date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'شراء من مجهز', details: `شراء مادة (${itemName}) من المجهز ${supplier} بقيمة ${totalAmount.toLocaleString()}`, date: new Date().toLocaleString('ar-IQ') });
 
             document.getElementById('myDebtSupplier').value = '';
-            document.getElementById('myDebtAmount').value = '';
-            document.getElementById('myDebtDetails').value = '';
+            document.getElementById('myDebtItemName').value = '';
+            document.getElementById('myDebtQty').value = '1';
+            document.getElementById('myDebtPrice').value = '';
             triggerDataChangeInstant();
             updateMyDebtsTable();
-            sysAlert("تم تسجيل وحفظ ومزامنة الدين للمجهز", "نجاح", "success");
+            sysAlert("تم حفظ ومزامنة المادة للمجهز بنجاح", "نجاح", "success");
         }
 
         function filterSupplierDropdown(q) {
@@ -1950,47 +1957,73 @@
             document.getElementById('supplierSearchDropdown').classList.add('hidden');
         }
 
-        function reduceMyDebtPrompt(supplierName) {
-            sysPrompt("تسديد / تقليل المبلغ", `أدخل مبلغ التسديد للمجهز (${supplierName}):`, "", (val) => {
-                let amount = Number(val);
-                if(!amount || amount <= 0) return;
-                myDebtsList.push({
-                    id: Date.now(),
-                    supplier: supplierName,
-                    amount: -amount,
-                    details: 'تسديد / دفع للمجهز',
-                    date: new Date().toLocaleDateString('ar-IQ')
-                });
-                auditLog.unshift({ type: 'تسديد مجهز', details: `تسديد مبلغ ${amount.toLocaleString()} للمجهز: ${supplierName}`, date: new Date().toLocaleString('ar-IQ') });
-                triggerDataChangeInstant();
-                updateMyDebtsTable();
-                sysAlert("تم تقليل ومزامنة المبلغ بنجاح", "نجاح", "success");
-            });
+        function openSupplierItemModalForAdd() {
+            document.getElementById('suppModalTitle').innerText = "إضافة مادة جديدة للمجهز";
+            document.getElementById('suppEditItemId').value = "";
+            document.getElementById('suppItemNameInput').value = "";
+            document.getElementById('suppItemQtyInput').value = "1";
+            document.getElementById('suppItemPriceInput').value = "";
+            document.getElementById('edit-supplier-item-modal').classList.remove('hidden');
         }
 
-        function reconcileSupplierDebt(supplierName) {
-            sysConfirm("تصفية الحساب", `هل تريد إجراء تصفية (مقاصة) لحساب المجهز (${supplierName}) بحيث تدمج الديون؟`, () => {
-                let records = myDebtsList.filter(d => d.supplier === supplierName);
-                let theyWant = 0, weWant = 0;
-                records.forEach(r => {
-                    if(r.amount > 0) theyWant += r.amount;
-                    else weWant += Math.abs(r.amount);
-                });
-                let net = theyWant - weWant;
+        function openSupplierItemModalForEdit(id) {
+            let item = myDebtsList.find(d => d.id === id);
+            if(!item) return;
+            document.getElementById('suppModalTitle').innerText = "تعديل المادة";
+            document.getElementById('suppEditItemId').value = item.id;
+            document.getElementById('suppItemNameInput').value = item.itemName || '';
+            document.getElementById('suppItemQtyInput').value = item.qty || 1;
+            document.getElementById('suppItemPriceInput').value = item.price || 0;
+            document.getElementById('edit-supplier-item-modal').classList.remove('hidden');
+        }
 
-                myDebtsList = myDebtsList.filter(d => d.supplier !== supplierName);
-                if(net > 0) {
-                    myDebtsList.push({ id: Date.now(), supplier: supplierName, amount: net, details: 'تصفية الحساب (صافي مطلوب)', date: new Date().toLocaleDateString('ar-IQ') });
-                } else if(net < 0) {
-                    myDebtsList.push({ id: Date.now(), supplier: supplierName, amount: net, details: 'تصفية الحساب (صافي نطلبه)', date: new Date().toLocaleDateString('ar-IQ') });
-                } else {
-                    myDebtsList.push({ id: Date.now(), supplier: supplierName, amount: 0, details: 'تصفية الحساب (صفر متوازن)', date: new Date().toLocaleDateString('ar-IQ') });
+        function closeSupplierItemModal() {
+            document.getElementById('edit-supplier-item-modal').classList.add('hidden');
+        }
+
+        function saveSupplierItemEdit() {
+            let id = document.getElementById('suppEditItemId').value;
+            let itemName = document.getElementById('suppItemNameInput').value.trim();
+            let qty = Number(document.getElementById('suppItemQtyInput').value) || 1;
+            let price = Number(document.getElementById('suppItemPriceInput').value) || 0;
+            let totalAmount = qty * price;
+
+            if(!itemName || !price) return sysAlert("يرجى إكمال الحقول!", "خطأ", "error");
+
+            if(id) {
+                let item = myDebtsList.find(d => d.id == id);
+                if(item) {
+                    item.itemName = itemName;
+                    item.qty = qty;
+                    item.price = price;
+                    item.amount = totalAmount;
                 }
+            } else {
+                myDebtsList.push({
+                    id: Date.now(),
+                    supplier: currentActiveSupplier,
+                    itemName: itemName,
+                    qty: qty,
+                    price: price,
+                    amount: totalAmount,
+                    date: new Date().toLocaleDateString('ar-IQ')
+                });
+            }
 
-                auditLog.unshift({ type: 'تصفية مجهز', details: `إجراء تصفية حساب للمجهز ${supplierName} برصيد صافي: ${net}`, date: new Date().toLocaleString('ar-IQ') });
+            closeSupplierItemModal();
+            triggerDataChangeInstant();
+            openSupplierDetail(currentActiveSupplier);
+            updateMyDebtsTable();
+            sysAlert("تم حفظ ومزامنة التعديلات بنجاح", "نجاح", "success");
+        }
+
+        function deleteSupplierItem(id) {
+            sysConfirm("تأكيد", "هل أنت متأكد من حذف هذه المادة من كشف حساب المجهز؟", () => {
+                myDebtsList = myDebtsList.filter(d => d.id !== id);
                 triggerDataChangeInstant();
+                openSupplierDetail(currentActiveSupplier);
                 updateMyDebtsTable();
-                sysAlert("تمت تصفية ومزامنة الحساب بنجاح!", "نجاح", "success");
+                sysAlert("تم الحذف ومزامنة التغييرات بنجاح", "نجاح", "success");
             });
         }
 
@@ -1999,53 +2032,37 @@
             document.getElementById('detailSupplierName').innerText = supplierName;
             
             let records = myDebtsList.filter(d => d.supplier === supplierName);
-            let theyWant = 0, weWant = 0;
+            let totalAmount = 0;
             records.forEach(r => {
-                if(r.amount > 0) theyWant += r.amount;
-                else weWant += Math.abs(r.amount);
+                totalAmount += (r.amount || 0);
             });
-            let net = theyWant - weWant;
 
-            document.getElementById('suppDetailTheyWant').innerText = theyWant.toLocaleString() + ' د.ع';
-            document.getElementById('suppDetailWeWant').innerText = weWant.toLocaleString() + ' د.ع';
-            document.getElementById('suppDetailNet').innerText = net.toLocaleString() + ' د.ع';
+            document.getElementById('suppDetailTotal').innerText = totalAmount.toLocaleString() + ' د.ع';
 
             const tbody = document.getElementById('supplierInvoicesBody');
-            tbody.innerHTML = records.length === 0 ? '<tr><td colspan="2" class="text-center p-4 text-gray-400">لا توجد حركات</td></tr>' : '';
+            tbody.innerHTML = records.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد مواد مسجلة</td></tr>' : '';
             
             records.forEach(r => {
-                let isDebt = r.amount > 0; 
-                let isPayment = r.amount < 0; 
-
-                let rightCol = isDebt ? `<div class="font-bold text-red-600">${r.details}: ${r.amount.toLocaleString()} د.ع <span class="text-xs text-gray-400 block">${r.date}</span></div>` : '';
-                let leftCol = isPayment ? `<div class="font-bold text-green-600">${r.details}: ${Math.abs(r.amount).toLocaleString()} د.ع <span class="text-xs text-gray-400 block">${r.date}</span></div>` : '';
+                let itemName = r.itemName || r.details || 'مادة عامة';
+                let price = r.price || r.amount || 0;
+                let qty = r.qty || 1;
+                let total = r.amount || (price * qty);
 
                 tbody.innerHTML += `<tr class="border-b bg-white">
-                    <td class="p-3 border text-right align-top w-1/2">${rightCol}</td>
-                    <td class="p-3 border text-left align-top w-1/2">${leftCol}</td>
+                    <td class="p-3 border font-bold text-gray-900">${itemName}</td>
+                    <td class="p-3 border">${price.toLocaleString()} د.ع</td>
+                    <td class="p-3 border text-center font-bold">${qty}</td>
+                    <td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td>
+                    <td class="p-3 border text-sm text-gray-500">${r.date}</td>
+                    <td class="p-3 border text-center flex gap-1 justify-center">
+                        <button onclick="openSupplierItemModalForEdit(${r.id})" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button>
+                        <button onclick="deleteSupplierItem(${r.id})" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">حذف</button>
+                    </td>
                 </tr>`;
             });
 
             switchView('supplier-detail-view');
         }
-
-        function openSupplierPaymentsLogModal() {
-            const body = document.getElementById('supplierPaymentsLogBody');
-            body.innerHTML = '';
-            let payments = myDebtsList.filter(d => d.supplier === currentActiveSupplier && d.amount < 0);
-            if(payments.length === 0) {
-                body.innerHTML = '<div class="text-center text-gray-400 py-6">لا توجد تسديدات مسجلة لهذا المجهز بعد</div>';
-            } else {
-                payments.forEach(p => {
-                    body.innerHTML += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs font-bold">
-                        <div><span class="text-gray-700 block mb-0.5">${p.details}</span><span class="text-gray-400 text-[10px]">${p.date}</span></div>
-                        <span class="text-red-600 font-black text-sm">${Math.abs(p.amount).toLocaleString()} د.ع</span>
-                    </div>`;
-                });
-            }
-            document.getElementById('supplier-payments-log-modal').classList.remove('hidden');
-        }
-        function closeSupplierPaymentsLogModal() { document.getElementById('supplier-payments-log-modal').classList.add('hidden'); }
 
         function updateMyDebtsTable() {
             const tbody = document.getElementById('myDebtsTableBody');
@@ -2054,54 +2071,34 @@
             
             let map = {};
             myDebtsList.forEach(d => {
-                if(!map[d.supplier]) { map[d.supplier] = { theyWant: 0, weWant: 0 }; }
-                if(d.amount > 0) { map[d.supplier].theyWant += d.amount; }
-                else { map[d.supplier].weWant += Math.abs(d.amount); }
+                if(!map[d.supplier]) { map[d.supplier] = 0; }
+                map[d.supplier] += (d.amount || 0);
             });
 
             let suppliers = Object.keys(map);
             if(suppliers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد ديون مجهزين مسجلة</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد ديون مجهزين مسجلة</td></tr>';
                 document.getElementById('totalTheyWantDisplay').innerText = '0 د.ع';
-                document.getElementById('totalWeWantDisplay').innerText = '0 د.ع';
                 document.getElementById('totalNetSuppliersDisplay').innerText = '0 د.ع';
                 return;
             }
 
-            let grandTheyWant = 0, grandWeWant = 0;
+            let grandTotal = 0;
             suppliers.forEach(supp => {
-                let data = map[supp];
-                grandTheyWant += data.theyWant;
-                grandWeWant += data.weWant;
-                let net = data.theyWant - data.weWant;
+                let total = map[supp];
+                grandTotal += total;
 
                 tbody.innerHTML += `<tr class="border-b bg-white supplier-row" data-name="${supp}">
                     <td class="p-3 border font-bold text-gray-900">${supp}</td>
-                    <td class="p-3 border font-bold text-red-600">${data.theyWant.toLocaleString()} د.ع</td>
-                    <td class="p-3 border font-bold text-green-600">${data.weWant.toLocaleString()} د.ع</td>
-                    <td class="p-3 border font-black text-indigo-700">${net.toLocaleString()} د.ع</td>
-                    <td class="p-3 border text-center flex gap-1 justify-center">
-                        <button onclick="reduceMyDebtPrompt('${supp}')" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition">تسديد</button>
-                        <button onclick="reconcileSupplierDebt('${supp}')" class="bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-xs">تصفية</button>
-                    </td>
+                    <td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td>
                     <td class="p-3 border text-center">
-                        <button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-xs">كشف الحساب</button>
+                        <button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-xs">كشف الحساب</button>
                     </td>
                 </tr>`;
             });
 
-            let grandNet = grandTheyWant - grandWeWant;
-            document.getElementById('totalTheyWantDisplay').innerText = grandTheyWant.toLocaleString() + ' د.ع';
-            document.getElementById('totalWeWantDisplay').innerText = grandWeWant.toLocaleString() + ' د.ع';
-            document.getElementById('totalNetSuppliersDisplay').innerText = grandNet.toLocaleString() + ' د.ع';
-        }
-
-        function filterSuppliersTable() {
-            let val = document.getElementById('searchSupplierInput').value.toLowerCase();
-            document.querySelectorAll('.supplier-row').forEach(row => {
-                let name = row.getAttribute('data-name').toLowerCase();
-                row.style.display = name.includes(val) ? '' : 'none';
-            });
+            document.getElementById('totalTheyWantDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
+            document.getElementById('totalNetSuppliersDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
         }
 
         function saveExpense(e) {
@@ -2116,7 +2113,7 @@
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تفعيل المزامنة اللحظية وتحسين عرض الصور على اللابتوب', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'تحديث نظام الديون للمجهّزين وجدول ما أخذت منه مع إلغاء زر التصفية', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
