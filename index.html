@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Ultimate Edition v3.6</title>
+    <title>iStore POS & ERP System - Ultimate Edition v3.7</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -99,7 +99,7 @@
         </div>
     </div>
 
-    <!-- زر المزامنة الذاتي التلقائي المخفي/المرئي -->
+    <!-- زر المزامنة الذاتي التلقائي المخفي -->
     <button id="auto-sync-btn" onclick="forceSyncWithCloud()" class="hidden"></button>
 
     <!-- نافذة تعديل القسم -->
@@ -160,7 +160,7 @@
             <span id="current-user-badge" class="text-xs text-green-400 mt-1 font-bold"><i class="fa-solid fa-store"></i> محل: غير مححدد</span>
         </div>
         
-        <div class="flex-1 overflow-y-auto p-3 space-y-1 mt-1 pb-10">
+        <div class="flex-1 overflow-y-auto p-3 space-y-1 mt-1 pb-16">
             <button onclick="switchView('dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-white flex items-center"><i class="fa-solid fa-home pl-3 text-gray-400"></i> الرئيسية</button>
             <button onclick="switchView('pos-view'); toggleMobileSidebar(true); document.getElementById('searchPos').focus();" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-cash-register pl-3 text-gray-400"></i> نقطة البيع POS</button>
             <button onclick="switchView('add-item-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-cubes pl-3 text-gray-400"></i> إدارة المخزن</button>
@@ -183,24 +183,10 @@
     </aside>
 
     <!-- المحتوى الرئيسي -->
-    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto">
+    <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto pb-16">
         <div class="p-4 md:p-8">
             <div id="save-indicator" class="fixed top-4 left-4 z-40 text-xs font-bold hidden px-4 py-2 rounded-lg shadow-lg bg-blue-600 text-white transition-all">
                 <i class="fa-solid fa-circle-notch fa-spin pr-1"></i> <span id="indicator-text">جاري المزامنة...</span>
-            </div>
-
-            <!-- جرس التنبيهات وزر المزامنة اليدوي التلقائي في الزاوية العلوية اليسرى -->
-            <div class="fixed top-4 left-4 lg:left-8 z-50 flex items-center gap-2 bg-white px-3 py-1.5 rounded-2xl shadow-lg border border-gray-200">
-                <button onclick="forceSyncWithCloud()" id="manual-sync-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer shadow-xs transition" title="زر المزامنة الفورية">
-                    <i class="fa-solid fa-rotate"></i> مزامنة الآن
-                </button>
-                <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-500 text-sm cursor-pointer hover:scale-105 transition flex items-center gap-1" title="التحكم بصوت الإشعارات">
-                    <i class="fa-solid fa-bell text-xs" id="global-bell-icon"></i>
-                    <span id="low-stock-badge" class="text-red-600 font-black text-[9px] hidden">0</span>
-                </button>
-                <div class="text-right">
-                    <span id="global-bell-status-text" class="text-[10px] font-bold text-gray-500">متزامن</span>
-                </div>
             </div>
 
             <!-- 1. الرئيسية -->
@@ -708,6 +694,23 @@
         </div>
     </main>
 
+    <!-- شريط المزامنة والجرس في الأسفل (ثابت أسفل الشاشة) -->
+    <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
+        <div class="flex items-center gap-2">
+            <button onclick="forceSyncWithCloud()" id="manual-sync-btn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow transition">
+                <i class="fa-solid fa-rotate"></i> مزامنة الآن
+            </button>
+            <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن تلقائياً</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-400 hover:text-orange-300 transition flex items-center gap-1.5 bg-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer border border-gray-700" title="التحكم بصوت الإشعارات">
+                <i class="fa-solid fa-bell" id="global-bell-icon"></i>
+                <span id="low-stock-badge" class="bg-red-600 text-white px-1.5 py-0.2 rounded-full font-black text-[10px] hidden">0</span>
+                <span id="global-bell-status-text">التنبيهات مفعلة</span>
+            </button>
+        </div>
+    </div>
+
     <div id="printable-area" class="hidden p-0 m-0 bg-white font-sans text-black"></div>
 
     <script>
@@ -835,18 +838,18 @@
         function toggleGlobalNotificationSound() {
             if(globalNotificationMode === 'active') {
                 globalNotificationMode = 'muted';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-gray-400 text-xs";
+                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-gray-400";
                 document.getElementById('global-bell-status-text').innerText = "مكتوم";
                 sysAlert("تم كتم صوت التنبيهات مؤقتاً.", "التنبيهات", "info");
             } else if(globalNotificationMode === 'muted') {
                 globalNotificationMode = 'disabled';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-red-500 text-xs";
+                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-red-500";
                 document.getElementById('global-bell-status-text').innerText = "معطل";
                 sysAlert("تم تعطيل التنبيهات نهائياً.", "التنبيهات", "info");
             } else {
                 globalNotificationMode = 'active';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell text-orange-500 text-xs";
-                document.getElementById('global-bell-status-text').innerText = "متزامن";
+                document.getElementById('global-bell-icon').className = "fa-solid fa-bell text-orange-400";
+                document.getElementById('global-bell-status-text').innerText = "التنبيهات مفعلة";
                 sysAlert("تم تفعيل التنبيهات والأصوات بنجاح.", "التنبيهات", "success");
             }
         }
@@ -908,7 +911,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "3.6", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "3.7", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -982,7 +985,6 @@
                         updateFavicon(dataUrl);
                     }
                     hideIndicator("تم ✓"); triggerDataChangeInstant();
-                    // مزامنة فورية عند رفع الصورة لتظهر باللابتوب والهاتف معاً
                     forceSyncWithCloud();
                 }
                 img.src = e.target.result;
@@ -1004,7 +1006,7 @@
         function handleLogin() {
             let u = document.getElementById('loginUsername').value.trim().toLowerCase(); let p = document.getElementById('loginPassword').value.trim();
             if(!u || !p) return sysAlert("يرجى إدخال البيانات!", "خطأ", "error"); showIndicator("جاري الدخول...");
-            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}`).then(res => res.json()).then(data => {
+            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(u)}&pass=${encodeURIComponent(p)}&t=${Date.now()}`).then(res => res.json()).then(data => {
                 if(data.success) { 
                     currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
                     document.getElementById('auth-screen').classList.add('hidden'); 
@@ -1079,31 +1081,43 @@
             }
         }
 
-        // دالة المزامنة القسرية الفورية (التي يتم تفعيلها عبر زر المزامنة الذاتي كل لحظة وفي كل تعديل)
+        // دالة المزامنة القسرية المتجاوزة للكاش (تمنع تخزين المؤقت لطلبات الجلب وتضمن المزامنة الفورية)
         function forceSyncWithCloud() {
             if(!currentStoreUser) return;
-            let localDataStr = localStorage.getItem(`iStoreData_${currentStoreUser}`);
-            if(!localDataStr) return;
+            let syncLabel = document.getElementById('sync-status-label');
+            if(syncLabel) syncLabel.innerText = "● جاري المزامنة...";
             
-            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(currentStoreUser)}&pass=`)
+            fetch(`${MASTER_WEB_APP_URL}?action=login&user=${encodeURIComponent(currentStoreUser)}&pass=&t=${Date.now()}`)
                 .then(res => res.json())
                 .then(data => {
                     if(data && data.success && data.storeData) {
-                        let remoteData = data.storeData;
-                        // دمج فوري وتحديث الواجهة إذا وُجدت بيانات أحدث بالسحابة
-                        if(remoteData.inventory && JSON.stringify(remoteData.inventory) !== JSON.stringify(inventory)) {
-                            inventory = remoteData.inventory;
-                            salesHistory = remoteData.salesHistory || salesHistory;
-                            categoriesList = remoteData.categoriesList || categoriesList;
-                            debtsList = remoteData.debtsList || debtsList;
+                        let remote = data.storeData;
+                        let localStr = localStorage.getItem(`iStoreData_${currentStoreUser}`);
+                        let local = localStr ? JSON.parse(localStr) : null;
+                        
+                        // مقارنة بسيطة لطول أو محتوى المخزن لجلب الأحدث فوراً
+                        if(remote.inventory && (!local || JSON.stringify(remote.inventory) !== JSON.stringify(inventory) || JSON.stringify(remote.salesHistory) !== JSON.stringify(salesHistory))) {
+                            inventory = remote.inventory || [];
+                            salesHistory = remote.salesHistory || [];
+                            categoriesList = remote.categoriesList || [];
+                            debtsList = remote.debtsList || [];
+                            myDebtsList = remote.myDebtsList || [];
+                            customLogoUrl = remote.customLogoUrl || customLogoUrl;
+                            customReceiptBgUrl = remote.customReceiptBgUrl || customReceiptBgUrl;
+                            chatMessages = remote.chatMessages || chatMessages;
+                            
+                            localStorage.setItem(`iStoreData_${currentStoreUser}`, JSON.stringify(remote));
                             refreshAllUI();
                         }
                     }
+                    if(syncLabel) syncLabel.innerText = "● متزامن تلقائياً";
                 })
-                .catch(() => {});
+                .catch(() => {
+                    if(syncLabel) syncLabel.innerText = "● وضع محلي";
+                });
         }
 
-        // تفعيل زر المزامنة الذاتي بحيث يضغط نفسه كل ثانية (كل لحظة) لضمان مزامنة فورية تامة بين الأجهزة
+        // تفعيل زر المزامنة الذاتي التلقائي كل ثانية
         setInterval(() => {
             let syncBtn = document.getElementById('auto-sync-btn');
             if(syncBtn) syncBtn.click();
@@ -2039,7 +2053,7 @@
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تفعيل المزامنة الفورية التلقائية بين الأجهزة وزر المزامنة الذاتي الذي يضغط نفسه كل ثانية', date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'تعديل', details: 'نقل زر المزامنة وجرس التنبيهات إلى الشريط السفلي وتفعيل التجاوز التلقائي للكاش', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
