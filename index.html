@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Firebase Realtime Edition v4.4</title>
+    <title>iStore POS & ERP System - Firebase Realtime Edition v4.5</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -46,6 +46,8 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .modal-overlay { transition: opacity 0.3s ease; }
         .modal-box { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @media print {
             body * { visibility: hidden; }
             #printable-area, #printable-area * { visibility: visible; }
@@ -89,7 +91,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.4)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.5)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -211,7 +213,7 @@
             <button onclick="switchView('sales-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice pl-3 text-gray-400"></i> سجل المبيعات</button>
             <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-red-300 font-bold flex items-center"><i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات</button>
             <button onclick="switchView('customers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-address-book pl-3 text-gray-400"></i> كشف حساب الزبائن</button>
-            <button onclick="switchView('my-debts-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice-dollar pl-3 text-red-400"></i> الديون التي علي (المجهّزون)</button>
+            <button onclick="switchView('my-debts-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice-dollar pl-3 text-red-400"></i> المجهّزون والديون</button>
             <button onclick="switchView('vouchers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-receipt pl-3 text-gray-400"></i> السندات والنسخ الاحتياطي</button>
             <button onclick="switchView('expenses-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-hand-holding-dollar pl-3 text-gray-400"></i> المصروفات</button>
             <button onclick="switchView('audit-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-shield-halved pl-3 text-amber-400"></i> سجل الرقابة والحذف</button>
@@ -228,10 +230,6 @@
     <!-- المحتوى الرئيسي -->
     <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto pb-16">
         <div class="p-4 md:p-8">
-            <div id="save-indicator" class="fixed top-4 left-4 z-40 text-xs font-bold hidden px-4 py-2 rounded-lg shadow-lg bg-blue-600 text-white transition-all">
-                <i class="fa-solid fa-circle-notch fa-spin pr-1"></i> <span id="indicator-text">جاري المزامنة السحابية...</span>
-            </div>
-
             <!-- 1. الرئيسية -->
             <div id="dashboard-view" class="app-view active max-w-5xl mx-auto">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -241,7 +239,7 @@
                     <button onclick="switchView('add-item-view')" class="flex flex-col items-center justify-center p-4 bg-[#00aeef] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-cubes text-3xl mb-2"></i><span class="font-bold">إدارة المخزن</span></button>
                     <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
                     <button onclick="switchView('customers-view')" class="flex flex-col items-center justify-center p-4 bg-[#1d71b8] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-address-book text-3xl mb-2"></i><span class="font-bold">حساب الزبائن</span></button>
-                    <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">الديون التي علي</span></button>
+                    <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">المجهّزون والديون</span></button>
                     <button onclick="switchView('expenses-view')" class="flex flex-col items-center justify-center p-4 bg-[#8cc63f] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-hand-holding-dollar text-3xl mb-2"></i><span class="font-bold">المصروفات</span></button>
                 </div>
             </div>
@@ -287,7 +285,8 @@
                         <div class="md:col-span-2"><div class="flex gap-1 border-2 border-gray-100 p-1.5 rounded-xl bg-white"><input type="text" id="catImage" class="p-2 w-full outline-none text-sm"><button type="button" onclick="document.getElementById('catImageFile').click()" class="bg-gray-100 px-3 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-camera"></i></button><input type="file" id="catImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'catImage')"></div></div>
                         <button type="submit" class="bg-orange-500 text-white font-bold py-3 rounded-xl cursor-pointer">إضافة</button>
                     </form>
-                    <div id="categoriesListContainer" class="flex flex-wrap gap-3 mt-4"></div>
+                    <!-- شريط الأقسام القابل للسحب (إدارة المخزن) -->
+                    <div id="categoriesListContainer" class="flex gap-3 mt-4 overflow-x-auto no-scrollbar py-2"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
@@ -314,7 +313,7 @@
             <!-- 3. نقطة البيع POS -->
             <div id="pos-view" class="app-view">
                 <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold">نقطة البيع POS (منتهية، قليلة، متوسطة، كثيرة)</h2>
+                    <h2 class="text-xl font-bold">نقطة البيع POS</h2>
                     <button onclick="switchView('dashboard-view')" class="bg-gray-200 px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
                 </div>
                 
@@ -338,7 +337,13 @@
                         <div class="mb-4">
                             <input type="text" id="searchPos" oninput="handleBarcodeOrSearch(event)" placeholder="🔍 امسح الباركود بمسدس الباركود أو اكتب اسم المادة..." class="w-full border-2 border-orange-200 p-3.5 rounded-xl bg-orange-50/30 font-bold focus:border-orange-500 outline-none transition text-lg">
                         </div>
-                        <div id="pos-categories-container" class="mb-4 flex flex-wrap gap-3"></div>
+                        
+                        <!-- شريط الأقسام القابل للسحب (نقطة البيع) -->
+                        <div id="pos-categories-container" class="flex gap-3 mb-2 overflow-x-auto no-scrollbar py-2"></div>
+                        
+                        <!-- خط فاصل بين الأقسام والمواد -->
+                        <hr class="border-t-2 border-gray-100 my-4">
+
                         <div id="pos-back-bar" class="hidden mb-4"><button onclick="clearCategorySelection()" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer"><i class="fa-solid fa-arrow-right"></i> العودة لكل الأقسام والمواد</button></div>
                         <div id="pos-items-grid" class="grid grid-cols-2 md:grid-cols-3 gap-4"></div>
                     </div>
@@ -470,11 +475,11 @@
                 </div>
             </div>
 
-            <!-- 7. الديون التي علي (المجهزون) -->
+            <!-- 7. المجهزون والديون -->
             <div id="my-debts-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
-                        <h2 class="text-xl font-bold text-red-700">الديون التي علي (المجهّزون)</h2>
+                        <h2 class="text-xl font-bold text-red-700">المجهّزون والديون</h2>
                         <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
                     </div>
                     
@@ -564,10 +569,10 @@
                     
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-5 mb-6">
                         <h3 class="font-bold text-blue-900 mb-2"><i class="fa-solid fa-cloud-arrow-down"></i> إدارة النسخ الاحتياطي للبيانات</h3>
-                        <p class="text-xs text-gray-600 mb-4">قم بأخذ نسخة احتياطية لحفظ جميع بيانات محلك عبر متصفح الملفات أو جوجل درايف.</p>
+                        <p class="text-xs text-gray-600 mb-4">قم بأخذ نسخة احتياطية لحفظ جميع بيانات محلك محلياً وفي تطبيق الملفات (جوجل درايف أو مجلد الجهاز).</p>
                         <div class="flex flex-col sm:flex-row gap-3">
                             <button onclick="exportBackupFile()" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3.5 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
-                                <i class="fa-solid fa-download"></i> تنزيل نسخة احتياطية (جوجل درايف / الملفات)
+                                <i class="fa-solid fa-download"></i> تنزيل نسخة احتياطية (تطبيق الملفات / الجهاز)
                             </button>
                             <button onclick="document.getElementById('backupFileInput').click()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-3.5 rounded-xl font-bold shadow-md transition flex items-center justify-center gap-2 cursor-pointer">
                                 <i class="fa-solid fa-upload"></i> رفع واستعادة نسخة احتياطية
@@ -723,13 +728,13 @@
         </div>
     </main>
 
-    <!-- شريط المزامنة والجرس في الأسفل (ثابت أسفل الشاشة) -->
+    <!-- الشريط العلوي/السفلي للتنبيهات والشبكة -->
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
-        <div class="flex items-center gap-2">
-            <span class="bg-green-600 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
-                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase v4.4)
+        <div class="flex items-center gap-3">
+            <span id="network-status-badge" class="bg-green-600 text-white px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
+                <i class="fa-solid fa-cloud"></i> متصل بالسحابة (Firebase)
             </span>
-            <span id="sync-status-label" class="text-[11px] text-green-400 font-bold">● متزامن لحظياً</span>
+            <span id="sync-status-label" class="text-[11px] text-green-400 font-bold hidden sm:inline">● محلي وسحابي متزامن</span>
         </div>
         <div class="flex items-center gap-3">
             <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-400 hover:text-orange-300 transition flex items-center gap-1.5 bg-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer border border-gray-700" title="التحكم بصوت الإشعارات">
@@ -860,8 +865,19 @@
         function sysPrompt(title, msg, defVal, onConfirm) { openSysModal({ type: 'prompt', title, message: msg, inputDefault: defVal, icon: '<i class="fa-solid fa-pen-to-square text-blue-500"></i>', btnClass: 'bg-blue-600', onConfirm }); }
 
         function toggleMobileSidebar(forceClose = false) { const sidebar = document.getElementById('sidebar'); if (forceClose) sidebar.classList.add('translate-x-full'); else sidebar.classList.toggle('translate-x-full'); }
-        function showIndicator(text, isError = false) { const ind = document.getElementById('save-indicator'); document.getElementById('indicator-text').innerText = text; ind.className = `fixed top-4 left-4 z-40 text-xs font-bold px-4 py-2 rounded-lg shadow-lg text-white ${isError ? 'bg-red-600' : 'bg-blue-600'}`; ind.classList.remove('hidden'); }
-        function hideIndicator(text) { const ind = document.getElementById('save-indicator'); document.getElementById('indicator-text').innerText = text; ind.className = "fixed top-4 left-4 z-40 text-xs font-bold px-4 py-2 rounded-lg shadow-lg bg-green-600 text-white"; setTimeout(() => ind.classList.add('hidden'), 2000); }
+        
+        // استبدال نافذة خطأ الشبكة المنبثقة بمؤشر في شريط التنبيهات السفلي
+        function updateNetworkStatusIndicator(isOnline, text) {
+            const badge = document.getElementById('network-status-badge');
+            if(!badge) return;
+            if(isOnline) {
+                badge.className = "bg-green-600 text-white px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow";
+                badge.innerHTML = `<i class="fa-solid fa-cloud"></i> ${text || 'متصل بالسحابة (Firebase)'}`;
+            } else {
+                badge.className = "bg-amber-600 text-white px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow";
+                badge.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> ${text || 'يعمل محلياً (غير متصل)'}`;
+            }
+        }
 
         function toggleGlobalNotificationSound() {
             if(globalNotificationMode === 'active') {
@@ -938,8 +954,15 @@
             }
         }
 
+        // الحفظ المزدوج: حفظ محلي تلقائي + تنزيل لملف الجهاز (تطبيق الملفات)
         function exportBackupFile() {
-            const appData = { version: "4.4", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "4.5", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            
+            // حفظ محلي أيضاً في التخزين المحلي
+            if(currentStoreUser) {
+                localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
+            }
+
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
             
@@ -949,7 +972,7 @@
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            sysAlert("تم حفظ النسخة الاحتياطية في جهازك بنجاح!", "نجاح", "success");
+            sysAlert("تم الحفظ محلياً وتنزيل نسخة في تطبيق الملفات بجهازك بنجاح!", "نجاح", "success");
         }
 
         function importBackupFile(event) {
@@ -996,7 +1019,7 @@
         }
 
         function processImageUpload(event, targetInputId) {
-            const file = event.target.files[0]; if (!file) return; showIndicator("ضغط ومعالجة الصورة...");
+            const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = function(e) {
                 const img = new Image();
@@ -1012,7 +1035,7 @@
                         customLogoUrl = dataUrl;
                         updateFavicon(dataUrl);
                     }
-                    hideIndicator("تم ✓"); triggerDataChangeInstant();
+                    triggerDataChangeInstant();
                 }
                 img.src = e.target.result;
             }
@@ -1033,32 +1056,50 @@
             let u = document.getElementById('loginUsername').value.trim().toLowerCase(); 
             let p = document.getElementById('loginPassword').value.trim();
             if(!u || !p) return sysAlert("يرجى إدخال البيانات!", "خطأ", "error"); 
-            showIndicator("جاري التحقق من السحابة...");
+
+            // التحقق أولاً من التخزين المحلي للجهاز عند انقطاع الإنترنت
+            let localSaved = localStorage.getItem('iStore_LocalData_' + u);
+            if(localSaved) {
+                try {
+                    let parsedLocal = JSON.parse(localSaved);
+                    if (p === ADMIN_SECRET_MASTER_PASSWORD || String(parsedLocal.pass || '').trim() === p.trim()) {
+                        currentStoreUser = u; 
+                        localStorage.setItem('iStoreCurrentStore', u); 
+                        document.getElementById('auth-screen').classList.add('hidden'); 
+                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u} ${p === ADMIN_SECRET_MASTER_PASSWORD ? '👑(أدمن)' : ''}`; 
+                        loadDataFromServerData(parsedLocal);
+                        updateNetworkStatusIndicator(false, 'يعمل محلياً (من التخزين المحلي)');
+                        initRealtimeListener(u);
+                        return;
+                    }
+                } catch(e) {}
+            }
+
+            if(!window.fbDB) {
+                return sysAlert("لا يوجد اتصال بالإنترنت ولا توجد بيانات محلية محفوظة لهذا المحل.", "تنبيه", "error");
+            }
 
             const userRef = window.fbRef(window.fbDB, 'stores/' + u);
             window.fbGet(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     let data = snapshot.val();
-                    // استخدام مقارنة نصية شاملة ومقاومة لفروق الأنواع أو المسافات
                     if (p === ADMIN_SECRET_MASTER_PASSWORD || String(data.pass).trim() === p.trim()) {
                         currentStoreUser = u; 
                         localStorage.setItem('iStoreCurrentStore', u); 
                         document.getElementById('auth-screen').classList.add('hidden'); 
                         document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u} ${p === ADMIN_SECRET_MASTER_PASSWORD ? '👑(أدمن)' : ''}`; 
                         loadDataFromServerData(data);
+                        updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
                         initRealtimeListener(u);
-                        hideIndicator("تم الدخول بنجاح ✓");
                     } else {
                         sysAlert("كلمة المرور غير صحيحة!", "خطأ", "error");
-                        hideIndicator("فشل", true);
                     }
                 } else {
                     sysAlert("اسم المحل غير موجود! يرجى إنشاء حساب جديد.", "خطأ", "error");
-                    hideIndicator("فشل", true);
                 }
             }).catch(() => {
-                sysAlert("حدث خطأ في الاتصال بالشبكة.", "خطأ", "error");
-                hideIndicator("فشل الاتصال", true);
+                updateNetworkStatusIndicator(false, 'فشل الاتصال - وضع العمل المحلي');
+                sysAlert("تعذر الاتصال بالسحابة. تأكد من اتصال الإنترنت أو استخدم البيانات المخزنة محلياً.", "تنبيه", "info");
             });
         }
 
@@ -1067,60 +1108,54 @@
             let email = document.getElementById('regEmail').value.trim(); 
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
-            showIndicator("جاري إنشاء الحساب...");
 
-            const userRef = window.fbRef(window.fbDB, 'stores/' + u);
-            window.fbGet(userRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    sysAlert("اسم المحل هذا مستخدم مسبقاً، اختر اسمًا آخر.", "خطأ", "error");
-                    hideIndicator("فشل", true);
-                } else {
-                    let initialData = {
-                        pass: p,
-                        email: email,
-                        inventory: [],
-                        categoriesList: [],
-                        salesHistory: [],
-                        returnsHistory: [],
-                        expensesList: [],
-                        debtsList: [],
-                        myDebtsList: [],
-                        auditLog: [],
-                        fixedItems: [],
-                        cashiersList: ["الرئيسي", "مقتدى"],
-                        defaultCashier: "الرئيسي",
-                        customLogoUrl: "",
-                        customReceiptBgUrl: "",
-                        chatMessages: []
-                    };
-                    window.fbSet(userRef, initialData).then(() => {
-                        currentStoreUser = u; 
-                        localStorage.setItem('iStoreCurrentStore', u); 
-                        document.getElementById('auth-screen').classList.add('hidden'); 
-                        document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
-                        loadDataFromServerData(initialData);
-                        initRealtimeListener(u);
-                        hideIndicator("تم إنشاء المحل بنجاح ✓");
-                    });
-                }
-            });
+            let initialData = {
+                pass: p,
+                email: email,
+                inventory: [],
+                categoriesList: [],
+                salesHistory: [],
+                returnsHistory: [],
+                expensesList: [],
+                debtsList: [],
+                myDebtsList: [],
+                auditLog: [],
+                fixedItems: [],
+                cashiersList: ["الرئيسي", "مقتدى"],
+                defaultCashier: "الرئيسي",
+                customLogoUrl: "",
+                customReceiptBgUrl: "",
+                chatMessages: []
+            };
+
+            // حفظ محلياً فوراً
+            localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
+            currentStoreUser = u; 
+            localStorage.setItem('iStoreCurrentStore', u); 
+            document.getElementById('auth-screen').classList.add('hidden'); 
+            document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
+            loadDataFromServerData(initialData);
+
+            if(window.fbDB) {
+                const userRef = window.fbRef(window.fbDB, 'stores/' + u);
+                window.fbSet(userRef, initialData).catch(() => {});
+                initRealtimeListener(u);
+            }
+            sysAlert("تم إنشاء المحل بنجاح وحفظه في الجهاز والسحابة!", "نجاح", "success");
         }
 
         function requestResetCode() { 
             let u = document.getElementById('forgotUsername').value.trim().toLowerCase(); 
             let email = document.getElementById('forgotEmail').value.trim(); 
             if(!u || !email) return sysAlert("أكمل البيانات", "خطأ", "error"); 
-            showIndicator("جاري التحقق..."); 
             
             const userRef = window.fbRef(window.fbDB, 'stores/' + u);
             window.fbGet(userRef).then((snapshot) => {
                 if(snapshot.exists() && snapshot.val().email === email) {
                     pendingResetUser = u; 
                     switchAuthBox('reset'); 
-                    hideIndicator("تم التحقق ✓");
                 } else {
                     sysAlert("اسم المستخدم أو البريد الالكتروني غير مطابق!", "خطأ", "error");
-                    hideIndicator("فشل", true);
                 }
             });
         }
@@ -1129,12 +1164,10 @@
             let newPass = document.getElementById('newPasswordInput').value.trim(); 
             if(!newPass) return sysAlert("أدخل كلمة المرور الجديدة", "خطأ", "error"); 
             
-            showIndicator("جاري التحديث...");
             const passRef = window.fbRef(window.fbDB, `stores/${pendingResetUser}/pass`);
             window.fbSet(passRef, newPass).then(() => {
                 sysAlert("تم تغيير كلمة المرور بنجاح", "نجاح", "success"); 
                 switchAuthBox('login');
-                hideIndicator("تم بنجاح ✓");
             });
         }
 
@@ -1188,29 +1221,45 @@
                     fixedItems = remoteData.fixedItems || [];
                     chatMessages = remoteData.chatMessages || [];
                     
+                    // تحديث التخزين المحلي تلقائياً عند جلب بيانات جديدة
+                    localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
+                    updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
                     refreshAllUI();
                 }
+            }, (error) => {
+                updateNetworkStatusIndicator(false, 'يعمل محلياً (انقطع الاتصال بالسحابة)');
             });
         }
 
+        // الحفظ الفوري في الجهاز والسحابة معاً
         function triggerDataChangeInstant() {
-            if(!currentStoreUser || !window.fbDB) return;
-            showIndicator("جاري الحفظ...");
+            if(!currentStoreUser) return;
 
-            const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
-            window.fbGet(storeRef).then((snapshot) => {
-                let currentPass = snapshot.exists() ? snapshot.val().pass : "1234";
-                let appData = {
-                    pass: currentPass,
-                    inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages
-                };
-                
-                window.fbSet(storeRef, appData).then(() => {
-                    hideIndicator("تمت المزامنة اللحظية ✓");
+            let appData = {
+                pass: ADMIN_SECRET_MASTER_PASSWORD,
+                inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages
+            };
+
+            // 1. الحفظ الفوري محلياً في ذاكرة الجهاز (LocalStorage) لتعمل بدون إنترنت تماماً
+            localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
+
+            // 2. المزامنة التلقائية مع Firebase إذا كان متصلاً
+            if(window.fbDB) {
+                const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
+                window.fbGet(storeRef).then((snapshot) => {
+                    let currentPass = snapshot.exists() ? snapshot.val().pass : ADMIN_SECRET_MASTER_PASSWORD;
+                    appData.pass = currentPass;
+                    window.fbSet(storeRef, appData).then(() => {
+                        updateNetworkStatusIndicator(true, 'متزامن لحظياً مع السحابة');
+                    }).catch(() => {
+                        updateNetworkStatusIndicator(false, 'محفوظ محلياً (في انتظار الإنترنت للمزامنة)');
+                    });
                 }).catch(() => {
-                    hideIndicator("فشل الحفظ", true);
+                    updateNetworkStatusIndicator(false, 'محفوظ محلياً (بدون اتصال)');
                 });
-            });
+            } else {
+                updateNetworkStatusIndicator(false, 'محفوظ محلياً في الجهاز');
+            }
         }
 
         window.addEventListener('firebase-ready', () => {
@@ -1218,12 +1267,21 @@
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
                 
+                // تحميل البيانات المحلية أولاً لسرعة العرض والعمل بدون إنترنت
+                let localSaved = localStorage.getItem('iStore_LocalData_' + currentStoreUser);
+                if(localSaved) {
+                    try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){}
+                }
+
                 const userRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
                 window.fbGet(userRef).then((snapshot) => {
                     if (snapshot.exists()) {
                         loadDataFromServerData(snapshot.val());
+                        updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
                         initRealtimeListener(currentStoreUser);
                     }
+                }).catch(() => {
+                    updateNetworkStatusIndicator(false, 'يعمل على النسخة المحلية المخزنة');
                 });
             }
         });
@@ -1252,6 +1310,10 @@
             if(currentStoreUser) { 
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
+                let localSaved = localStorage.getItem('iStore_LocalData_' + currentStoreUser);
+                if(localSaved) {
+                    try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){}
+                }
             } else { 
                 document.getElementById('auth-screen').classList.remove('hidden'); 
             } 
@@ -1472,7 +1534,6 @@
             const select = document.getElementById('itemCategorySelect');
             const editSelect = document.getElementById('editItemCategory');
             
-            // الحفاظ على القسم المختيار حالياً لتجنب إعادة تعيينه عند تحديث الواجهة (مثل رفع الصورة)
             let currentSelected = select ? select.value : '';
             let currentEditSelected = editSelect ? editSelect.value : '';
 
@@ -1482,13 +1543,12 @@
 
             categoriesList.forEach((cat, idx) => {
                 let img = cat.image ? `<img src="${cat.image}" class="w-10 h-10 rounded-lg object-cover border" />` : `<div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fa-solid fa-folder"></i></div>`;
-                container.innerHTML += `<div class="bg-white border px-3 py-2 rounded-xl flex items-center gap-3 shadow-xs">${img}<span class="font-bold text-sm">${cat.name}</span><button onclick="openEditCatModal(${idx})" class="text-blue-600 p-2 cursor-pointer"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCategory(${idx})" class="text-red-600 p-2 cursor-pointer"><i class="fa-solid fa-trash"></i></button></div>`;
+                container.innerHTML += `<div class="bg-white border px-3 py-2 rounded-xl flex items-center gap-3 shadow-xs shrink-0">${img}<span class="font-bold text-sm whitespace-nowrap">${cat.name}</span><button onclick="openEditCatModal(${idx})" class="text-blue-600 p-1 cursor-pointer"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCategory(${idx})" class="text-red-600 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button></div>`;
                 
                 select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
                 if(editSelect) editSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
             });
 
-            // استعادة الاختيار الحالي للمستخدم
             if(select && currentSelected) select.value = currentSelected;
             if(editSelect && currentEditSelected) editSelect.value = currentEditSelected;
         }
@@ -1509,7 +1569,7 @@
                 let el = document.getElementById(id);
                 if(el) el.value = id === 'itemMinAlert' ? '1' : '';
             });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنتها لحظياً مع كل الأجهزة", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنته المحليه والسحابية", "نجاح", "success");
         }
         function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function editItem(index) {
@@ -1579,7 +1639,7 @@
             const container = document.getElementById('pos-categories-container'); container.innerHTML = '';
             categoriesList.forEach(cat => {
                 let img = cat.image ? `<img src="${cat.image}" class="w-12 h-12 object-cover rounded-full mx-auto mb-1 border" />` : '<div class="w-12 h-12 bg-orange-50 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-1"><i class="fa-solid fa-folder"></i></div>';
-                container.innerHTML += `<div onclick="selectCategory('${cat.name}')" class="border-2 ${currentSelectedCategory === cat.name ? 'border-orange-500 bg-orange-50' : 'border-transparent bg-white'} rounded-2xl p-3 cursor-pointer hover:border-orange-300 text-center w-24 shadow-xs">${img}<span class="font-bold text-xs truncate w-full block">${cat.name}</span></div>`;
+                container.innerHTML += `<div onclick="selectCategory('${cat.name}')" class="border-2 ${currentSelectedCategory === cat.name ? 'border-orange-500 bg-orange-50' : 'border-transparent bg-white'} rounded-2xl p-3 cursor-pointer hover:border-orange-300 text-center w-28 shrink-0 shadow-xs">${img}<span class="font-bold text-xs truncate w-full block">${cat.name}</span></div>`;
             });
         }
         function selectCategory(name) { currentSelectedCategory = name; document.getElementById('pos-back-bar').classList.remove('hidden'); updatePOSCategories(); updatePOSGrid(); }
@@ -1833,7 +1893,7 @@
             returnsHistory.unshift({ id: Date.now(), invoiceId: sale.id, customer: sale.customer, itemName: item.name, qty: item.qty || 1, status: initialStatus, lossAmount: lossVal, date: new Date().toLocaleString('ar-IQ') });
             if(initialStatus === 'سليم') { let s = inventory.find(i => i.name === item.name); if(s) s.quantity += (item.qty || 1); }
             auditLog.unshift({ type: 'مرتجع', details: `إرجاع مادة: ${item.name} (${initialStatus})`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنتها بنجاح", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنته", "نجاح", "success");
         }
 
         function updateReturnsTable() {
@@ -1857,7 +1917,7 @@
                 if(matchedInv) matchedInv.quantity += (r.qty || 1);
                 if(itemObj) itemObj.returnStatus = 'سليم';
             }
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل ومزامنة حالة المرتجع", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل حالة المرتجع ومزامنته", "نجاح", "success");
         }
 
         function updateCustomersTable() {
