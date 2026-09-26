@@ -172,7 +172,7 @@
                 <div><label class="block text-xs font-bold mb-1">صورة المادة</label><div class="flex gap-2 border p-1.5 rounded-xl"><input type="text" id="editItemImage" class="p-2 w-full outline-none text-sm"><button type="button" onclick="document.getElementById('editItemImageFile').click()" class="bg-gray-100 px-3"><i class="fa-solid fa-camera"></i></button><input type="file" id="editItemImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'editItemImage')"></div></div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-xs font-bold mb-1">الكمية الحالية</label><input type="number" id="editItemQuantity" class="w-full border p-2 text-center"></div>
-                    <div><label class="block text-xs font-bold mb-1 text-amber-600">حد التنبيه القليل</label><input type="number" id="editItemMinAlert" class="w-full border p-2 text-center font-bold text-amber-600" placeholder="مثال: 5"></div>
+                    <div><label class="block text-xs font-bold mb-1 text-amber-600">حد التنبيه القليل</label><input type="number" id="editItemMinAlert" class="w-full border p-2 text-center font-bold text-amber-600" placeholder="مثال: 1"></div>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-xs font-bold mb-1">الشراء</label><input type="number" id="editItemBuyPrice" class="w-full border p-2 text-center"></div>
@@ -298,7 +298,7 @@
                         <div><select id="itemCategorySelect" required class="w-full border-2 border-gray-100 p-3 rounded-xl bg-white font-bold"><option value="">اختر القسم...</option></select></div>
                         <div><div class="flex gap-1 border-2 border-gray-100 p-1.5 rounded-xl bg-white"><input type="text" id="itemImage" class="p-2 w-full outline-none text-sm" placeholder="صورة المادة"><button type="button" onclick="document.getElementById('itemImageFile').click()" class="bg-gray-100 px-3 cursor-pointer"><i class="fa-solid fa-camera"></i></button><input type="file" id="itemImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'itemImage')"></div></div>
                         <div><input type="number" id="itemQuantity" required placeholder="الكمية الحالية" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"></div>
-                        <div><input type="number" id="itemMinAlert" value="5" required placeholder="عدد التنبيه القليل (افتراضي 5)" class="w-full border-2 border-amber-100 p-3 rounded-xl outline-none font-bold text-amber-600 bg-amber-50/30"></div>
+                        <div><input type="number" id="itemMinAlert" value="1" required placeholder="عدد التنبيه القليل (افتراضي 1)" class="w-full border-2 border-amber-100 p-3 rounded-xl outline-none font-bold text-amber-600 bg-amber-50/30"></div>
                         <div><input type="number" id="itemBuyPrice" required placeholder="سعر الشراء" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"></div>
                         <div><input type="number" id="itemPrice" required placeholder="سعر البيع" class="w-full border-2 border-gray-100 p-3 rounded-xl text-orange-600 font-bold outline-none"></div>
                         <button type="submit" class="col-span-full bg-blue-600 text-white font-bold py-3.5 rounded-xl cursor-pointer">حفظ في المخزن</button>
@@ -890,7 +890,7 @@
             let alertCount = 0;
             inventory.forEach(i => {
                 let qty = Number(i.quantity) || 0;
-                let minAlert = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 5;
+                let minAlert = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 1;
                 
                 let currentState = 'normal';
                 if(qty === 0) currentState = 'ended';
@@ -1039,8 +1039,8 @@
             window.fbGet(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     let data = snapshot.val();
-                    // التحقق من كلمة مرور الأدمن السرية أو كلمة المرور الخاصة بالحساب
-                    if (p === ADMIN_SECRET_MASTER_PASSWORD || data.pass === p) {
+                    // استخدام مقارنة نصية شاملة ومقاومة لفروق الأنواع أو المسافات
+                    if (p === ADMIN_SECRET_MASTER_PASSWORD || String(data.pass).trim() === p.trim()) {
                         currentStoreUser = u; 
                         localStorage.setItem('iStoreCurrentStore', u); 
                         document.getElementById('auth-screen').classList.add('hidden'); 
@@ -1468,13 +1468,29 @@
             closeEditCatModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم التحديث ومزامنة القسم", "نجاح", "success");
         }
         function updateCategoriesUI() {
-            const container = document.getElementById('categoriesListContainer'); const select = document.getElementById('itemCategorySelect');
-            container.innerHTML = categoriesList.length === 0 ? '<span class="text-gray-400 text-sm">لا توجد أقسام</span>' : ''; select.innerHTML = '<option value="">اختر القسم...</option>';
+            const container = document.getElementById('categoriesListContainer'); 
+            const select = document.getElementById('itemCategorySelect');
+            const editSelect = document.getElementById('editItemCategory');
+            
+            // الحفاظ على القسم المختيار حالياً لتجنب إعادة تعيينه عند تحديث الواجهة (مثل رفع الصورة)
+            let currentSelected = select ? select.value : '';
+            let currentEditSelected = editSelect ? editSelect.value : '';
+
+            container.innerHTML = categoriesList.length === 0 ? '<span class="text-gray-400 text-sm">لا توجد أقسام</span>' : ''; 
+            select.innerHTML = '<option value="">اختر القسم...</option>';
+            if(editSelect) editSelect.innerHTML = '<option value="">بدون</option>';
+
             categoriesList.forEach((cat, idx) => {
                 let img = cat.image ? `<img src="${cat.image}" class="w-10 h-10 rounded-lg object-cover border" />` : `<div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fa-solid fa-folder"></i></div>`;
                 container.innerHTML += `<div class="bg-white border px-3 py-2 rounded-xl flex items-center gap-3 shadow-xs">${img}<span class="font-bold text-sm">${cat.name}</span><button onclick="openEditCatModal(${idx})" class="text-blue-600 p-2 cursor-pointer"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCategory(${idx})" class="text-red-600 p-2 cursor-pointer"><i class="fa-solid fa-trash"></i></button></div>`;
+                
                 select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
+                if(editSelect) editSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
             });
+
+            // استعادة الاختيار الحالي للمستخدم
+            if(select && currentSelected) select.value = currentSelected;
+            if(editSelect && currentEditSelected) editSelect.value = currentEditSelected;
         }
 
         function saveItem(event) {
@@ -1485,13 +1501,13 @@
                 category: document.getElementById('itemCategorySelect').value,
                 image: document.getElementById('itemImage').value.trim(),
                 quantity: Number(document.getElementById('itemQuantity').value),
-                minAlert: Number(document.getElementById('itemMinAlert').value) || 5,
+                minAlert: Number(document.getElementById('itemMinAlert').value) || 1,
                 buyPrice: Number(document.getElementById('itemBuyPrice').value),
                 price: Number(document.getElementById('itemPrice').value)
             });
             ['itemName','itemBarcode','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice'].forEach(id => {
                 let el = document.getElementById(id);
-                if(el) el.value = id === 'itemMinAlert' ? '5' : '';
+                if(el) el.value = id === 'itemMinAlert' ? '1' : '';
             });
             triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنتها لحظياً مع كل الأجهزة", "نجاح", "success");
         }
@@ -1500,7 +1516,7 @@
             const item = inventory[index]; document.getElementById('editItemIndex').value = index;
             document.getElementById('editItemName').value = item.name; document.getElementById('editItemBarcode').value = item.barcode || '';
             const select = document.getElementById('editItemCategory'); select.innerHTML = '<option value="">بدون</option>'; categoriesList.forEach(c => select.innerHTML += `<option value="${c.name}">${c.name}</option>`); select.value = item.category || '';
-            document.getElementById('editItemImage').value = item.image || ''; document.getElementById('editItemQuantity').value = item.quantity; document.getElementById('editItemMinAlert').value = item.minAlert !== undefined ? item.minAlert : 5; document.getElementById('editItemBuyPrice').value = item.buyPrice || 0; document.getElementById('editItemPrice').value = item.price;
+            document.getElementById('editItemImage').value = item.image || ''; document.getElementById('editItemQuantity').value = item.quantity; document.getElementById('editItemMinAlert').value = item.minAlert !== undefined ? item.minAlert : 1; document.getElementById('editItemBuyPrice').value = item.buyPrice || 0; document.getElementById('editItemPrice').value = item.price;
             document.getElementById('edit-item-modal').classList.remove('hidden');
         }
         function closeEditItemModal() { document.getElementById('edit-item-modal').classList.add('hidden'); }
@@ -1509,7 +1525,7 @@
             item.name = document.getElementById('editItemName').value.trim(); item.barcode = document.getElementById('editItemBarcode').value.trim();
             item.category = document.getElementById('editItemCategory').value; item.image = document.getElementById('editItemImage').value.trim();
             item.quantity = Number(document.getElementById('editItemQuantity').value); 
-            item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 5;
+            item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
             item.buyPrice = Number(document.getElementById('editItemBuyPrice').value); item.price = Number(document.getElementById('editItemPrice').value);
             closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث ومزامنة المادة", "نجاح", "success");
         }
@@ -1520,7 +1536,7 @@
                 let barcodeHtml = item.barcode ? `<span class="block font-mono text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1">🏷️ ${item.barcode}</span>` : '<span class="text-[10px] text-gray-400">بدون باركود</span>';
                 
                 let q = Number(item.quantity) || 0;
-                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 5;
+                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 1;
                 
                 let qtyClass = "text-blue-600 font-black";
                 let statusBadge = "";
@@ -1576,7 +1592,7 @@
             if(currentPOSStockFilter) {
                 items = items.filter(i => {
                     let q = Number(i.quantity) || 0;
-                    let minA = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 5;
+                    let minA = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 1;
                     
                     let stockType = 'كثيرة';
                     if(q === 0) stockType = 'منتهية';
@@ -1593,7 +1609,7 @@
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
                 
                 let q = Number(item.quantity) || 0;
-                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 5;
+                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 1;
                 
                 let numColorClass = "text-blue-600";
                 if(q === 0) numColorClass = "text-gray-400 font-black line-through";
