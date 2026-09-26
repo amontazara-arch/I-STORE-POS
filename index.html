@@ -3,17 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Native PWA Edition v4.7</title>
+    <title>iStore POS & ERP System - Native PWA Edition v5.0</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     
-    <!-- تعريف تطبيق الويب التقدمي (PWA Manifest مضمن) -->
     <meta name="theme-color" content="#111827">
     <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22iStore%20POS%20System%22%2C%22short_name%22%3A%22iStore%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f3f4f6%22%2C%22theme_color%22%3A%22%23111827%22%2C%22icons%22%3A%5B%5D%7D">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- استدعاء مكتبات Firebase SDK للربط السحابي واللحظي -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
@@ -51,8 +49,30 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .modal-overlay { transition: opacity 0.3s ease; }
         .modal-box { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* تحسين السحب الأفقي للأقسام ودعم اللمس والماوس */
+        .horizontal-scroll-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            gap: 12px;
+            padding-bottom: 6px;
+            cursor: grab;
+            user-select: none;
+        }
+        .horizontal-scroll-container:active {
+            cursor: grabbing;
+        }
+        .horizontal-scroll-container::-webkit-scrollbar {
+            height: 6px;
+        }
+        .horizontal-scroll-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
         @media print {
             body * { visibility: hidden; }
             #printable-area, #printable-area * { visibility: visible; }
@@ -62,7 +82,6 @@
 </head>
 <body class="flex flex-col lg:flex-row h-screen overflow-hidden text-gray-800">
 
-    <!-- نظام النوافذ المنبثقة -->
     <div id="sys-modal-overlay" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none modal-overlay">
         <div id="sys-modal-box" class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform scale-90 modal-box">
             <div id="sys-modal-icon" class="text-5xl mb-4"></div>
@@ -73,7 +92,23 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل مادة المجهز -->
+    <!-- نافذة سجل الإشعارات -->
+    <div id="notifications-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden modal-overlay">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 text-right border modal-box max-h-[85vh] flex flex-col">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <h3 class="font-bold text-lg text-orange-600"><i class="fa-solid fa-bell"></i> سجل الإشعارات المخزنية</h3>
+                    <span id="notif-modal-count-badge" class="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full font-bold">0</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="clearAllNotifications()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">مسح الكل</button>
+                    <button onclick="closeNotificationsModal()" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">إغلاق</button>
+                </div>
+            </div>
+            <div class="flex-1 overflow-y-auto space-y-3 pr-1" id="notifications-modal-list"></div>
+        </div>
+    </div>
+
     <div id="edit-supplier-item-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-right border modal-box">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 id="suppModalTitle" class="text-lg font-bold text-red-600">إضافة / تعديل مادة</h3><button onclick="closeSupplierItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
@@ -89,14 +124,13 @@
         </div>
     </div>
 
-    <!-- واجهة تسجيل الدخول -->
     <div id="auth-screen" class="fixed inset-0 bg-gray-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-gray-100">
             <div class="font-modern flex items-baseline justify-center tracking-tight mb-2" dir="ltr">
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v4.7)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.0)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -152,7 +186,6 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل القسم -->
     <div id="edit-cat-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-right border">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="text-lg font-bold text-orange-600">تعديل القسم</h3><button onclick="closeEditCatModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
@@ -167,7 +200,6 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل المادة -->
     <div id="edit-item-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 text-right border">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="text-lg font-bold text-blue-600">تعديل المادة</h3><button onclick="closeEditItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
@@ -190,7 +222,6 @@
         </div>
     </div>
 
-    <!-- الشريط العلوي للهواتف -->
     <header class="lg:hidden bg-gray-900 text-white flex justify-between items-center p-4 z-30 shadow-md">
         <div class="font-modern flex items-baseline tracking-tight" dir="ltr">
             <span class="text-orange-500 text-3xl font-black">i</span>
@@ -199,7 +230,6 @@
         <button onclick="toggleMobileSidebar()" class="text-white text-2xl"><i class="fa-solid fa-bars"></i></button>
     </header>
 
-    <!-- القائمة الجانبية -->
     <aside class="w-full lg:w-64 bg-gray-900 text-gray-300 flex flex-col shadow-2xl z-40 h-full transition-all duration-300 fixed lg:static inset-y-0 right-0 transform translate-x-full lg:translate-x-0" id="sidebar">
         <div class="py-5 flex flex-col items-center justify-center bg-gray-950 border-b border-gray-800 relative">
             <button onclick="toggleMobileSidebar(true)" class="lg:hidden absolute left-4 text-gray-400 text-xl"><i class="fa-solid fa-xmark"></i></button>
@@ -232,10 +262,8 @@
         </div>
     </aside>
 
-    <!-- المحتوى الرئيسي -->
     <main class="flex-1 flex flex-col h-full relative bg-gray-100 overflow-y-auto pb-16">
         <div class="p-4 md:p-8">
-            <!-- 1. الرئيسية -->
             <div id="dashboard-view" class="app-view active max-w-5xl mx-auto">
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                     <button onclick="switchView('sales-view')" class="flex flex-col items-center justify-center p-4 bg-[#c8102e] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-tag text-3xl mb-2"></i><span class="font-bold">سجل المبيعات</span></button>
@@ -249,7 +277,6 @@
                 </div>
             </div>
 
-            <!-- لوحة القيم -->
             <div id="values-dashboard-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-6 border-b pb-4"><h2 class="text-2xl font-bold">إدارة الجرد والقيم</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -281,7 +308,6 @@
                 </div>
             </div>
 
-            <!-- 2. المخزن -->
             <div id="add-item-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-orange-600">إدارة الأقسام</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -290,8 +316,7 @@
                         <div class="md:col-span-2"><div class="flex gap-1 border-2 border-gray-100 p-1.5 rounded-xl bg-white"><input type="text" id="catImage" class="p-2 w-full outline-none text-sm"><button type="button" onclick="document.getElementById('catImageFile').click()" class="bg-gray-100 px-3 py-1.5 rounded-lg cursor-pointer"><i class="fa-solid fa-camera"></i></button><input type="file" id="catImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'catImage')"></div></div>
                         <button type="submit" class="bg-orange-500 text-white font-bold py-3 rounded-xl cursor-pointer">إضافة</button>
                     </form>
-                    <!-- شريط الأقسام القابل للسحب (إدارة المخزن) -->
-                    <div id="categoriesListContainer" class="flex gap-3 mt-4 overflow-x-auto no-scrollbar py-2"></div>
+                    <div id="categoriesListContainer" class="horizontal-scroll-container py-2"></div>
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
@@ -315,7 +340,6 @@
                 </div>
             </div>
 
-            <!-- 3. نقطة البيع POS -->
             <div id="pos-view" class="app-view">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold">نقطة البيع POS</h2>
@@ -343,10 +367,8 @@
                             <input type="text" id="searchPos" oninput="handleBarcodeOrSearch(event)" placeholder="🔍 امسح الباركود بمسدس الباركود أو اكتب اسم المادة..." class="w-full border-2 border-orange-200 p-3.5 rounded-xl bg-orange-50/30 font-bold focus:border-orange-500 outline-none transition text-lg">
                         </div>
                         
-                        <!-- شريط الأقسام القابل للسحب (نقطة البيع) -->
-                        <div id="pos-categories-container" class="flex gap-3 mb-2 overflow-x-auto no-scrollbar py-2"></div>
-                        
-                        <!-- خط فاصل بين الأقسام والمواد -->
+                        <!-- حاوية الأقسام في نقطة البيع مدعومة بالتمرير الأفقي باللمس والماوس -->
+                        <div id="pos-categories-container" class="horizontal-scroll-container py-2 mb-2"></div>
                         <hr class="border-t-2 border-gray-100 my-4">
 
                         <div id="pos-back-bar" class="hidden mb-4"><button onclick="clearCategorySelection()" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer"><i class="fa-solid fa-arrow-right"></i> العودة لكل الأقسام والمواد</button></div>
@@ -385,7 +407,6 @@
                 </div>
             </div>
 
-            <!-- خيارات طباعة الوصل والكاشير -->
             <div id="print-options-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
                 <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border modal-box">
                     <div class="text-green-500 text-5xl mb-3"><i class="fa-solid fa-circle-check"></i></div>
@@ -396,7 +417,6 @@
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم الكاشير:</label>
                             <select id="checkoutCashierSelect" onchange="handleCashierDropdownChange(this.value)" class="w-full border-2 border-gray-200 p-3 rounded-xl font-bold bg-gray-50 outline-none cursor-pointer">
-                                <!-- يتم تعبئتها ديناميكياً -->
                             </select>
                         </div>
                     </div>
@@ -408,7 +428,6 @@
                 </div>
             </div>
 
-            <!-- 4. سجل المبيعات -->
             <div id="sales-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">سجل المبيعات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -423,7 +442,6 @@
                 </div>
             </div>
 
-            <!-- 5. سجل المرتجعات -->
             <div id="returns-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-red-700">سجل المرتجعات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -432,7 +450,6 @@
                 </div>
             </div>
 
-            <!-- 6. الزبائن (كشف الحساب) -->
             <div id="customers-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">حسابات الزبائن (كشف الحساب)</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -446,7 +463,6 @@
                 </div>
             </div>
 
-            <!-- تفاصيل الزبون -->
             <div id="customer-detail-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 relative">
                     <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -472,7 +488,6 @@
                 </div>
             </div>
 
-            <!-- نافذة سجل تسديدات الزبائن -->
             <div id="customer-payments-log-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
                 <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 text-right border modal-box max-h-[80vh] flex flex-col">
                     <div class="flex justify-between items-center border-b pb-3 mb-4"><h3 class="font-bold text-lg text-purple-700">سجل تسديدات الزبائن</h3><button onclick="closeCustomerPaymentsLogModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -480,7 +495,6 @@
                 </div>
             </div>
 
-            <!-- 7. المجهزون والديون -->
             <div id="my-debts-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -535,7 +549,6 @@
                 </div>
             </div>
 
-            <!-- تفاصيل المجهز -->
             <div id="supplier-detail-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 relative">
                     <div class="flex justify-between items-center mb-6 border-b pb-4">
@@ -567,7 +580,6 @@
                 </div>
             </div>
 
-            <!-- 8. السندات والنسخ الاحتياطي وإعدادات الطباعة -->
             <div id="vouchers-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">السندات والنسخ الاحتياطي وإعدادات الطباعة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -604,7 +616,6 @@
                 </div>
             </div>
 
-            <!-- محرر التصميم الحر -->
             <div id="picsart-editor-view" class="app-view max-w-7xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-2xl border p-6 flex flex-col h-[88vh]">
                     <div class="flex justify-between items-center border-b pb-4 mb-4">
@@ -640,7 +651,6 @@
                 </div>
             </div>
 
-            <!-- نافذة إضافة عنصر -->
             <div id="add-element-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-xs w-full p-6 text-center border modal-box">
                     <h3 class="font-bold text-lg mb-4 text-purple-700">إضافة عنصر جديد</h3>
@@ -656,7 +666,6 @@
                 </div>
             </div>
 
-            <!-- نافذة خصائص العنصر -->
             <div id="edit-element-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden modal-overlay">
                 <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-right border modal-box">
                     <h3 class="font-bold text-lg mb-4 text-purple-700 border-b pb-2">خصائص العنصر</h3>
@@ -677,7 +686,6 @@
                 </div>
             </div>
 
-            <!-- 9. المصروفات -->
             <div id="expenses-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">المصروفات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -690,7 +698,6 @@
                 </div>
             </div>
 
-            <!-- 10. الرقابة -->
             <div id="audit-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-red-600">سجل الرقابة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -698,7 +705,6 @@
                 </div>
             </div>
 
-            <!-- 11. المراسلة الداخلية -->
             <div id="chat-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-sm p-6 border flex flex-col h-[75vh]">
                     <div class="flex justify-between items-center border-b pb-4 mb-4">
@@ -733,7 +739,6 @@
         </div>
     </main>
 
-    <!-- الشريط السفلي للشبكة والتنبيهات -->
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
         <div class="flex items-center gap-3">
             <span id="network-status-badge" class="bg-green-600 text-white px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
@@ -742,10 +747,14 @@
             <span id="sync-status-label" class="text-[11px] text-green-400 font-bold hidden sm:inline">● محلي وسحابي متزامن</span>
         </div>
         <div class="flex items-center gap-3">
-            <button onclick="toggleGlobalNotificationSound()" id="global-bell-btn" class="text-orange-400 hover:text-orange-300 transition flex items-center gap-1.5 bg-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer border border-gray-700" title="التحكم بصوت الإشعارات">
+            <button onclick="toggleGlobalNotificationMode()" id="global-notif-toggle-btn" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-gray-700 transition" title="تبديل حالة الإشعارات المخزنية">
+                <i class="fa-solid fa-bell" id="global-notif-mode-icon"></i>
+                <span id="global-notif-mode-text">الإشعارات مفعلة</span>
+            </button>
+            <button onclick="openNotificationsModal()" id="global-bell-btn" class="relative text-orange-400 hover:text-orange-300 transition flex items-center gap-1.5 bg-gray-800 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer border border-gray-700" title="سجل الإشعارات">
                 <i class="fa-solid fa-bell" id="global-bell-icon"></i>
                 <span id="low-stock-badge" class="bg-red-600 text-white px-1.5 py-0.2 rounded-full font-black text-[10px] hidden">0</span>
-                <span id="global-bell-status-text">التنبيهات مفعلة</span>
+                <span>السجل</span>
             </button>
         </div>
     </div>
@@ -753,7 +762,6 @@
     <div id="printable-area" class="hidden p-0 m-0 bg-white font-sans text-black"></div>
 
     <script>
-        // تفعيل العمل بدون إنترنت عبر Service Worker مضمن
         if ('serviceWorker' in navigator) {
             const swCode = `
                 self.addEventListener('install', e => { self.skipWaiting(); });
@@ -773,15 +781,49 @@
 
         let inventory = [], categoriesList = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], fixedItems = [], cashiersList = ["الرئيسي", "مقتدى"];
         let chatMessages = [];
+        let systemNotifications = [];
+        let notifiedStockItems = {};
+
         let invoiceTotal = 0, currentActiveCustomer = null, currentActiveSupplier = null, customLogoUrl = "", customReceiptBgUrl = "", pendingResetUser = "", lastCompletedSale = null, currentSelectedCategory = null, defaultCashier = "الرئيسي";
         let currentPOSStockFilter = null;
 
-        let globalNotificationMode = 'active'; 
-        let chatNotificationMode = 'active'; 
-        let alertedStockState = {};
+        let globalNotificationMode = localStorage.getItem('iStore_NotifMode') || 'active';
+        let chatNotificationMode = 'active';
+
+        function updateGlobalNotifButtonUI() {
+            let btn = document.getElementById('global-notif-mode-icon');
+            let txt = document.getElementById('global-notif-mode-text');
+            if(!btn || !txt) return;
+            if(globalNotificationMode === 'active') {
+                btn.className = "fa-solid fa-bell text-green-400";
+                txt.innerText = "الإشعارات مفعلة";
+            } else if(globalNotificationMode === 'muted') {
+                btn.className = "fa-solid fa-bell-slash text-amber-400";
+                txt.innerText = "الإشعارات صامتة";
+            } else {
+                btn.className = "fa-solid fa-ban text-red-500";
+                txt.innerText = "الإشعارات مغلقة";
+            }
+        }
+
+        function toggleGlobalNotificationMode() {
+            if(globalNotificationMode === 'active') {
+                globalNotificationMode = 'muted';
+                sysAlert("تم كتم أصوات الإشعارات المخزنية.", "تنبيه", "info");
+            } else if(globalNotificationMode === 'muted') {
+                globalNotificationMode = 'disabled';
+                sysAlert("تم إغلاق الإشعارات المخزنية تماماً من داخل التطبيق.", "تنبيه", "info");
+            } else {
+                globalNotificationMode = 'active';
+                sysAlert("تم تفعيل الإشعارات المخزنية بالكامل.", "نجاح", "success");
+            }
+            localStorage.setItem('iStore_NotifMode', globalNotificationMode);
+            updateGlobalNotifButtonUI();
+            checkLowStockAlerts();
+        }
 
         function playBeepSound() {
-            if(globalNotificationMode === 'disabled') return;
+            if(globalNotificationMode === 'disabled' || globalNotificationMode === 'muted') return;
             try {
                 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if(audioCtx.state === 'suspended') { audioCtx.resume(); }
@@ -890,74 +932,111 @@
             }
         }
 
-        function toggleGlobalNotificationSound() {
-            if(globalNotificationMode === 'active') {
-                globalNotificationMode = 'muted';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-gray-400";
-                document.getElementById('global-bell-status-text').innerText = "مكتوم";
-                sysAlert("تم كتم صوت التنبيهات مؤقتاً.", "التنبيهات", "info");
-            } else if(globalNotificationMode === 'muted') {
-                globalNotificationMode = 'disabled';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell-slash text-red-500";
-                document.getElementById('global-bell-status-text').innerText = "معطل";
-                sysAlert("تم تعطيل التنبيهات نهائياً.", "التنبيهات", "info");
-            } else {
-                globalNotificationMode = 'active';
-                document.getElementById('global-bell-icon').className = "fa-solid fa-bell text-orange-400";
-                document.getElementById('global-bell-status-text').innerText = "التنبيهات مفعلة";
-                sysAlert("تم تفعيل التنبيهات والأصوات بنجاح.", "التنبيهات", "success");
-            }
-        }
-
         function checkLowStockAlerts() {
             if(globalNotificationMode === 'disabled') {
                 document.getElementById('low-stock-badge').classList.add('hidden');
                 return;
             }
-            let alertCount = 0;
+
+            let newNotificationAdded = false;
+
             inventory.forEach(i => {
                 let qty = Number(i.quantity) || 0;
                 let minAlert = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 1;
                 
                 let currentState = 'normal';
-                if(qty === 0) currentState = 'ended';
-                else if(qty <= minAlert) currentState = 'low';
+                let alertMessage = '';
+                if(qty === 0) {
+                    currentState = 'ended';
+                    alertMessage = `المادة "${i.name}" انتهت تماماً من المخزن!`;
+                } else if(qty <= minAlert) {
+                    currentState = 'low';
+                    alertMessage = `تنبيه: عدد المادة "${i.name}" أصبح قليلاً (${qty})!`;
+                }
 
                 if(currentState !== 'normal') {
-                    alertCount++;
-                    let key = i.name + '_' + currentState;
-                    if(!alertedStockState[key]) {
-                        alertedStockState[key] = true;
+                    let uniqueKey = i.name + '_' + currentState + '_' + qty;
+                    
+                    if(!notifiedStockItems[uniqueKey]) {
+                        notifiedStockItems[uniqueKey] = true;
+                        newNotificationAdded = true;
                         playBeepSound();
-                        let msg = currentState === 'ended' ? `المادة "${i.name}" انتهت تماماً من المخزن!` : `تنبيه: عدد المادة "${i.name}" أصبح قليلاً (${qty})!`;
-                        if (Notification.permission === "granted") new Notification("تنبيه مخزني في iStore", { body: msg });
+
+                        systemNotifications.unshift({
+                            id: Date.now() + Math.random(),
+                            title: currentState === 'ended' ? 'مادة منتهية' : 'مادة قليلة',
+                            message: alertMessage,
+                            time: new Date().toLocaleString('ar-IQ'),
+                            read: false
+                        });
+
+                        if (Notification.permission === "granted" && globalNotificationMode === 'active') {
+                            new Notification("تنبيه مخزني في iStore", { body: alertMessage });
+                        }
                     }
                 }
             });
 
-            const badge = document.getElementById('low-stock-badge');
-            if(alertCount > 0) { badge.innerText = alertCount; badge.classList.remove('hidden'); }
-            else { badge.classList.add('hidden'); }
+            if(newNotificationAdded) {
+                triggerDataChangeInstant();
+            }
+            updateNotificationsBadgeUI();
         }
 
-        function toggleChatSoundSetting() {
-            if(chatNotificationMode === 'active') {
-                chatNotificationMode = 'muted';
-                document.getElementById('chat-bell-icon').className = "fa-solid fa-bell-slash text-gray-400";
-                document.getElementById('chat-sound-text').innerText = "صوت المراسلة مكتوم";
-            } else if(chatNotificationMode === 'muted') {
-                chatNotificationMode = 'disabled';
-                document.getElementById('chat-bell-icon').className = "fa-solid fa-bell-slash text-red-500";
-                document.getElementById('chat-sound-text').innerText = "المراسلة معطلة نهائياً";
+        function updateNotificationsBadgeUI() {
+            const badge = document.getElementById('low-stock-badge');
+            if(!badge) return;
+            
+            let unreadCount = systemNotifications.filter(n => !n.read).length;
+            if(unreadCount === 0) unreadCount = systemNotifications.length;
+
+            if(unreadCount > 0 && globalNotificationMode !== 'disabled') {
+                badge.innerText = unreadCount > 99 ? '+99' : unreadCount;
+                badge.classList.remove('hidden');
             } else {
-                chatNotificationMode = 'active';
-                document.getElementById('chat-bell-icon').className = "fa-solid fa-bell text-cyan-600";
-                document.getElementById('chat-sound-text').innerText = "صوت المراسلة مفعل";
+                badge.classList.add('hidden');
             }
         }
 
+        function openNotificationsModal() {
+            const listContainer = document.getElementById('notifications-modal-list');
+            listContainer.innerHTML = '';
+
+            if(systemNotifications.length === 0) {
+                listContainer.innerHTML = '<div class="text-center text-gray-400 py-10 text-sm">لا توجد إشعارات حالياً</div>';
+            } else {
+                systemNotifications.forEach((n, idx) => {
+                    n.read = true;
+                    let bgClass = n.title === 'مادة منتهية' ? 'bg-red-50 border-red-200 text-red-900' : 'bg-amber-50 border-amber-200 text-amber-900';
+                    listContainer.innerHTML += `<div class="${bgClass} border rounded-2xl p-3.5 flex justify-between items-start shadow-xs"><div><h4 class="font-bold text-sm mb-1">${n.title}</h4><p class="text-xs font-semibold mb-1">${n.message}</p><span class="text-[10px] opacity-70 block">${n.time}</span></div><button onclick="deleteNotification(${idx})" class="text-gray-400 hover:text-red-600 p-1 cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div>`;
+                });
+            }
+
+            updateNotificationsBadgeUI();
+            triggerDataChangeInstant();
+            document.getElementById('notifications-modal').classList.remove('hidden');
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notifications-modal').classList.add('hidden');
+        }
+
+        function deleteNotification(idx) {
+            systemNotifications.splice(idx, 1);
+            triggerDataChangeInstant();
+            openNotificationsModal();
+            updateNotificationsBadgeUI();
+        }
+
+        function clearAllNotifications() {
+            systemNotifications = [];
+            triggerDataChangeInstant();
+            openNotificationsModal();
+            updateNotificationsBadgeUI();
+        }
+
         function exportBackupFile() {
-            const appData = { version: "4.7", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            const appData = { version: "5.0", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -992,6 +1071,8 @@
                         customLogoUrl = imported.customLogoUrl || "";
                         customReceiptBgUrl = imported.customReceiptBgUrl || "";
                         chatMessages = imported.chatMessages || [];
+                        systemNotifications = imported.systemNotifications || [];
+                        notifiedStockItems = imported.notifiedStockItems || {};
                         if(imported.picsartLayouts) picsartLayouts = imported.picsartLayouts;
                         if(imported.layoutSettings) layoutSettings = imported.layoutSettings;
                         document.getElementById('logoUrlInput').value = customLogoUrl;
@@ -1083,7 +1164,7 @@
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
 
-            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [] };
+            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
 
             localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
             currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
@@ -1120,7 +1201,7 @@
 
         function loadDataFromServerData(data) {
             if(data) {
-                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || [];
+                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
                 document.getElementById('logoUrlInput').value = customLogoUrl; document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
@@ -1134,7 +1215,7 @@
             window.fbOnValue(window.fbRef(window.fbDB, 'stores/' + user), (snapshot) => {
                 if (snapshot.exists()) {
                     let remoteData = snapshot.val();
-                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; chatMessages = remoteData.chatMessages || [];
+                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
                     localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
                     updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     refreshAllUI();
@@ -1144,7 +1225,7 @@
 
         function triggerDataChangeInstant() {
             if(!currentStoreUser) return;
-            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             if(window.fbDB) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
@@ -1169,13 +1250,23 @@
         });
 
         function refreshAllUI() { 
-            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); checkLowStockAlerts(); updateChatUI();
+            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI();
             document.getElementById('chat-device-id').innerText = `جهازك: ${currentDeviceId}`;
             if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer); 
             if(currentActiveSupplier) openSupplierDetail(currentActiveSupplier); 
         }
 
         window.onload = function() { 
+            updateGlobalNotifButtonUI();
+            // تفعيل ميزة سحب الماوس لجميع الأقسام الأفقية
+            document.querySelectorAll('.horizontal-scroll-container').forEach(container => {
+                let isDown = false; let startX, scrollLeft;
+                container.addEventListener('mousedown', (e) => { isDown = true; container.classList.add('active'); startX = e.pageX - container.offsetLeft; scrollLeft = container.scrollLeft; });
+                container.addEventListener('mouseleave', () => { isDown = false; container.classList.remove('active'); });
+                container.addEventListener('mouseup', () => { isDown = false; container.classList.remove('active'); });
+                container.addEventListener('mousemove', (e) => { if(!isDown) return; e.preventDefault(); let x = e.pageX - container.offsetLeft; let walk = (x - startX) * 2; container.scrollLeft = scrollLeft - walk; });
+            });
+
             if(currentStoreUser) { 
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
