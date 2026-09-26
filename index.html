@@ -3,12 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Firebase Realtime Edition v4.5</title>
+    <title>iStore POS & ERP System - Native PWA Edition v4.7</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
+    
+    <!-- تعريف تطبيق الويب التقدمي (PWA Manifest مضمن) -->
+    <meta name="theme-color" content="#111827">
+    <link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22iStore%20POS%20System%22%2C%22short_name%22%3A%22iStore%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f3f4f6%22%2C%22theme_color%22%3A%22%23111827%22%2C%22icons%22%3A%5B%5D%7D">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- استدعاء مكتبات Firebase SDK المطلوبة للربط الحقيقي اللحظي -->
+    <!-- استدعاء مكتبات Firebase SDK للربط السحابي واللحظي -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
@@ -57,7 +62,7 @@
 </head>
 <body class="flex flex-col lg:flex-row h-screen overflow-hidden text-gray-800">
 
-    <!-- نظام النوافذ المنبثقة الاحترافي -->
+    <!-- نظام النوافذ المنبثقة -->
     <div id="sys-modal-overlay" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4 opacity-0 pointer-events-none modal-overlay">
         <div id="sys-modal-box" class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 text-center transform scale-90 modal-box">
             <div id="sys-modal-icon" class="text-5xl mb-4"></div>
@@ -68,7 +73,7 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل أو إضافة مادة للمجهز من داخل كشف الحساب -->
+    <!-- نافذة تعديل مادة المجهز -->
     <div id="edit-supplier-item-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-right border modal-box">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 id="suppModalTitle" class="text-lg font-bold text-red-600">إضافة / تعديل مادة</h3><button onclick="closeSupplierItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
@@ -84,14 +89,14 @@
         </div>
     </div>
 
-    <!-- واجهة تسجيل الدخول والإنشاء -->
+    <!-- واجهة تسجيل الدخول -->
     <div id="auth-screen" class="fixed inset-0 bg-gray-900/80 backdrop-blur-md z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-gray-100">
             <div class="font-modern flex items-baseline justify-center tracking-tight mb-2" dir="ltr">
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - النسخة السحابية الحية (Firebase v4.5)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v4.7)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -162,7 +167,7 @@
         </div>
     </div>
 
-    <!-- نافذة تعديل المادة في المخزن -->
+    <!-- نافذة تعديل المادة -->
     <div id="edit-item-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 text-right border">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="text-lg font-bold text-blue-600">تعديل المادة</h3><button onclick="closeEditItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
@@ -562,7 +567,7 @@
                 </div>
             </div>
 
-            <!-- 8. السندات وإعدادات الطباعة والنسخ الاحتياطي -->
+            <!-- 8. السندات والنسخ الاحتياطي وإعدادات الطباعة -->
             <div id="vouchers-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">السندات والنسخ الاحتياطي وإعدادات الطباعة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
@@ -599,7 +604,7 @@
                 </div>
             </div>
 
-            <!-- محرر التصميم الحر والطابعة الحرارية -->
+            <!-- محرر التصميم الحر -->
             <div id="picsart-editor-view" class="app-view max-w-7xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-2xl border p-6 flex flex-col h-[88vh]">
                     <div class="flex justify-between items-center border-b pb-4 mb-4">
@@ -693,7 +698,7 @@
                 </div>
             </div>
 
-            <!-- 11. نظام المراسلة الداخلية بين الأجهزة المرتبطة -->
+            <!-- 11. المراسلة الداخلية -->
             <div id="chat-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-3xl shadow-sm p-6 border flex flex-col h-[75vh]">
                     <div class="flex justify-between items-center border-b pb-4 mb-4">
@@ -703,7 +708,7 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <button onclick="requestNotificationPermission()" id="notif-perm-btn" class="bg-cyan-50 text-cyan-700 hover:bg-cyan-100 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer border border-cyan-200">
-                                <i class="fa-solid fa-bell"></i> تفعيل إشعارات المتصفح والخلفية
+                                <i class="fa-solid fa-bell"></i> تفعيل إشعارات المتصفح
                             </button>
                             <button onclick="toggleChatSoundSetting()" id="chat-sound-btn" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer">
                                 <i class="fa-solid fa-bell text-cyan-600" id="chat-bell-icon"></i> <span id="chat-sound-text">صوت المراسلة مفعل</span>
@@ -713,11 +718,11 @@
                     </div>
                     
                     <div id="chat-messages-container" class="flex-1 overflow-y-auto space-y-3 p-4 bg-gray-50 rounded-2xl border mb-4">
-                        <div class="text-center text-gray-400 py-10 text-sm">لا توجد رسائل حالياً. ابدأ المراسلة مع الأجهزة الأخرى على نفس الحساب!</div>
+                        <div class="text-center text-gray-400 py-10 text-sm">لا توجد رسائل حالياً. ابدأ المراسلة مع الأجهزة الأخرى!</div>
                     </div>
 
                     <form onsubmit="sendChatMessage(event)" class="flex gap-3">
-                        <input type="text" id="chatInputText" required placeholder="اكتب رسالة إلى الأجهزة الأخرى المرتبطة..." class="flex-1 border-2 border-gray-200 p-3.5 rounded-xl outline-none font-bold text-sm bg-white focus:border-cyan-500 transition">
+                        <input type="text" id="chatInputText" required placeholder="اكتب رسالة إلى الأجهزة الأخرى..." class="flex-1 border-2 border-gray-200 p-3.5 rounded-xl outline-none font-bold text-sm bg-white focus:border-cyan-500 transition">
                         <button type="submit" class="bg-cyan-600 hover:bg-cyan-700 text-white px-6 rounded-xl font-bold shadow-lg cursor-pointer flex items-center gap-2">
                             <i class="fa-solid fa-paper-plane"></i> إرسال
                         </button>
@@ -728,7 +733,7 @@
         </div>
     </main>
 
-    <!-- الشريط العلوي/السفلي للتنبيهات والشبكة -->
+    <!-- الشريط السفلي للشبكة والتنبيهات -->
     <div class="fixed bottom-0 left-0 right-0 bg-gray-900 text-white px-4 py-2.5 z-50 flex justify-between items-center shadow-2xl border-t border-gray-800">
         <div class="flex items-center gap-3">
             <span id="network-status-badge" class="bg-green-600 text-white px-3 py-1 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow">
@@ -748,6 +753,18 @@
     <div id="printable-area" class="hidden p-0 m-0 bg-white font-sans text-black"></div>
 
     <script>
+        // تفعيل العمل بدون إنترنت عبر Service Worker مضمن
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                self.addEventListener('install', e => { self.skipWaiting(); });
+                self.addEventListener('activate', e => { self.clients.claim(); });
+                self.addEventListener('fetch', e => { e.respondWith(fetch(e.request).catch(() => caches.match(e.request))); });
+            `;
+            const blob = new Blob([swCode], { type: 'text/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl).catch(() => {});
+        }
+
         let currentStoreUser = localStorage.getItem('iStoreCurrentStore') || null;
         let currentDeviceId = localStorage.getItem('iStoreDeviceId') || ('Device_' + Math.floor(Math.random()*9000+1000));
         localStorage.setItem('iStoreDeviceId', currentDeviceId);
@@ -782,15 +799,10 @@
         }
 
         function requestNotificationPermission() {
-            if (!("Notification" in window)) {
-                return sysAlert("متصفحك لا يدعم إشعارات الخلفية.", "تنبيه", "error");
-            }
+            if (!("Notification" in window)) return sysAlert("متصفحك لا يدعم إشعارات الخلفية.", "تنبيه", "error");
             Notification.requestPermission().then(permission => {
-                if (permission === "granted") {
-                    sysAlert("تم تفعيل إشعارات المتصفح بنجاح!", "نجاح", "success");
-                } else {
-                    sysAlert("تم رفض إذن الإشعارات من المتصفح.", "تنبيه", "error");
-                }
+                if (permission === "granted") sysAlert("تم تفعيل إشعارات المتصفح بنجاح!", "نجاح", "success");
+                else sysAlert("تم رفض إذن الإشعارات من المتصفح.", "تنبيه", "error");
             });
         }
 
@@ -866,7 +878,6 @@
 
         function toggleMobileSidebar(forceClose = false) { const sidebar = document.getElementById('sidebar'); if (forceClose) sidebar.classList.add('translate-x-full'); else sidebar.classList.toggle('translate-x-full'); }
         
-        // استبدال نافذة خطأ الشبكة المنبثقة بمؤشر في شريط التنبيهات السفلي
         function updateNetworkStatusIndicator(isOnline, text) {
             const badge = document.getElementById('network-status-badge');
             if(!badge) return;
@@ -919,20 +930,14 @@
                         alertedStockState[key] = true;
                         playBeepSound();
                         let msg = currentState === 'ended' ? `المادة "${i.name}" انتهت تماماً من المخزن!` : `تنبيه: عدد المادة "${i.name}" أصبح قليلاً (${qty})!`;
-                        if (Notification.permission === "granted") {
-                            new Notification("تنبيه مخزني في iStore", { body: msg });
-                        }
+                        if (Notification.permission === "granted") new Notification("تنبيه مخزني في iStore", { body: msg });
                     }
                 }
             });
 
             const badge = document.getElementById('low-stock-badge');
-            if(alertCount > 0) {
-                badge.innerText = alertCount;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
+            if(alertCount > 0) { badge.innerText = alertCount; badge.classList.remove('hidden'); }
+            else { badge.classList.add('hidden'); }
         }
 
         function toggleChatSoundSetting() {
@@ -940,52 +945,39 @@
                 chatNotificationMode = 'muted';
                 document.getElementById('chat-bell-icon').className = "fa-solid fa-bell-slash text-gray-400";
                 document.getElementById('chat-sound-text').innerText = "صوت المراسلة مكتوم";
-                sysAlert("تم كتم صوت إشعارات المراسلة.", "المراسلة", "info");
             } else if(chatNotificationMode === 'muted') {
                 chatNotificationMode = 'disabled';
                 document.getElementById('chat-bell-icon').className = "fa-solid fa-bell-slash text-red-500";
                 document.getElementById('chat-sound-text').innerText = "المراسلة معطلة نهائياً";
-                sysAlert("تم تعطيل إشعارات وجرس المراسلة نهائياً.", "المراسلة", "info");
             } else {
                 chatNotificationMode = 'active';
                 document.getElementById('chat-bell-icon').className = "fa-solid fa-bell text-cyan-600";
                 document.getElementById('chat-sound-text').innerText = "صوت المراسلة مفعل";
-                sysAlert("تم تفعيل صوت وجرس المراسلة.", "المراسلة", "success");
             }
         }
 
-        // الحفظ المزدوج: حفظ محلي تلقائي + تنزيل لملف الجهاز (تطبيق الملفات)
         function exportBackupFile() {
-            const appData = { version: "4.5", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
-            
-            // حفظ محلي أيضاً في التخزين المحلي
-            if(currentStoreUser) {
-                localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
-            }
-
+            const appData = { version: "4.7", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
+            if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
-            const fileName = `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`;
-            
             const downloadAnchor = document.createElement('a');
             downloadAnchor.setAttribute("href", dataStr);
-            downloadAnchor.setAttribute("download", fileName);
+            downloadAnchor.setAttribute("download", `iStore_Backup_${currentStoreUser || 'shop'}_${new Date().toISOString().slice(0,10)}.json`);
             document.body.appendChild(downloadAnchor);
             downloadAnchor.click();
             downloadAnchor.remove();
-            sysAlert("تم الحفظ محلياً وتنزيل نسخة في تطبيق الملفات بجهازك بنجاح!", "نجاح", "success");
+            sysAlert("تم حفظ النسخة الاحتياطية في جهازك بنجاح!", "نجاح", "success");
         }
 
         function importBackupFile(event) {
             const file = event.target.files[0];
             if(!file) return;
-            sysConfirm("استعادة النسخة الاحتياطية", "هل أنت متأكد من استعادة هذه النسخة؟ سيتم استبدال البيانات الحالية.", () => {
+            sysConfirm("استعادة النسخة الاحتياطية", "هل أنت متأكد؟ سيتم استبدال البيانات الحالية.", () => {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     try {
                         const imported = JSON.parse(e.target.result);
-                        if(!imported.inventory && !imported.salesHistory) {
-                            return sysAlert("ملف النسخة الاحتياطية غير صالح أو تالف!", "خطأ", "error");
-                        }
+                        if(!imported.inventory && !imported.salesHistory) return sysAlert("ملف النسخة الاحتياطية تالف!", "خطأ", "error");
                         inventory = imported.inventory || [];
                         categoriesList = imported.categoriesList || [];
                         salesHistory = imported.salesHistory || [];
@@ -1002,16 +994,13 @@
                         chatMessages = imported.chatMessages || [];
                         if(imported.picsartLayouts) picsartLayouts = imported.picsartLayouts;
                         if(imported.layoutSettings) layoutSettings = imported.layoutSettings;
-                        
                         document.getElementById('logoUrlInput').value = customLogoUrl;
                         document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
                         updateFavicon(customLogoUrl);
                         triggerDataChangeInstant();
                         refreshAllUI();
-                        sysAlert("تم استعادة النسخة الاحتياطية بنجاح واسترجاع كافة البيانات!", "نجاح", "success");
-                    } catch(err) {
-                        sysAlert("فشل قراءة الملف، تأكد من أنه ملف JSON صحيح.", "خطأ", "error");
-                    }
+                        sysAlert("تم استعادة النسخة الاحتياطية بنجاح!", "نجاح", "success");
+                    } catch(err) { sysAlert("فشل قراءة الملف.", "خطأ", "error"); }
                 };
                 reader.readAsText(file);
             });
@@ -1031,10 +1020,7 @@
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                     let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
                     document.getElementById(targetInputId).value = dataUrl;
-                    if(targetInputId === 'logoUrlInput') {
-                        customLogoUrl = dataUrl;
-                        updateFavicon(dataUrl);
-                    }
+                    if(targetInputId === 'logoUrlInput') { customLogoUrl = dataUrl; updateFavicon(dataUrl); }
                     triggerDataChangeInstant();
                 }
                 img.src = e.target.result;
@@ -1047,7 +1033,7 @@
             customReceiptBgUrl = document.getElementById('receiptBgUrlInput').value.trim();
             updateFavicon(customLogoUrl);
             triggerDataChangeInstant();
-            sysAlert("تم حفظ إعدادات الشعار والخلفية ومزامنتها بنجاح!", "نجاح", "success");
+            sysAlert("تم حفظ إعدادات الشعار وخلفية الوصل بنجاح!", "نجاح", "success");
         }
 
         function switchAuthBox(mode) { ['login','register','forgot','reset'].forEach(m => document.getElementById(m+'-form-box').classList.add('hidden')); document.getElementById(mode+'-form-box').classList.remove('hidden'); }
@@ -1057,50 +1043,38 @@
             let p = document.getElementById('loginPassword').value.trim();
             if(!u || !p) return sysAlert("يرجى إدخال البيانات!", "خطأ", "error"); 
 
-            // التحقق أولاً من التخزين المحلي للجهاز عند انقطاع الإنترنت
             let localSaved = localStorage.getItem('iStore_LocalData_' + u);
             if(localSaved) {
                 try {
                     let parsedLocal = JSON.parse(localSaved);
                     if (p === ADMIN_SECRET_MASTER_PASSWORD || String(parsedLocal.pass || '').trim() === p.trim()) {
-                        currentStoreUser = u; 
-                        localStorage.setItem('iStoreCurrentStore', u); 
+                        currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
                         document.getElementById('auth-screen').classList.add('hidden'); 
                         document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u} ${p === ADMIN_SECRET_MASTER_PASSWORD ? '👑(أدمن)' : ''}`; 
                         loadDataFromServerData(parsedLocal);
-                        updateNetworkStatusIndicator(false, 'يعمل محلياً (من التخزين المحلي)');
+                        updateNetworkStatusIndicator(false, 'يعمل محلياً');
                         initRealtimeListener(u);
                         return;
                     }
                 } catch(e) {}
             }
 
-            if(!window.fbDB) {
-                return sysAlert("لا يوجد اتصال بالإنترنت ولا توجد بيانات محلية محفوظة لهذا المحل.", "تنبيه", "error");
-            }
+            if(!window.fbDB) return sysAlert("لا يوجد اتصال بالإنترنت ولا توجد بيانات محلية.", "تنبيه", "error");
 
             const userRef = window.fbRef(window.fbDB, 'stores/' + u);
             window.fbGet(userRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     let data = snapshot.val();
                     if (p === ADMIN_SECRET_MASTER_PASSWORD || String(data.pass).trim() === p.trim()) {
-                        currentStoreUser = u; 
-                        localStorage.setItem('iStoreCurrentStore', u); 
+                        currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
                         document.getElementById('auth-screen').classList.add('hidden'); 
                         document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u} ${p === ADMIN_SECRET_MASTER_PASSWORD ? '👑(أدمن)' : ''}`; 
                         loadDataFromServerData(data);
-                        updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
+                        updateNetworkStatusIndicator(true, 'متصل بالسحابة');
                         initRealtimeListener(u);
-                    } else {
-                        sysAlert("كلمة المرور غير صحيحة!", "خطأ", "error");
-                    }
-                } else {
-                    sysAlert("اسم المحل غير موجود! يرجى إنشاء حساب جديد.", "خطأ", "error");
-                }
-            }).catch(() => {
-                updateNetworkStatusIndicator(false, 'فشل الاتصال - وضع العمل المحلي');
-                sysAlert("تعذر الاتصال بالسحابة. تأكد من اتصال الإنترنت أو استخدم البيانات المخزنة محلياً.", "تنبيه", "info");
-            });
+                    } else { sysAlert("كلمة المرور غير صحيحة!", "خطأ", "error"); }
+                } else { sysAlert("اسم المحل غير موجود!", "خطأ", "error"); }
+            }).catch(() => { updateNetworkStatusIndicator(false, 'وضع العمل المحلي'); });
         }
 
         function handleRegister() {
@@ -1109,96 +1083,47 @@
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
 
-            let initialData = {
-                pass: p,
-                email: email,
-                inventory: [],
-                categoriesList: [],
-                salesHistory: [],
-                returnsHistory: [],
-                expensesList: [],
-                debtsList: [],
-                myDebtsList: [],
-                auditLog: [],
-                fixedItems: [],
-                cashiersList: ["الرئيسي", "مقتدى"],
-                defaultCashier: "الرئيسي",
-                customLogoUrl: "",
-                customReceiptBgUrl: "",
-                chatMessages: []
-            };
+            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [] };
 
-            // حفظ محلياً فوراً
             localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
-            currentStoreUser = u; 
-            localStorage.setItem('iStoreCurrentStore', u); 
+            currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
             document.getElementById('auth-screen').classList.add('hidden'); 
             document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${u}`;
             loadDataFromServerData(initialData);
 
             if(window.fbDB) {
-                const userRef = window.fbRef(window.fbDB, 'stores/' + u);
-                window.fbSet(userRef, initialData).catch(() => {});
+                window.fbSet(window.fbRef(window.fbDB, 'stores/' + u), initialData).catch(() => {});
                 initRealtimeListener(u);
             }
-            sysAlert("تم إنشاء المحل بنجاح وحفظه في الجهاز والسحابة!", "نجاح", "success");
+            sysAlert("تم إنشاء الحساب بنجاح!", "نجاح", "success");
         }
 
         function requestResetCode() { 
             let u = document.getElementById('forgotUsername').value.trim().toLowerCase(); 
             let email = document.getElementById('forgotEmail').value.trim(); 
             if(!u || !email) return sysAlert("أكمل البيانات", "خطأ", "error"); 
-            
-            const userRef = window.fbRef(window.fbDB, 'stores/' + u);
-            window.fbGet(userRef).then((snapshot) => {
-                if(snapshot.exists() && snapshot.val().email === email) {
-                    pendingResetUser = u; 
-                    switchAuthBox('reset'); 
-                } else {
-                    sysAlert("اسم المستخدم أو البريد الالكتروني غير مطابق!", "خطأ", "error");
-                }
+            window.fbGet(window.fbRef(window.fbDB, 'stores/' + u)).then((snapshot) => {
+                if(snapshot.exists() && snapshot.val().email === email) { pendingResetUser = u; switchAuthBox('reset'); }
+                else sysAlert("البيانات غير مطابقة!", "خطأ", "error");
             });
         }
 
         function confirmNewPassword() { 
             let newPass = document.getElementById('newPasswordInput').value.trim(); 
             if(!newPass) return sysAlert("أدخل كلمة المرور الجديدة", "خطأ", "error"); 
-            
-            const passRef = window.fbRef(window.fbDB, `stores/${pendingResetUser}/pass`);
-            window.fbSet(passRef, newPass).then(() => {
-                sysAlert("تم تغيير كلمة المرور بنجاح", "نجاح", "success"); 
-                switchAuthBox('login');
+            window.fbSet(window.fbRef(window.fbDB, `stores/${pendingResetUser}/pass`), newPass).then(() => {
+                sysAlert("تم تغيير كلمة المرور", "نجاح", "success"); switchAuthBox('login');
             });
         }
 
-        function logoutApp() { 
-            currentStoreUser = null; 
-            localStorage.removeItem('iStoreCurrentStore'); 
-            document.getElementById('auth-screen').classList.remove('hidden'); 
-            switchAuthBox('login'); 
-        }
+        function logoutApp() { currentStoreUser = null; localStorage.removeItem('iStoreCurrentStore'); document.getElementById('auth-screen').classList.remove('hidden'); switchAuthBox('login'); }
 
         function loadDataFromServerData(data) {
             if(data) {
-                inventory = data.inventory || []; 
-                categoriesList = data.categoriesList || []; 
-                salesHistory = data.salesHistory || []; 
-                returnsHistory = data.returnsHistory || []; 
-                expensesList = data.expensesList || []; 
-                debtsList = data.debtsList || []; 
-                myDebtsList = data.myDebtsList || []; 
-                auditLog = data.auditLog || []; 
-                fixedItems = data.fixedItems || []; 
-                cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; 
-                defaultCashier = data.defaultCashier || "الرئيسي";
-                customLogoUrl = data.customLogoUrl || ""; 
-                customReceiptBgUrl = data.customReceiptBgUrl || ""; 
-                chatMessages = data.chatMessages || [];
+                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || [];
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
-                
-                document.getElementById('logoUrlInput').value = customLogoUrl; 
-                document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
+                document.getElementById('logoUrlInput').value = customLogoUrl; document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
                 updateFavicon(customLogoUrl);
             }
             refreshAllUI();
@@ -1206,59 +1131,28 @@
 
         function initRealtimeListener(user) {
             if(!user || !window.fbDB) return;
-            const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
-            window.fbOnValue(storeRef, (snapshot) => {
+            window.fbOnValue(window.fbRef(window.fbDB, 'stores/' + user), (snapshot) => {
                 if (snapshot.exists()) {
                     let remoteData = snapshot.val();
-                    inventory = remoteData.inventory || [];
-                    categoriesList = remoteData.categoriesList || [];
-                    salesHistory = remoteData.salesHistory || [];
-                    returnsHistory = remoteData.returnsHistory || [];
-                    expensesList = remoteData.expensesList || [];
-                    debtsList = remoteData.debtsList || [];
-                    myDebtsList = remoteData.myDebtsList || [];
-                    auditLog = remoteData.auditLog || [];
-                    fixedItems = remoteData.fixedItems || [];
-                    chatMessages = remoteData.chatMessages || [];
-                    
-                    // تحديث التخزين المحلي تلقائياً عند جلب بيانات جديدة
+                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; chatMessages = remoteData.chatMessages || [];
                     localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
-                    updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     refreshAllUI();
                 }
-            }, (error) => {
-                updateNetworkStatusIndicator(false, 'يعمل محلياً (انقطع الاتصال بالسحابة)');
-            });
+            }, () => { updateNetworkStatusIndicator(false, 'يعمل محلياً'); });
         }
 
-        // الحفظ الفوري في الجهاز والسحابة معاً
         function triggerDataChangeInstant() {
             if(!currentStoreUser) return;
-
-            let appData = {
-                pass: ADMIN_SECRET_MASTER_PASSWORD,
-                inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages
-            };
-
-            // 1. الحفظ الفوري محلياً في ذاكرة الجهاز (LocalStorage) لتعمل بدون إنترنت تماماً
+            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages };
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
-
-            // 2. المزامنة التلقائية مع Firebase إذا كان متصلاً
             if(window.fbDB) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
                 window.fbGet(storeRef).then((snapshot) => {
                     let currentPass = snapshot.exists() ? snapshot.val().pass : ADMIN_SECRET_MASTER_PASSWORD;
                     appData.pass = currentPass;
-                    window.fbSet(storeRef, appData).then(() => {
-                        updateNetworkStatusIndicator(true, 'متزامن لحظياً مع السحابة');
-                    }).catch(() => {
-                        updateNetworkStatusIndicator(false, 'محفوظ محلياً (في انتظار الإنترنت للمزامنة)');
-                    });
-                }).catch(() => {
-                    updateNetworkStatusIndicator(false, 'محفوظ محلياً (بدون اتصال)');
-                });
-            } else {
-                updateNetworkStatusIndicator(false, 'محفوظ محلياً في الجهاز');
+                    window.fbSet(storeRef, appData).catch(() => {});
+                }).catch(() => {});
             }
         }
 
@@ -1266,41 +1160,16 @@
             if(currentStoreUser) {
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
-                
-                // تحميل البيانات المحلية أولاً لسرعة العرض والعمل بدون إنترنت
                 let localSaved = localStorage.getItem('iStore_LocalData_' + currentStoreUser);
-                if(localSaved) {
-                    try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){}
-                }
-
-                const userRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
-                window.fbGet(userRef).then((snapshot) => {
-                    if (snapshot.exists()) {
-                        loadDataFromServerData(snapshot.val());
-                        updateNetworkStatusIndicator(true, 'متصل بالسحابة (Firebase)');
-                        initRealtimeListener(currentStoreUser);
-                    }
-                }).catch(() => {
-                    updateNetworkStatusIndicator(false, 'يعمل على النسخة المحلية المخزنة');
-                });
+                if(localSaved) { try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){} }
+                window.fbGet(window.fbRef(window.fbDB, 'stores/' + currentStoreUser)).then((snapshot) => {
+                    if (snapshot.exists()) { loadDataFromServerData(snapshot.val()); initRealtimeListener(currentStoreUser); }
+                }).catch(() => {});
             }
         });
 
         function refreshAllUI() { 
-            updateCategoriesUI(); 
-            updateInventoryTable(); 
-            updatePOSCategories(); 
-            updatePOSGrid(); 
-            updateSalesTable(); 
-            updateReturnsTable(); 
-            updateExpensesTable(); 
-            updateCustomersTable(); 
-            updateMyDebtsTable(); 
-            updateAuditTable(); 
-            updateVariableTable(); 
-            updateFixedTable(); 
-            checkLowStockAlerts();
-            updateChatUI();
+            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); checkLowStockAlerts(); updateChatUI();
             document.getElementById('chat-device-id').innerText = `جهازك: ${currentDeviceId}`;
             if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer); 
             if(currentActiveSupplier) openSupplierDetail(currentActiveSupplier); 
@@ -1311,27 +1180,17 @@
                 document.getElementById('auth-screen').classList.add('hidden'); 
                 document.getElementById('current-user-badge').innerHTML = `<i class="fa-solid fa-store"></i> محل: ${currentStoreUser}`; 
                 let localSaved = localStorage.getItem('iStore_LocalData_' + currentStoreUser);
-                if(localSaved) {
-                    try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){}
-                }
-            } else { 
-                document.getElementById('auth-screen').classList.remove('hidden'); 
-            } 
+                if(localSaved) { try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){} }
+            } else { document.getElementById('auth-screen').classList.remove('hidden'); } 
         };
 
         function switchView(viewId) { 
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active')); 
             document.getElementById(viewId).classList.add('active'); 
-            if(viewId === 'chat-view') {
-                document.getElementById('sidebar-chat-bell').classList.add('hidden');
-            }
+            if(viewId === 'chat-view') document.getElementById('sidebar-chat-bell').classList.add('hidden');
         }
 
-        function openPicsartLayoutModal() { 
-            document.getElementById('editorDocType').value = 'sale';
-            document.getElementById('editorPaperType').value = 'thermal'; 
-            renderPicsartCanvas(); renderPicsartSidebar(); switchView('picsart-editor-view'); 
-        }
+        function openPicsartLayoutModal() { document.getElementById('editorDocType').value = 'sale'; document.getElementById('editorPaperType').value = 'thermal'; renderPicsartCanvas(); renderPicsartSidebar(); switchView('picsart-editor-view'); }
         function changeEditorDocType() { renderPicsartCanvas(); renderPicsartSidebar(); }
         function getCurrentDocType() { return document.getElementById('editorDocType').value; }
         function getCurrentPaperType() { return document.getElementById('editorPaperType').value; }
@@ -1345,46 +1204,24 @@
             let bgImg = document.getElementById('receiptBgUrlInput').value || customReceiptBgUrl;
             let logoImg = document.getElementById('logoUrlInput').value || customLogoUrl;
             box.style.cssText += (pType === 'thermal' && bgImg) ? `background-image: url('${bgImg}'); background-size: cover; background-position: center;` : 'background:#fff;';
-            
-            let html = '';
-            let lSet = layoutSettings[pType] || layoutSettings.thermal;
-            
-            html += `<div style="text-align:center; padding:15px 10px 5px 10px; border-bottom:1px dashed #333;">
-                <div style="font-size:28px; font-weight:900; font-family:'Poppins',sans-serif; letter-spacing:-1px;">istore</div>
-                <div style="font-size:16px; font-weight:bold; margin-top:2px;"><i class="fa-solid fa-phone" style="font-size:12px;"></i> 07723355600</div>
-                <div style="font-size:11px; font-weight:bold; margin-top:4px;">متجر آي ستور - البصرة: أبي الخصيب، الشارع الرئيسي</div>
-            </div>`;
-
-            if(logoImg) html += `<div style="position:absolute; top:${lSet.logoTop}px; right:${lSet.logoRight}px; width:${lSet.logoWidth}px; height:${lSet.logoHeight}px; border:1px dashed #aaa; background:#fff; display:flex; align-items:center; justify-content:center;"><img src="${logoImg}" style="max-width:100%; max-height:100%; object-fit:contain;" /></div>`;
-
+            let html = `<div style="text-align:center; padding:15px 10px 5px 10px; border-bottom:1px dashed #333;"><div style="font-size:28px; font-weight:900; font-family:'Poppins',sans-serif;">istore</div><div style="font-size:16px; font-weight:bold;">07723355600</div><div style="font-size:11px; font-weight:bold;">البصرة - أبي الخصيب</div></div>`;
+            if(logoImg) html += `<div style="position:absolute; top:10px; right:100px; width:100px; height:50px; border:1px dashed #aaa; background:#fff; display:flex; align-items:center; justify-content:center;"><img src="${logoImg}" style="max-width:100%; max-height:100%; object-fit:contain;" /></div>`;
             getCurrentElements().forEach(el => {
-                let sampleContent = `<b>${el.label}:</b> قيمة تجريبية`;
-                if(el.label === 'قائمة المواد') {
-                    sampleContent = `<table style="width:100%; border-collapse:collapse; font-size:11px; border:1px solid #333;">
-                        <thead><tr style="background:#f3f4f6;"><th style="border:1px solid #333; padding:3px;">المنتج</th><th style="border:1px solid #333; padding:3px;">الكمية</th><th style="border:1px solid #333; padding:3px;">السعر</th><th style="border:1px solid #333; padding:3px;">الإجمالي</th></tr></thead>
-                        <tbody><tr><td style="border:1px solid #333; padding:3px;">شاشة آيفون 13 برو</td><td style="border:1px solid #333; padding:3px; text-align:center;">1</td><td style="border:1px solid #333; padding:3px;">80,000</td><td style="border:1px solid #333; padding:3px;">80,000</td></tr></tbody>
-                    </table>`;
-                }
-                html += `<div style="position:absolute; top:${el.top}px; right:${el.right}px; font-family:'${el.font}',sans-serif; font-weight:bold; padding:2px 4px; border:1px dashed rgba(100,100,100,0.6); background:rgba(255,255,255,0.9); border-radius:4px; font-size:11px;">${sampleContent}</div>`;
+                html += `<div style="position:absolute; top:${el.top}px; right:${el.right}px; font-family:'${el.font}',sans-serif; font-weight:bold; padding:2px 4px; border:1px dashed rgba(100,100,100,0.6); background:rgba(255,255,255,0.9); font-size:11px;"><b>${el.label}:</b> تجريبي</div>`;
             });
             box.innerHTML = html;
         }
 
         function renderPicsartSidebar() {
             const list = document.getElementById('editor-elements-list'); list.innerHTML = '';
-            let pType = getCurrentPaperType();
-            let lSet = layoutSettings[pType] || layoutSettings.thermal;
-            if(pType === 'thermal' && getCurrentDocType() !== 'receipt') list.innerHTML += `<div class="bg-purple-50 p-3 rounded-xl border mb-2"><span class="font-bold text-xs text-purple-900 block mb-1">الحد الأقصى للمواد قبل تقسيم وصل ثانٍ:</span><input type="number" value="${lSet.maxItemsCount||8}" onchange="updateMaxItems(this.value)" class="w-full border p-2 rounded-lg text-sm text-center font-bold bg-white" min="1" max="50"></div>`;
             getCurrentElements().forEach(el => {
-                list.innerHTML += `<div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-xs"><div><span class="font-bold text-sm block">${el.label}</span></div><button onclick="openEditElementModal('${el.id}')" class="text-gray-500 hover:text-purple-700 bg-gray-100 p-2 rounded-lg cursor-pointer"><i class="fa-solid fa-pen"></i></button></div>`;
+                list.innerHTML += `<div class="bg-white p-3 rounded-xl border flex justify-between items-center shadow-xs"><span class="font-bold text-sm">${el.label}</span><button onclick="openEditElementModal('${el.id}')" class="bg-gray-100 p-2 rounded-lg cursor-pointer"><i class="fa-solid fa-pen"></i></button></div>`;
             });
         }
-        function updateMaxItems(val) { layoutSettings.thermal.maxItemsCount = Number(val) || 8; }
         function openAddElementModal() { document.getElementById('add-element-modal').classList.remove('hidden'); }
         function closeAddElementModal() { document.getElementById('add-element-modal').classList.add('hidden'); }
         function addElementToCanvas(labelName) {
-            let docT = getCurrentDocType(), pT = getCurrentPaperType();
-            picsartLayouts[docT][pT].push({ id: docT + '_' + pT + '_' + Date.now(), label: labelName, top: 180, right: 20, font: 'Tajawal' });
+            picsartLayouts[getCurrentDocType()][getCurrentPaperType()].push({ id: getCurrentDocType() + '_' + Date.now(), label: labelName, top: 180, right: 20, font: 'Tajawal' });
             closeAddElementModal(); renderPicsartCanvas(); renderPicsartSidebar();
         }
         function openEditElementModal(id) {
@@ -1403,89 +1240,37 @@
             picsartLayouts[docT][pT] = picsartLayouts[docT][pT].filter(x => x.id !== id);
             closeEditElementModal(); renderPicsartCanvas(); renderPicsartSidebar();
         }
-        function savePicsartLayout() { triggerDataChangeInstant(); sysAlert("تم حفظ وتخصيص ومزامنة الوصل بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
+        function savePicsartLayout() { triggerDataChangeInstant(); sysAlert("تم حفظ التعديلات بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
 
         function printSaleReceipt(sale, cust, cashierName) {
             let area = document.getElementById('printable-area');
-            let prev = 0; 
-            let targetCustomer = cust || sale.customer;
-            if(targetCustomer && targetCustomer !== 'زبون نقدي') {
-                debtsList.filter(d => d.customer === targetCustomer && d.id !== sale.id).forEach(d => prev += d.amount);
-            }
+            let prev = 0; let targetCustomer = cust || sale.customer;
+            if(targetCustomer && targetCustomer !== 'زبون نقدي') debtsList.filter(d => d.customer === targetCustomer && d.id !== sale.id).forEach(d => prev += d.amount);
             let maxCount = layoutSettings.thermal.maxItemsCount || 8;
-            
-            let chunks = [];
-            for (let i = 0; i < sale.items.length; i += maxCount) { chunks.push(sale.items.slice(i, i + maxCount)); }
+            let chunks = []; for (let i = 0; i < sale.items.length; i += maxCount) chunks.push(sale.items.slice(i, i + maxCount));
             if(chunks.length === 0) chunks.push([]);
-
             let isCashWithDebt = (sale.type === 'نقدي' && targetCustomer && targetCustomer !== 'زبون نقدي');
-            let isDebt = sale.type === 'آجل';
-            let isPartial = sale.type === 'آجل (دفع جزء نقداً)';
+            let isDebt = sale.type === 'آجل'; let isPartial = sale.type === 'آجل (دفع جزء نقداً)';
             let paidAmount = isDebt ? 0 : (isPartial ? (sale.cashPaid || 0) : sale.total);
             let remainingAmount = isDebt ? (sale.total + prev) : (isPartial ? ((sale.total - sale.cashPaid) + prev) : (isCashWithDebt ? prev : 0));
-
             let fullHtml = '';
-            chunks.forEach((chunk, pageIndex) => {
-                let itemsHtml = chunk.map(item => `
-                    <tr>
-                        <td style="border:1px solid #333; padding:4px; font-size:11px;">${item.name}</td>
-                        <td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${item.qty || 1}</td>
-                        <td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${(item.price).toLocaleString()}</td>
-                        <td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center; font-weight:bold;">${(item.price * (item.qty || 1)).toLocaleString()}</td>
-                    </tr>`).join('');
-                
+            chunks.forEach((chunk) => {
+                let itemsHtml = chunk.map(item => `<tr><td style="border:1px solid #333; padding:4px; font-size:11px;">${item.name}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${item.qty || 1}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${(item.price).toLocaleString()}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center; font-weight:bold;">${(item.price * (item.qty || 1)).toLocaleString()}</td></tr>`).join('');
                 let bgStyle = customReceiptBgUrl ? `background-image: url('${customReceiptBgUrl}'); background-size: cover; background-position: center;` : 'background:#fff;';
-                
-                let dateParts = sale.date.split(' ');
-                let dateOnly = dateParts[0] || new Date().toLocaleDateString('ar-IQ');
-                let timeOnly = dateParts[1] || new Date().toLocaleTimeString('ar-IQ');
-
                 fullHtml += `<div style="position:relative; width:380px; min-height:580px; ${bgStyle} padding:15px; box-sizing:border-box; page-break-after: always; font-family:'Tajawal',sans-serif; font-size:12px; color:#000;">
-                    <div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;">
-                        <div style="font-size:32px; font-weight:900; font-family:'Poppins',sans-serif; letter-spacing:-1px; line-height:1;">istore</div>
-                        <div style="font-size:15px; font-weight:bold; margin-top:4px;"><i class="fa-solid fa-phone" style="font-size:11px;"></i> 07723355600</div>
-                        <div style="font-size:11px; font-weight:bold; margin-top:2px;">متجر آي ستور - البصرة: أبي الخصيب، الشارع الرئيسي</div>
-                    </div>
-
-                    <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:12px; font-weight:bold;">
-                        <div>التاريخ: ${dateOnly}</div>
-                        <div>العميل: ${targetCustomer}</div>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; margin-top:2px; font-size:12px; font-weight:bold;">
-                        <div>الساعة: ${timeOnly}</div>
-                        <div>الكاشير: ${cashierName || defaultCashier}</div>
-                    </div>
-                    <div style="margin-top:2px; font-size:12px; font-weight:bold; margin-bottom:8px;">
-                        رقم الفاتورة: #${sale.id}
-                    </div>
-
-                    <table style="width:100%; border-collapse:collapse; margin-bottom:10px;">
-                        <thead>
-                            <tr style="background:#f3f4f6;">
-                                <th style="border:1px solid #333; padding:4px; font-size:11px; text-align:right;">المنتج</th>
-                                <th style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">الكمية</th>
-                                <th style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">السعر</th>
-                                <th style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">الإجمالي</th>
-                            </tr>
-                        </thead>
-                        <tbody>${itemsHtml}</tbody>
-                    </table>
-
-                    <div style="border-top:1px dashed #333; padding-top:8px; margin-top:10px; space-y:4px;">
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px;"><span>المجموع الإجمالي:</span><span>${sale.total.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px;"><span>الطلب السابق (الدين):</span><span>${prev.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px;"><span>المبلغ المدفوع:</span><span>${paidAmount.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between; font-black font-size:14px; border-top:1px solid #333; padding-top:4px; margin-top:4px;"><span>الباقي الصافي (الدين):</span><span style="font-weight:900;">${remainingAmount.toLocaleString()}</span></div>
-                    </div>
-
-                    <div style="text-align:center; font-weight:bold; font-size:14px; margin-top:20px;">
-                        شكرا لزيارتكم
+                    <div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:32px; font-weight:900; font-family:'Poppins',sans-serif;">istore</div><div style="font-size:15px; font-weight:bold;">07723355600</div><div style="font-size:11px; font-weight:bold;">متجر آي ستور - البصرة</div></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px; font-weight:bold;"><div>التاريخ: ${sale.date}</div><div>العميل: ${targetCustomer}</div></div>
+                    <div style="display:flex; justify-content:space-between; margin-top:2px; font-weight:bold;"><div>الكاشير: ${cashierName || defaultCashier}</div><div>رقم الفاتورة: #${sale.id}</div></div>
+                    <table style="width:100%; border-collapse:collapse; margin:10px 0;"><thead><tr style="background:#f3f4f6;"><th style="border:1px solid #333; padding:4px; font-size:11px;">المنتج</th><th style="border:1px solid #333; padding:4px; font-size:11px;">الكمية</th><th style="border:1px solid #333; padding:4px; font-size:11px;">السعر</th><th style="border:1px solid #333; padding:4px; font-size:11px;">الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
+                    <div style="border-top:1px dashed #333; padding-top:8px; font-weight:bold; font-size:13px;">
+                        <div style="display:flex; justify-content:space-between;"><span>المجموع:</span><span>${sale.total.toLocaleString()}</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>الدين السابق:</span><span>${prev.toLocaleString()}</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>المدفوع:</span><span>${paidAmount.toLocaleString()}</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:14px; border-top:1px solid #333; margin-top:4px; padding-top:4px;"><span>المتبقي (الدين):</span><span style="font-weight:900;">${remainingAmount.toLocaleString()}</span></div>
                     </div>
                 </div>`;
             });
-
-            area.innerHTML = fullHtml;
-            window.print();
+            area.innerHTML = fullHtml; window.print();
         }
 
         function printCustomerVoucherModal(voucherType) {
@@ -1493,21 +1278,7 @@
                 let a = Number(val); if(!a) return;
                 let title = voucherType === 'قبض' ? 'وصل قبض' : 'وصل شراء';
                 let bgStyle = customReceiptBgUrl ? `background-image: url('${customReceiptBgUrl}'); background-size: cover; background-position: center;` : 'background:#fff;';
-                let dateStr = new Date().toLocaleDateString('ar-IQ');
-
-                let html = `<div style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif;">
-                    <div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;">
-                        <div style="font-size:28px; font-weight:900; font-family:'Poppins',sans-serif;">istore</div>
-                        <div style="font-size:13px; font-weight:bold;">متجر آي ستور - البصرة</div>
-                    </div>
-                    <div style="margin-top:15px; font-weight:bold; font-size:14px;">الاسم: ${currentActiveCustomer}</div>
-                    <div style="margin-top:5px; font-weight:bold; font-size:13px;">التاريخ: ${dateStr}</div>
-                    <div style="margin-top:5px; font-weight:bold; font-size:14px;">البيان: ${title} من الحساب</div>
-                    <div style="margin-top:30px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:10px; border-radius:10px;">المبلغ: ${a.toLocaleString()} د.ع</div>
-                    <div style="text-align:center; font-weight:bold; font-size:14px; margin-top:40px;">شكرا لتعاملكم معنا</div>
-                </div>`;
-
-                document.getElementById('printable-area').innerHTML = html;
+                document.getElementById('printable-area').innerHTML = `<div style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif;"><div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:28px; font-weight:900;">istore</div></div><div style="margin-top:15px; font-weight:bold;">الاسم: ${currentActiveCustomer}</div><div style="margin-top:5px; font-weight:bold;">البيان: ${title}</div><div style="margin-top:30px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:10px;">المبلغ: ${a.toLocaleString()} د.ع</div></div>`;
                 window.print();
             });
         }
@@ -1519,59 +1290,39 @@
             window.print();
         }
 
-        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة القسم ومزامنته", "نجاح", "success"); }
-        function deleteCategory(index) { sysConfirm("تأكيد", "حذف هذا القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
+        function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.push({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة القسم", "نجاح", "success"); }
+        function deleteCategory(index) { sysConfirm("تأكيد", "حذف القسم؟", () => { categoriesList.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function openEditCatModal(index) { const cat = categoriesList[index]; document.getElementById('editCatIndex').value = index; document.getElementById('editCatOldName').value = cat.name; document.getElementById('editCatName').value = cat.name; document.getElementById('editCatImage').value = cat.image || ''; document.getElementById('edit-cat-modal').classList.remove('hidden'); }
         function closeEditCatModal() { document.getElementById('edit-cat-modal').classList.add('hidden'); }
         function saveEditedCategory() {
             let index = document.getElementById('editCatIndex').value; let oldName = document.getElementById('editCatOldName').value; let newName = document.getElementById('editCatName').value.trim();
             categoriesList[index].name = newName; categoriesList[index].image = document.getElementById('editCatImage').value.trim();
             if(oldName !== newName) inventory.forEach(i => { if(i.category === oldName) i.category = newName; });
-            closeEditCatModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم التحديث ومزامنة القسم", "نجاح", "success");
+            closeEditCatModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث القسم", "نجاح", "success");
         }
         function updateCategoriesUI() {
-            const container = document.getElementById('categoriesListContainer'); 
-            const select = document.getElementById('itemCategorySelect');
-            const editSelect = document.getElementById('editItemCategory');
-            
-            let currentSelected = select ? select.value : '';
-            let currentEditSelected = editSelect ? editSelect.value : '';
-
+            const container = document.getElementById('categoriesListContainer'); const select = document.getElementById('itemCategorySelect'); const editSelect = document.getElementById('editItemCategory');
+            let currentSelected = select ? select.value : ''; let currentEditSelected = editSelect ? editSelect.value : '';
             container.innerHTML = categoriesList.length === 0 ? '<span class="text-gray-400 text-sm">لا توجد أقسام</span>' : ''; 
             select.innerHTML = '<option value="">اختر القسم...</option>';
             if(editSelect) editSelect.innerHTML = '<option value="">بدون</option>';
-
             categoriesList.forEach((cat, idx) => {
                 let img = cat.image ? `<img src="${cat.image}" class="w-10 h-10 rounded-lg object-cover border" />` : `<div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center"><i class="fa-solid fa-folder"></i></div>`;
                 container.innerHTML += `<div class="bg-white border px-3 py-2 rounded-xl flex items-center gap-3 shadow-xs shrink-0">${img}<span class="font-bold text-sm whitespace-nowrap">${cat.name}</span><button onclick="openEditCatModal(${idx})" class="text-blue-600 p-1 cursor-pointer"><i class="fa-solid fa-pen"></i></button><button onclick="deleteCategory(${idx})" class="text-red-600 p-1 cursor-pointer"><i class="fa-solid fa-trash"></i></button></div>`;
-                
                 select.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
                 if(editSelect) editSelect.innerHTML += `<option value="${cat.name}">${cat.name}</option>`;
             });
-
             if(select && currentSelected) select.value = currentSelected;
             if(editSelect && currentEditSelected) editSelect.value = currentEditSelected;
         }
 
         function saveItem(event) {
             event.preventDefault();
-            inventory.push({
-                name: document.getElementById('itemName').value.trim(),
-                barcode: document.getElementById('itemBarcode').value.trim(),
-                category: document.getElementById('itemCategorySelect').value,
-                image: document.getElementById('itemImage').value.trim(),
-                quantity: Number(document.getElementById('itemQuantity').value),
-                minAlert: Number(document.getElementById('itemMinAlert').value) || 1,
-                buyPrice: Number(document.getElementById('itemBuyPrice').value),
-                price: Number(document.getElementById('itemPrice').value)
-            });
-            ['itemName','itemBarcode','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice'].forEach(id => {
-                let el = document.getElementById(id);
-                if(el) el.value = id === 'itemMinAlert' ? '1' : '';
-            });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة ومزامنته المحليه والسحابية", "نجاح", "success");
+            inventory.push({ name: document.getElementById('itemName').value.trim(), barcode: document.getElementById('itemBarcode').value.trim(), category: document.getElementById('itemCategorySelect').value, image: document.getElementById('itemImage').value.trim(), quantity: Number(document.getElementById('itemQuantity').value), minAlert: Number(document.getElementById('itemMinAlert').value) || 1, buyPrice: Number(document.getElementById('itemBuyPrice').value), price: Number(document.getElementById('itemPrice').value) });
+            ['itemName','itemBarcode','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة بنجاح", "نجاح", "success");
         }
-        function deleteItem(index) { sysConfirm("تأكيد", "حذف هذه المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
+        function deleteItem(index) { sysConfirm("تأكيد", "حذف المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function editItem(index) {
             const item = inventory[index]; document.getElementById('editItemIndex').value = index;
             document.getElementById('editItemName').value = item.name; document.getElementById('editItemBarcode').value = item.barcode || '';
@@ -1584,33 +1335,21 @@
             let index = document.getElementById('editItemIndex').value; let item = inventory[index];
             item.name = document.getElementById('editItemName').value.trim(); item.barcode = document.getElementById('editItemBarcode').value.trim();
             item.category = document.getElementById('editItemCategory').value; item.image = document.getElementById('editItemImage').value.trim();
-            item.quantity = Number(document.getElementById('editItemQuantity').value); 
-            item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
+            item.quantity = Number(document.getElementById('editItemQuantity').value); item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
             item.buyPrice = Number(document.getElementById('editItemBuyPrice').value); item.price = Number(document.getElementById('editItemPrice').value);
-            closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث ومزامنة المادة", "نجاح", "success");
+            closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث المادة", "نجاح", "success");
         }
         function updateInventoryTable() {
             const tbody = document.getElementById('inventoryTableBody'); tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
             inventory.forEach((item, index) => {
                 let img = item.image ? `<img src="${item.image}" class="w-12 h-12 object-cover rounded-xl mx-auto border" />` : 'لا توجد';
                 let barcodeHtml = item.barcode ? `<span class="block font-mono text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1">🏷️ ${item.barcode}</span>` : '<span class="text-[10px] text-gray-400">بدون باركود</span>';
-                
-                let q = Number(item.quantity) || 0;
-                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 1;
-                
-                let qtyClass = "text-blue-600 font-black";
-                let statusBadge = "";
-                if(q === 0) {
-                    qtyClass = "text-gray-400 line-through font-black";
-                    statusBadge = `<span class="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-[10px] font-bold block mt-1">منتهية (0)</span>`;
-                } else if(q <= minA) {
-                    qtyClass = "text-red-600 font-black";
-                    statusBadge = `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold block mt-1">قليلة (&lt;=${minA})</span>`;
-                } else {
-                    statusBadge = `<span class="bg-green-50 text-green-700 px-2 py-0.5 rounded text-[10px] font-bold block mt-1">جيدة</span>`;
-                }
-
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${item.quantity}</span> <span class="text-[10px] text-gray-400 block">حد التنبيه: ${minA}</span> ${statusBadge}</td><td class="p-3 border">${(item.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
+                let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
+                let qtyClass = "text-blue-600 font-black"; let statusBadge = "";
+                if(q === 0) { qtyClass = "text-gray-400 line-through font-black"; statusBadge = `<span class="bg-gray-100 text-gray-800 px-2 rounded text-[10px] block mt-1">منتهية (0)</span>`; }
+                else if(q <= minA) { qtyClass = "text-red-600 font-black"; statusBadge = `<span class="bg-red-100 text-red-700 px-2 rounded text-[10px] block mt-1">قليلة (&lt;=${minA})</span>`; }
+                else { statusBadge = `<span class="bg-green-50 text-green-700 px-2 rounded text-[10px] block mt-1">جيدة</span>`; }
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${item.quantity}</span> ${statusBadge}</td><td class="p-3 border">${(item.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
             });
         }
         function updateVariableTable() {
@@ -1648,39 +1387,19 @@
         function updatePOSGrid() {
             const grid = document.getElementById('pos-items-grid'); 
             let items = currentSelectedCategory ? inventory.filter(i => i.category === currentSelectedCategory) : inventory;
-            
             if(currentPOSStockFilter) {
                 items = items.filter(i => {
-                    let q = Number(i.quantity) || 0;
-                    let minA = Number(i.minAlert) !== undefined && !isNaN(i.minAlert) ? Number(i.minAlert) : 1;
-                    
-                    let stockType = 'كثيرة';
-                    if(q === 0) stockType = 'منتهية';
-                    else if(q <= minA) stockType = 'قليلة';
-                    else if(q > minA && q <= 20) stockType = 'متوسطة';
-
+                    let q = Number(i.quantity) || 0; let minA = Number(i.minAlert) || 1;
+                    let stockType = 'كثيرة'; if(q === 0) stockType = 'منتهية'; else if(q <= minA) stockType = 'قليلة'; else if(q > minA && q <= 20) stockType = 'متوسطة';
                     return stockType === currentPOSStockFilter;
                 });
             }
-
             grid.innerHTML = items.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا توجد مواد مطابقة</div>' : '';
-            
             items.forEach(item => {
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
-                
-                let q = Number(item.quantity) || 0;
-                let minA = Number(item.minAlert) !== undefined && !isNaN(item.minAlert) ? Number(item.minAlert) : 1;
-                
-                let numColorClass = "text-blue-600";
-                if(q === 0) numColorClass = "text-gray-400 font-black line-through";
-                else if(q <= minA) numColorClass = "text-red-600 font-black";
-
-                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 hover:shadow-md border-2 border-transparent text-center shadow-xs">
-                    ${img}
-                    <h3 class="font-bold text-xs mb-1">${item.name}</h3>
-                    <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${item.quantity}</b></span>
-                    <p class="text-xs font-black text-orange-600">${Number(item.price).toLocaleString()} د.ع</p>
-                </div>`;
+                let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
+                let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
+                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs">${img}<h3 class="font-bold text-xs mb-1">${item.name}</h3><span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${item.quantity}</b></span><p class="text-xs font-black text-orange-600">${Number(item.price).toLocaleString()} د.ع</p></div>`;
             });
         }
 
@@ -1699,9 +1418,7 @@
 
         let currentInvoiceItems = [];
         function addDirectToInvoice(name, defPrice, buyPrice, currentQty) {
-            if(currentQty <= 0) {
-                return sysAlert(`عذراً، المادة "${name}" منتهية تماماً من المخزن ولا يمكن بيعها!`, "تنبيه مخزني", "error");
-            }
+            if(currentQty <= 0) return sysAlert(`عذراً، المادة "${name}" منتهية تماماً!`, "تنبيه مخزني", "error");
             currentInvoiceItems.push({ name, price: defPrice, buyPrice, qty: 1 });
             calculateInvoiceTotal(); renderInvoice();
         }
@@ -1709,13 +1426,7 @@
         function renderInvoice() {
             const box = document.getElementById('invoice-items'); box.innerHTML = currentInvoiceItems.length === 0 ? '<div class="text-center text-gray-400 py-6">فارغة</div>' : '';
             currentInvoiceItems.forEach((item, idx) => {
-                box.innerHTML += `<div class="bg-white p-2.5 rounded-xl border shadow-xs mb-2 flex flex-col gap-2">
-                    <div class="flex justify-between items-center"><span class="font-bold text-xs text-gray-800">${item.name}</span><button onclick="removeInvoiceItem(${idx})" class="text-red-400 hover:text-red-600 cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div>
-                    <div class="flex justify-between items-center gap-2">
-                        <div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">الكمية:</span><input type="number" min="1" value="${item.qty || 1}" onchange="updateItemQty(${idx}, this.value)" class="w-12 border p-1 rounded text-center text-xs font-bold"></div>
-                        <div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">السعر:</span><input type="number" value="${item.price}" onchange="updateItemPriceDirect(${idx}, this.value)" class="w-20 border p-1 rounded text-center text-xs font-bold text-fuchsia-600 bg-fuchsia-50/50"></div>
-                    </div>
-                </div>`;
+                box.innerHTML += `<div class="bg-white p-2.5 rounded-xl border shadow-xs mb-2 flex flex-col gap-2"><div class="flex justify-between items-center"><span class="font-bold text-xs text-gray-800">${item.name}</span><button onclick="removeInvoiceItem(${idx})" class="text-red-400 cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center gap-2"><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">الكمية:</span><input type="number" min="1" value="${item.qty || 1}" onchange="updateItemQty(${idx}, this.value)" class="w-12 border p-1 rounded text-center text-xs font-bold"></div><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">السعر:</span><input type="number" value="${item.price}" onchange="updateItemPriceDirect(${idx}, this.value)" class="w-20 border p-1 rounded text-center text-xs font-bold text-fuchsia-600"></div></div></div>`;
             });
             document.getElementById('total-price').innerText = invoiceTotal.toLocaleString() + ' د.ع';
         }
@@ -1726,11 +1437,8 @@
         function toggleCustomerInput() {
             let type = document.getElementById('saleType').value;
             let cashBox = document.getElementById('cashPaidBox');
-            if (type === 'debt_cash_payment') {
-                cashBox.classList.remove('hidden');
-            } else {
-                cashBox.classList.add('hidden');
-            }
+            if (type === 'debt_cash_payment') cashBox.classList.remove('hidden');
+            else cashBox.classList.add('hidden');
         }
         
         function filterCustomerSearch() {
@@ -1742,92 +1450,53 @@
         function selectCustomerFromDropdown(name) { document.getElementById('posCustomerName').value = name; document.getElementById('customerSearchDropdown').classList.add('hidden'); }
 
         function addNewAccountDirectlyFromPOS() {
-            let nameInput = document.getElementById('posCustomerName');
-            let name = nameInput.value.trim();
-            if(!name) return sysAlert("يرجى كتابة اسم الحساب في حقل اسم الزبون أولاً!", "تنبيه", "error");
-            
-            let exists = debtsList.some(d => d.customer.toLowerCase() === name.toLowerCase());
-            if(exists) return sysAlert("هذا الحساب موجود بالفعل في النظام!", "تنبيه", "error");
-
+            let nameInput = document.getElementById('posCustomerName'); let name = nameInput.value.trim();
+            if(!name) return sysAlert("أدخل اسم الحساب في حقل اسم الزبون أولاً!", "تنبيه", "error");
+            if(debtsList.some(d => d.customer.toLowerCase() === name.toLowerCase())) return sysAlert("الحساب موجود بالفعل!", "تنبيه", "error");
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: name, amount: 0, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
-            auditLog.unshift({ type: 'حساب جديد', details: `فتح حساب آجل للزبون: ${name}`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant();
-            refreshAllUI();
-            sysAlert(`تم إضافة الحساب الآجل "${name}" ومزامنته بنجاح!`, "نجاح", "success");
+            auditLog.unshift({ type: 'حساب جديد', details: `فتح حساب للزبون: ${name}`, date: new Date().toLocaleString('ar-IQ') });
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert(`تم إضافة الحساب الآجل "${name}" بنجاح!`, "نجاح", "success");
         }
 
         function checkout() {
             if(invoiceTotal === 0) return sysAlert("الفاتورة فارغة!", "خطأ", "error");
-            let type = document.getElementById('saleType').value; 
-            let cust = document.getElementById('posCustomerName').value.trim();
+            let type = document.getElementById('saleType').value; let cust = document.getElementById('posCustomerName').value.trim();
             if((type === 'debt' || type === 'debt_cash_payment') && !cust) return sysAlert("يرجى إدخال اسم الزبون الآجل!", "خطأ", "error");
             
             currentInvoiceItems.forEach(invItem => { let s = inventory.find(i => i.name === invItem.name); if(s) s.quantity = Math.max(0, s.quantity - (invItem.qty || 1)); });
             let tBuy = currentInvoiceItems.reduce((sum, i) => sum + ((i.buyPrice || 0) * (i.qty || 1)), 0);
             
-            let saleTypeLabel = 'نقدي';
-            let cashPaid = 0;
-            let remainingDebt = 0;
-
-            if(type === 'cash') {
-                saleTypeLabel = 'نقدي';
-            } else if(type === 'debt') {
-                saleTypeLabel = 'آجل';
-                remainingDebt = invoiceTotal;
-            } else if(type === 'debt_cash_payment') {
+            let saleTypeLabel = 'نقدي', cashPaid = 0;
+            if(type === 'debt') saleTypeLabel = 'آجل';
+            else if(type === 'debt_cash_payment') {
                 saleTypeLabel = 'آجل (دفع جزء نقداً)';
                 cashPaid = Number(document.getElementById('posCashPaidInput').value) || 0;
-                if(cashPaid >= invoiceTotal) {
-                    return sysAlert("المبلغ المدفوع نقداً أكبر من أو يساوي إجمالي الفاتورة!", "خطأ", "error");
-                }
-                remainingDebt = invoiceTotal - cashPaid;
+                if(cashPaid >= invoiceTotal) return sysAlert("المبلغ المدفوع أكبر من إجمالي الفاتورة!", "خطأ", "error");
             }
 
-            let sale = { 
-                id: Math.floor(Math.random() * 900000) + 100000, 
-                type: saleTypeLabel, 
-                customer: cust || 'زبون نقدي', 
-                cashier: defaultCashier,
-                date: new Date().toLocaleString('ar-IQ'), 
-                total: invoiceTotal, 
-                cashPaid: cashPaid,
-                profit: invoiceTotal - tBuy, 
-                items: JSON.parse(JSON.stringify(currentInvoiceItems)) 
-            };
-            
+            let sale = { id: Math.floor(Math.random() * 900000) + 100000, type: saleTypeLabel, customer: cust || 'زبون نقدي', cashier: defaultCashier, date: new Date().toLocaleString('ar-IQ'), total: invoiceTotal, cashPaid, profit: invoiceTotal - tBuy, items: JSON.parse(JSON.stringify(currentInvoiceItems)) };
             salesHistory.push(sale);
             
             let itemsDesc = currentInvoiceItems.map(i => `${i.name} (${i.qty||1})`).join(', ');
-            
-            if(type === 'debt') {
+            if(type === 'debt') debtsList.push({ id: sale.id, customer: cust, amount: invoiceTotal, date: new Date().toLocaleDateString('ar-IQ'), details: `شراء آجل: ${itemsDesc}` });
+            else if(type === 'debt_cash_payment') {
                 debtsList.push({ id: sale.id, customer: cust, amount: invoiceTotal, date: new Date().toLocaleDateString('ar-IQ'), details: `شراء آجل: ${itemsDesc}` });
-            } else if(type === 'debt_cash_payment') {
-                debtsList.push({ id: sale.id, customer: cust, amount: invoiceTotal, date: new Date().toLocaleDateString('ar-IQ'), details: `شراء آجل: ${itemsDesc}` });
-                debtsList.push({ id: sale.id + 1, customer: cust, amount: -cashPaid, date: new Date().toLocaleDateString('ar-IQ'), details: `دفعة نقدية عند الشراء للفاتورة #${sale.id}` });
+                debtsList.push({ id: sale.id + 1, customer: cust, amount: -cashPaid, date: new Date().toLocaleDateString('ar-IQ'), details: `دفعة نقدية عند الشراء #${sale.id}` });
             }
 
-            auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${invoiceTotal.toLocaleString()} للزبون: ${cust || 'زبون نقدي'}`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); 
-            lastCompletedSale = sale; 
-            currentInvoiceItems = []; 
-            invoiceTotal = 0; 
-            document.getElementById('posCustomerName').value = ''; 
-            document.getElementById('posCashPaidInput').value = '';
-            renderInvoice(); 
-            refreshAllUI();
+            auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${invoiceTotal.toLocaleString()}`, date: new Date().toLocaleString('ar-IQ') });
+            triggerDataChangeInstant(); lastCompletedSale = sale; currentInvoiceItems = []; invoiceTotal = 0; 
+            document.getElementById('posCustomerName').value = ''; document.getElementById('posCashPaidInput').value = '';
+            renderInvoice(); refreshAllUI();
             
             setupCashierModalDropdown();
-            const overlay = document.getElementById('print-options-modal'); 
-            overlay.classList.remove('hidden'); 
-            setTimeout(() => overlay.classList.add('opacity-100'), 10);
+            document.getElementById('print-options-modal').classList.remove('hidden');
+            setTimeout(() => document.getElementById('print-options-modal').classList.add('opacity-100'), 10);
         }
 
         function setupCashierModalDropdown() {
-            const select = document.getElementById('checkoutCashierSelect');
-            select.innerHTML = '';
-            cashiersList.forEach(c => {
-                select.innerHTML += `<option value="${c}" ${c === defaultCashier ? 'selected' : ''}>${c}</option>`;
-            });
+            const select = document.getElementById('checkoutCashierSelect'); select.innerHTML = '';
+            cashiersList.forEach(c => select.innerHTML += `<option value="${c}" ${c === defaultCashier ? 'selected' : ''}>${c}</option>`);
             select.innerHTML += `<option value="ADD_NEW" class="text-blue-600 font-bold">+ إضافة كاشير جديد...</option>`;
         }
 
@@ -1835,26 +1504,15 @@
             if(val === 'ADD_NEW') {
                 sysPrompt("إضافة كاشير", "أدخل اسم الكاشير الجديد:", "", (newName) => {
                     let cleaned = newName ? newName.trim() : '';
-                    if(!cleaned) {
-                        document.getElementById('checkoutCashierSelect').value = defaultCashier;
-                        return;
-                    }
-                    if(!cashiersList.includes(cleaned)) {
-                        cashiersList.push(cleaned);
-                    }
-                    defaultCashier = cleaned;
-                    auditLog.unshift({ type: 'كاشير جديد', details: `إضافة كاشير: ${cleaned}`, date: new Date().toLocaleString('ar-IQ') });
-                    triggerDataChangeInstant();
-                    setupCashierModalDropdown();
+                    if(!cleaned) { document.getElementById('checkoutCashierSelect').value = defaultCashier; return; }
+                    if(!cashiersList.includes(cleaned)) cashiersList.push(cleaned);
+                    defaultCashier = cleaned; triggerDataChangeInstant(); setupCashierModalDropdown();
                 });
-            } else {
-                defaultCashier = val;
-            }
+            } else defaultCashier = val;
         }
 
         function executePrintChoice(print) {
-            const overlay = document.getElementById('print-options-modal'); 
-            overlay.classList.remove('opacity-100');
+            const overlay = document.getElementById('print-options-modal'); overlay.classList.remove('opacity-100');
             setTimeout(() => { 
                 overlay.classList.add('hidden'); 
                 if(print && lastCompletedSale) {
@@ -1863,9 +1521,7 @@
                     lastCompletedSale.cashier = selectedCashier;
                     printSaleReceipt(lastCompletedSale, lastCompletedSale.customer, selectedCashier); 
                 }
-                lastCompletedSale = null; 
-                switchView('pos-view'); 
-                document.getElementById('searchPos').focus();
+                lastCompletedSale = null; switchView('pos-view'); document.getElementById('searchPos').focus();
             }, 300);
         }
 
@@ -1885,22 +1541,21 @@
             document.getElementById('netProfitDisplay').innerText = (g - exp - loss).toLocaleString() + ' د.ع';
         }
 
-        function returnSingleItem(id, idx) { sysConfirm("تأكيد الإرجاع", "اختر حالة المنتج المرتجع:", () => { processReturnAction(id, idx, 'سليم'); }); }
+        function returnSingleItem(id, idx) { sysConfirm("تأكيد الإرجاع", "اختر حالة المنتج:", () => { processReturnAction(id, idx, 'سليم'); }); }
         function processReturnAction(id, idx, initialStatus) {
             let sale = salesHistory.find(s => s.id === id); if(!sale) return;
             let item = sale.items[idx]; item.returned = true; item.returnStatus = initialStatus;
             let lossVal = initialStatus === 'تالف' ? ((item.buyPrice || 0) * (item.qty || 1)) : 0;
             returnsHistory.unshift({ id: Date.now(), invoiceId: sale.id, customer: sale.customer, itemName: item.name, qty: item.qty || 1, status: initialStatus, lossAmount: lossVal, date: new Date().toLocaleString('ar-IQ') });
             if(initialStatus === 'سليم') { let s = inventory.find(i => i.name === item.name); if(s) s.quantity += (item.qty || 1); }
-            auditLog.unshift({ type: 'مرتجع', details: `إرجاع مادة: ${item.name} (${initialStatus})`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة ومزامنته", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إرجاع المادة", "نجاح", "success");
         }
 
         function updateReturnsTable() {
             const body = document.getElementById('returnsTableBody'); body.innerHTML = returnsHistory.length===0?'<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مرتجعات</td></tr>':'';
             returnsHistory.forEach((r, idx) => {
-                let statusBadge = r.status === 'تالف' ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">تالف (خسارة)</span>` : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">سليم (بالمخزن)</span>`;
-                body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">#${r.invoiceId}</td><td class="p-3 border">${r.customer}</td><td class="p-3 border font-bold">${r.itemName} (${r.qty})</td><td class="p-3 border">${statusBadge}</td><td class="p-3 border text-red-600 font-bold">${(r.lossAmount||0).toLocaleString()} د.ع</td><td class="p-3 border text-sm">${r.date}</td><td class="p-3 border text-center"><button onclick="toggleReturnStatus(${idx})" class="bg-amber-100 text-amber-800 hover:bg-amber-200 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer transition">تبديل الحالة</button></td></tr>`;
+                let statusBadge = r.status === 'تالف' ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">تالف (خسارة)</span>` : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">سليم</span>`;
+                body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">#${r.invoiceId}</td><td class="p-3 border">${r.customer}</td><td class="p-3 border font-bold">${r.itemName} (${r.qty})</td><td class="p-3 border">${statusBadge}</td><td class="p-3 border text-red-600 font-bold">${(r.lossAmount||0).toLocaleString()} د.ع</td><td class="p-3 border text-sm">${r.date}</td><td class="p-3 border text-center"><button onclick="toggleReturnStatus(${idx})" class="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer">تبديل الحالة</button></td></tr>`;
             });
         }
         function filterReturnsTable() { let val = document.getElementById('searchReturnsInput').value.toLowerCase(); document.querySelectorAll('#returnsTableBody tr').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none'; }); }
@@ -1917,49 +1572,36 @@
                 if(matchedInv) matchedInv.quantity += (r.qty || 1);
                 if(itemObj) itemObj.returnStatus = 'سليم';
             }
-            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل حالة المرتجع ومزامنته", "نجاح", "success");
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تبديل الحالة", "نجاح", "success");
         }
 
         function updateCustomersTable() {
             const body = document.getElementById('customersTableBody'); body.innerHTML = ''; let map = {};
             debtsList.forEach(d => { if(!map[d.customer]) map[d.customer]=0; map[d.customer]+=d.amount; });
-            let keys = Object.keys(map); if(keys.length === 0) return body.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد حسابات زبائن مسجلة</td></tr>';
+            let keys = Object.keys(map); if(keys.length === 0) return body.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد حسابات</td></tr>';
             keys.forEach(k => { body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${k}</td><td class="p-3 border font-black text-blue-600">${map[k].toLocaleString()} د.ع</td><td class="p-3 border text-center"><button onclick="openCustomerDetail('${k}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold cursor-pointer">فتح السجل</button></td></tr>`; });
         }
         function filterCustomersList() {}
         function addNewCustomerAccount() {
             let n = document.getElementById('newCustAccountName').value.trim(); let a = Number(document.getElementById('newCustAccountDebt').value);
             if(!n) return sysAlert("أدخل اسم الزبون", "خطأ", "error");
-            debtsList.push({ id: Math.floor(Math.random()*1000000), customer: n, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `رصيد افتتاحى / فتح حساب` });
-            auditLog.unshift({ type: 'حساب زبون', details: `إضافة حساب زبون: ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة ومزامنة حساب الزبون بنجاح", "نجاح", "success");
+            debtsList.push({ id: Math.floor(Math.random()*1000000), customer: n, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
+            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة الحساب بنجاح", "نجاح", "success");
         }
         function openCustomerDetail(name) {
             currentActiveCustomer = name; document.getElementById('detailCustomerName').innerText = name; document.getElementById('newCustomerNameInput').value = name;
-            
-            let totalCustDebt = 0;
-            debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += d.amount);
+            let totalCustDebt = 0; debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += d.amount);
             document.getElementById('detailCustomerTotalDebtDisplay').innerText = totalCustDebt.toLocaleString() + ' د.ع';
-
             const body = document.getElementById('customerInvoicesBody'); body.innerHTML = '';
             debtsList.filter(d => d.customer === name).forEach(d => { body.innerHTML += `<tr class="border-b"><td class="p-3 border font-bold">${d.details}</td><td class="p-3 border font-bold ${d.amount<0?'text-green-600':'text-blue-600'}">${d.amount.toLocaleString()}</td><td class="p-3 border text-sm">${d.date}</td></tr>`; });
             switchView('customer-detail-view');
         }
 
         function openCustomerPaymentsLogModal() {
-            const body = document.getElementById('customerPaymentsLogBody');
-            body.innerHTML = '';
+            const body = document.getElementById('customerPaymentsLogBody'); body.innerHTML = '';
             let payments = debtsList.filter(d => d.customer === currentActiveCustomer && d.amount < 0);
-            if(payments.length === 0) {
-                body.innerHTML = '<div class="text-center text-gray-400 py-6">لا توجد تسديدات مسجلة لهذا الزبون بعد</div>';
-            } else {
-                payments.forEach(p => {
-                    body.innerHTML += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs font-bold">
-                        <div><span class="text-gray-700 block mb-0.5">${p.details}</span><span class="text-gray-400 text-[10px]">${p.date}</span></div>
-                        <span class="text-green-600 font-black text-sm">${Math.abs(p.amount).toLocaleString()} د.ع</span>
-                    </div>`;
-                });
-            }
+            if(payments.length === 0) body.innerHTML = '<div class="text-center text-gray-400 py-6">لا توجد تسديدات مسجلة</div>';
+            else payments.forEach(p => body.innerHTML += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs font-bold"><div><span class="text-gray-700 block">${p.details}</span><span class="text-gray-400 text-[10px]">${p.date}</span></div><span class="text-green-600 font-black text-sm">${Math.abs(p.amount).toLocaleString()} د.ع</span></div>`);
             document.getElementById('customer-payments-log-modal').classList.remove('hidden');
         }
         function closeCustomerPaymentsLogModal() { document.getElementById('customer-payments-log-modal').classList.add('hidden'); }
@@ -1968,8 +1610,7 @@
             let n = document.getElementById('newCustomerNameInput').value.trim(); if(!n) return;
             debtsList.forEach(d => { if(d.customer === currentActiveCustomer) d.customer = n; });
             salesHistory.forEach(s => { if(s.customer === currentActiveCustomer) s.customer = n; });
-            auditLog.unshift({ type: 'تعديل زبون', details: `تعديل اسم الزبون من ${currentActiveCustomer} إلى ${n}`, date: new Date().toLocaleString('ar-IQ') });
-            triggerDataChangeInstant(); openCustomerDetail(n); sysAlert("تم التعديل والمزامنة", "نجاح", "success");
+            triggerDataChangeInstant(); openCustomerDetail(n); sysAlert("تم التعديل", "نجاح", "success");
         }
         function addExternalItemDebt() {
             let d = document.getElementById('extItemDesc').value.trim(); let a = Number(document.getElementById('extItemAmount').value);
@@ -1979,13 +1620,12 @@
         function quickPayDebt() {
             let a = Number(document.getElementById('quickPayAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد من الزبون)` });
-            auditLog.unshift({ type: 'تسديد زبون', details: `قبض مبلغ ${a.toLocaleString()} من الزبون: ${currentActiveCustomer}`, date: new Date().toLocaleString('ar-IQ') });
-            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض ومزامنة السند بنجاح", "نجاح", "success");
+            document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض بنجاح", "نجاح", "success");
         }
         function exemptCustomerDebt() {
             let a = Number(document.getElementById('exemptionAmount').value); if(!a) return;
             debtsList.push({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `خصم / إعفاء` });
-            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم والمزامنة", "نجاح", "success");
+            document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم", "نجاح", "success");
         }
         
         function saveMyDebt(e) {
@@ -1994,195 +1634,74 @@
             let itemName = document.getElementById('myDebtItemName').value.trim();
             let qty = Number(document.getElementById('myDebtQty').value) || 1;
             let price = Number(document.getElementById('myDebtPrice').value) || 0;
-            let totalAmount = qty * price;
-
             if(!supplier || !itemName || !price) return;
-
-            myDebtsList.push({
-                id: Date.now(),
-                supplier: supplier,
-                itemName: itemName,
-                qty: qty,
-                price: price,
-                amount: totalAmount,
-                date: new Date().toLocaleDateString('ar-IQ')
-            });
-            auditLog.unshift({ type: 'شراء من مجهز', details: `شراء مادة (${itemName}) من المجهز ${supplier} بقيمة ${totalAmount.toLocaleString()}`, date: new Date().toLocaleString('ar-IQ') });
-
-            document.getElementById('myDebtSupplier').value = '';
-            document.getElementById('myDebtItemName').value = '';
-            document.getElementById('myDebtQty').value = '1';
-            document.getElementById('myDebtPrice').value = '';
-            triggerDataChangeInstant();
-            updateMyDebtsTable();
-            sysAlert("تم حفظ ومزامنة المادة للمجهز بنجاح", "نجاح", "success");
+            myDebtsList.push({ id: Date.now(), supplier, itemName, qty, price, amount: qty * price, date: new Date().toLocaleDateString('ar-IQ') });
+            document.getElementById('myDebtSupplier').value = ''; document.getElementById('myDebtItemName').value = ''; document.getElementById('myDebtQty').value = '1'; document.getElementById('myDebtPrice').value = '';
+            triggerDataChangeInstant(); updateMyDebtsTable(); sysAlert("تم الحفظ بنجاح", "نجاح", "success");
         }
 
         function filterSupplierDropdown(q) {
-            let drop = document.getElementById('supplierSearchDropdown');
-            let m = {};
-            myDebtsList.forEach(d => m[d.supplier]=1);
-            let u = Object.keys(m);
+            let drop = document.getElementById('supplierSearchDropdown'); let m = {};
+            myDebtsList.forEach(d => m[d.supplier]=1); let u = Object.keys(m);
             if(!q || u.length === 0) return drop.classList.add('hidden');
             let f = u.filter(c => c.toLowerCase().includes(q.toLowerCase()));
             if(f.length === 0) return drop.classList.add('hidden');
-            drop.innerHTML = '';
-            f.forEach(c => drop.innerHTML += `<div onclick="selectSupplierFromDropdown('${c}')" class="p-2.5 hover:bg-gray-50 cursor-pointer font-bold border-b text-xs">${c}</div>`);
+            drop.innerHTML = ''; f.forEach(c => drop.innerHTML += `<div onclick="selectSupplierFromDropdown('${c}')" class="p-2.5 hover:bg-gray-50 cursor-pointer font-bold border-b text-xs">${c}</div>`);
             drop.classList.remove('hidden');
         }
-
-        function selectSupplierFromDropdown(name) {
-            document.getElementById('myDebtSupplier').value = name;
-            document.getElementById('supplierSearchDropdown').classList.add('hidden');
-        }
+        function selectSupplierFromDropdown(name) { document.getElementById('myDebtSupplier').value = name; document.getElementById('supplierSearchDropdown').classList.add('hidden'); }
 
         function openSupplierItemModalForAdd() {
             document.getElementById('suppModalTitle').innerText = "إضافة مادة جديدة للمجهز";
-            document.getElementById('suppEditItemId').value = "";
-            document.getElementById('suppItemNameInput').value = "";
-            document.getElementById('suppItemQtyInput').value = "1";
-            document.getElementById('suppItemPriceInput').value = "";
+            document.getElementById('suppEditItemId').value = ""; document.getElementById('suppItemNameInput').value = ""; document.getElementById('suppItemQtyInput').value = "1"; document.getElementById('suppItemPriceInput').value = "";
             document.getElementById('edit-supplier-item-modal').classList.remove('hidden');
         }
-
         function openSupplierItemModalForEdit(id) {
-            let item = myDebtsList.find(d => d.id === id);
-            if(!item) return;
+            let item = myDebtsList.find(d => d.id === id); if(!item) return;
             document.getElementById('suppModalTitle').innerText = "تعديل المادة";
-            document.getElementById('suppEditItemId').value = item.id;
-            document.getElementById('suppItemNameInput').value = item.itemName || '';
-            document.getElementById('suppItemQtyInput').value = item.qty || 1;
-            document.getElementById('suppItemPriceInput').value = item.price || 0;
+            document.getElementById('suppEditItemId').value = item.id; document.getElementById('suppItemNameInput').value = item.itemName || ''; document.getElementById('suppItemQtyInput').value = item.qty || 1; document.getElementById('suppItemPriceInput').value = item.price || 0;
             document.getElementById('edit-supplier-item-modal').classList.remove('hidden');
         }
-
-        function closeSupplierItemModal() {
-            document.getElementById('edit-supplier-item-modal').classList.add('hidden');
-        }
-
+        function closeSupplierItemModal() { document.getElementById('edit-supplier-item-modal').classList.add('hidden'); }
         function saveSupplierItemEdit() {
-            let id = document.getElementById('suppEditItemId').value;
-            let itemName = document.getElementById('suppItemNameInput').value.trim();
-            let qty = Number(document.getElementById('suppItemQtyInput').value) || 1;
-            let price = Number(document.getElementById('suppItemPriceInput').value) || 0;
-            let totalAmount = qty * price;
-
-            if(!itemName || !price) return sysAlert("يرجى إكمال الحقول!", "خطأ", "error");
-
-            if(id) {
-                let item = myDebtsList.find(d => d.id == id);
-                if(item) {
-                    item.itemName = itemName;
-                    item.qty = qty;
-                    item.price = price;
-                    item.amount = totalAmount;
-                }
-            } else {
-                myDebtsList.push({
-                    id: Date.now(),
-                    supplier: currentActiveSupplier,
-                    itemName: itemName,
-                    qty: qty,
-                    price: price,
-                    amount: totalAmount,
-                    date: new Date().toLocaleDateString('ar-IQ')
-                });
-            }
-
-            closeSupplierItemModal();
-            triggerDataChangeInstant();
-            openSupplierDetail(currentActiveSupplier);
-            updateMyDebtsTable();
-            sysAlert("تم حفظ ومزامنة التعديلات بنجاح", "نجاح", "success");
+            let id = document.getElementById('suppEditItemId').value; let itemName = document.getElementById('suppItemNameInput').value.trim(); let qty = Number(document.getElementById('suppItemQtyInput').value) || 1; let price = Number(document.getElementById('suppItemPriceInput').value) || 0;
+            if(!itemName || !price) return sysAlert("أكمل الحقول!", "خطأ", "error");
+            if(id) { let item = myDebtsList.find(d => d.id == id); if(item) { item.itemName = itemName; item.qty = qty; item.price = price; item.amount = qty * price; } }
+            else myDebtsList.push({ id: Date.now(), supplier: currentActiveSupplier, itemName, qty, price, amount: qty * price, date: new Date().toLocaleDateString('ar-IQ') });
+            closeSupplierItemModal(); triggerDataChangeInstant(); openSupplierDetail(currentActiveSupplier); updateMyDebtsTable(); sysAlert("تم الحفظ بنجاح", "نجاح", "success");
         }
-
         function deleteSupplierItem(id) {
-            sysConfirm("تأكيد", "هل أنت متأكد من حذف هذه المادة من كشف حساب المجهز؟", () => {
+            sysConfirm("تأكيد", "حذف المادة من كشف حساب المجهز؟", () => {
                 myDebtsList = myDebtsList.filter(d => d.id !== id);
-                triggerDataChangeInstant();
-                openSupplierDetail(currentActiveSupplier);
-                updateMyDebtsTable();
-                sysAlert("تم الحذف ومزامنة التغييرات بنجاح", "نجاح", "success");
+                triggerDataChangeInstant(); openSupplierDetail(currentActiveSupplier); updateMyDebtsTable(); sysAlert("تم الحذف", "نجاح", "success");
             });
         }
-
         function openSupplierDetail(supplierName) {
-            currentActiveSupplier = supplierName;
-            document.getElementById('detailSupplierName').innerText = supplierName;
-            
-            let records = myDebtsList.filter(d => d.supplier === supplierName);
-            let totalAmount = 0;
-            records.forEach(r => {
-                totalAmount += (r.amount || 0);
-            });
-
+            currentActiveSupplier = supplierName; document.getElementById('detailSupplierName').innerText = supplierName;
+            let records = myDebtsList.filter(d => d.supplier === supplierName); let totalAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
             document.getElementById('suppDetailTotal').innerText = totalAmount.toLocaleString() + ' د.ع';
-
-            const tbody = document.getElementById('supplierInvoicesBody');
-            tbody.innerHTML = records.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد مواد مسجلة</td></tr>' : '';
-            
+            const tbody = document.getElementById('supplierInvoicesBody'); tbody.innerHTML = records.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
             records.forEach(r => {
-                let itemName = r.itemName || r.details || 'مادة عامة';
-                let price = r.price || r.amount || 0;
-                let qty = r.qty || 1;
-                let total = r.amount || (price * qty);
-
-                tbody.innerHTML += `<tr class="border-b bg-white">
-                    <td class="p-3 border font-bold text-gray-900">${itemName}</td>
-                    <td class="p-3 border">${price.toLocaleString()} د.ع</td>
-                    <td class="p-3 border text-center font-bold">${qty}</td>
-                    <td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td>
-                    <td class="p-3 border text-sm text-gray-500">${r.date}</td>
-                    <td class="p-3 border text-center flex gap-1 justify-center">
-                        <button onclick="openSupplierItemModalForEdit(${r.id})" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button>
-                        <button onclick="deleteSupplierItem(${r.id})" class="bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">حذف</button>
-                    </td>
-                </tr>`;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${r.itemName}</td><td class="p-3 border">${r.price.toLocaleString()}</td><td class="p-3 border text-center font-bold">${r.qty}</td><td class="p-3 border font-black text-red-600">${r.amount.toLocaleString()}</td><td class="p-3 border text-sm text-gray-500">${r.date}</td><td class="p-3 border text-center flex gap-1 justify-center"><button onclick="openSupplierItemModalForEdit(${r.id})" class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button><button onclick="deleteSupplierItem(${r.id})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
             });
-
             switchView('supplier-detail-view');
         }
-
         function updateMyDebtsTable() {
-            const tbody = document.getElementById('myDebtsTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = '';
-            
-            let map = {};
-            myDebtsList.forEach(d => {
-                if(!map[d.supplier]) { map[d.supplier] = 0; }
-                map[d.supplier] += (d.amount || 0);
-            });
-
+            const tbody = document.getElementById('myDebtsTableBody'); if(!tbody) return; tbody.innerHTML = '';
+            let map = {}; myDebtsList.forEach(d => { if(!map[d.supplier]) map[d.supplier] = 0; map[d.supplier] += (d.amount || 0); });
             let suppliers = Object.keys(map);
-            if(suppliers.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد ديون مجهزين مسجلة</td></tr>';
-                document.getElementById('totalTheyWantDisplay').innerText = '0 د.ع';
-                document.getElementById('totalNetSuppliersDisplay').innerText = '0 د.ع';
-                return;
-            }
-
+            if(suppliers.length === 0) { tbody.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد ديون مجهزين</td></tr>'; document.getElementById('totalTheyWantDisplay').innerText = '0 د.ع'; document.getElementById('totalNetSuppliersDisplay').innerText = '0 د.ع'; return; }
             let grandTotal = 0;
             suppliers.forEach(supp => {
-                let total = map[supp];
-                grandTotal += total;
-
-                tbody.innerHTML += `<tr class="border-b bg-white supplier-row" data-name="${supp}">
-                    <td class="p-3 border font-bold text-gray-900">${supp}</td>
-                    <td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td>
-                    <td class="p-3 border text-center">
-                        <button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition shadow-xs">كشف الحساب</button>
-                    </td>
-                </tr>`;
+                let total = map[supp]; grandTotal += total;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${supp}</td><td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td><td class="p-3 border text-center"><button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer">كشف الحساب</button></td></tr>`;
             });
-
             document.getElementById('totalTheyWantDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
             document.getElementById('totalNetSuppliersDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
         }
 
         function saveExpense(e) {
             e.preventDefault(); expensesList.push({ desc: document.getElementById('expDesc').value, amount: Number(document.getElementById('expAmount').value), date: new Date().toLocaleDateString('ar-IQ') });
-            auditLog.unshift({ type: 'مصروف', details: `تسجيل مصروف: ${document.getElementById('expDesc').value} بمبلغ ${document.getElementById('expAmount').value}`, date: new Date().toLocaleString('ar-IQ') });
             document.getElementById('expDesc').value=''; document.getElementById('expAmount').value=''; triggerDataChangeInstant(); refreshAllUI();
         }
         function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
@@ -2192,41 +1711,22 @@
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
-            auditLog.unshift({ type: 'تعديل', details: 'تفعيل كلمة مرور الأدمن السرية (07773774773) للدخول لكافة الحسابات', date: new Date().toLocaleString('ar-IQ') });
             auditLog.forEach(l => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold text-red-600">${l.type}</td><td class="p-3 border">${l.details}</td><td class="p-3 border text-sm">${l.date}</td></tr>`; });
         }
 
         function sendChatMessage(e) {
             e.preventDefault();
-            let text = document.getElementById('chatInputText').value.trim();
-            if(!text) return;
-
-            let newMsg = {
-                id: Date.now(),
-                deviceId: currentDeviceId,
-                text: text,
-                time: new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' })
-            };
-
-            chatMessages.push(newMsg);
-            document.getElementById('chatInputText').value = '';
-            triggerDataChangeInstant();
-            updateChatUI();
+            let text = document.getElementById('chatInputText').value.trim(); if(!text) return;
+            chatMessages.push({ id: Date.now(), deviceId: currentDeviceId, text, time: new Date().toLocaleTimeString('ar-IQ', { hour: '2-digit', minute: '2-digit' }) });
+            document.getElementById('chatInputText').value = ''; triggerDataChangeInstant(); updateChatUI();
         }
 
         function updateChatUI() {
-            const container = document.getElementById('chat-messages-container');
-            if(!container) return;
-            container.innerHTML = chatMessages.length === 0 ? '<div class="text-center text-gray-400 py-10 text-sm">لا توجد رسائل حالياً. ابدأ المراسلة مع الأجهزة الأخرى على نفس الحساب!</div>' : '';
-            
+            const container = document.getElementById('chat-messages-container'); if(!container) return;
+            container.innerHTML = chatMessages.length === 0 ? '<div class="text-center text-gray-400 py-10 text-sm">لا توجد رسائل حالياً</div>' : '';
             chatMessages.forEach(msg => {
                 let isMe = msg.deviceId === currentDeviceId;
-                container.innerHTML += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
-                    <span class="text-[10px] font-bold text-gray-400 mb-0.5">${msg.deviceId} (${msg.time})</span>
-                    <div class="${isMe ? 'bg-cyan-600 text-white rounded-tr-none' : 'bg-white border text-gray-800 rounded-tl-none'} p-3 rounded-2xl max-w-md shadow-xs font-medium text-sm">
-                        ${msg.text}
-                    </div>
-                </div>`;
+                container.innerHTML += `<div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}"><span class="text-[10px] font-bold text-gray-400 mb-0.5">${msg.deviceId} (${msg.time})</span><div class="${isMe ? 'bg-cyan-600 text-white rounded-tr-none' : 'bg-white border text-gray-800 rounded-tl-none'} p-3 rounded-2xl max-w-md shadow-xs font-medium text-sm">${msg.text}</div></div>`;
             });
             container.scrollTop = container.scrollHeight;
         }
