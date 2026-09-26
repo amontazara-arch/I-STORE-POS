@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Native PWA Edition v5.0</title>
+    <title>iStore POS & ERP System - Native PWA Edition v5.4</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     
     <meta name="theme-color" content="#111827">
@@ -50,7 +50,6 @@
         .modal-overlay { transition: opacity 0.3s ease; }
         .modal-box { transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
         
-        /* تحسين السحب الأفقي للأقسام ودعم اللمس والماوس */
         .horizontal-scroll-container {
             display: flex;
             overflow-x: auto;
@@ -62,16 +61,9 @@
             cursor: grab;
             user-select: none;
         }
-        .horizontal-scroll-container:active {
-            cursor: grabbing;
-        }
-        .horizontal-scroll-container::-webkit-scrollbar {
-            height: 6px;
-        }
-        .horizontal-scroll-container::-webkit-scrollbar-thumb {
-            background-color: #cbd5e1;
-            border-radius: 4px;
-        }
+        .horizontal-scroll-container:active { cursor: grabbing; }
+        .horizontal-scroll-container::-webkit-scrollbar { height: 6px; }
+        .horizontal-scroll-container::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
 
         @media print {
             body * { visibility: hidden; }
@@ -92,7 +84,6 @@
         </div>
     </div>
 
-    <!-- نافذة سجل الإشعارات -->
     <div id="notifications-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-[90] flex items-center justify-center p-4 hidden modal-overlay">
         <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 text-right border modal-box max-h-[85vh] flex flex-col">
             <div class="flex justify-between items-center border-b pb-3 mb-4">
@@ -130,7 +121,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.0)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.4)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -244,6 +235,8 @@
             <button onclick="switchView('dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-white flex items-center"><i class="fa-solid fa-home pl-3 text-gray-400"></i> الرئيسية</button>
             <button onclick="switchView('pos-view'); toggleMobileSidebar(true); document.getElementById('searchPos').focus();" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-cash-register pl-3 text-gray-400"></i> نقطة البيع POS</button>
             <button onclick="switchView('add-item-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-cubes pl-3 text-gray-400"></i> إدارة المخزن</button>
+            <button onclick="switchView('damaged-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-rose-400 font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation pl-3 text-rose-500"></i> تالف</button>
+            <button onclick="switchView('maintenance-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-teal-300 font-bold flex items-center"><i class="fa-solid fa-screwdriver-wrench pl-3 text-teal-400"></i> الصيانة والبرمجة</button>
             <button onclick="switchView('values-dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-yellow-400 font-bold flex items-center"><i class="fa-solid fa-coins pl-3"></i> القيم والجرد</button>
             <button onclick="switchView('sales-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice pl-3 text-gray-400"></i> سجل المبيعات</button>
             <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-red-300 font-bold flex items-center"><i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات</button>
@@ -270,10 +263,140 @@
                     <button onclick="switchView('returns-view')" class="flex flex-col items-center justify-center p-4 bg-red-800 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-rotate-left text-3xl mb-2"></i><span class="font-bold">سجل المرتجعات</span></button>
                     <button onclick="switchView('pos-view'); setTimeout(()=>document.getElementById('searchPos').focus(), 100);" class="flex flex-col items-center justify-center p-4 bg-[#9e005d] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-cash-register text-3xl mb-2"></i><span class="font-bold">نقطة بيع POS</span></button>
                     <button onclick="switchView('add-item-view')" class="flex flex-col items-center justify-center p-4 bg-[#00aeef] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-cubes text-3xl mb-2"></i><span class="font-bold">إدارة المخزن</span></button>
+                    <button onclick="switchView('damaged-view')" class="flex flex-col items-center justify-center p-4 bg-rose-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i><span class="font-bold">تالف</span></button>
+                    <button onclick="switchView('maintenance-view')" class="flex flex-col items-center justify-center p-4 bg-teal-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-screwdriver-wrench text-3xl mb-2"></i><span class="font-bold">الصيانة والبرمجة</span></button>
                     <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
                     <button onclick="switchView('customers-view')" class="flex flex-col items-center justify-center p-4 bg-[#1d71b8] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-address-book text-3xl mb-2"></i><span class="font-bold">حساب الزبائن</span></button>
                     <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">المجهّزون والديون</span></button>
-                    <button onclick="switchView('expenses-view')" class="flex flex-col items-center justify-center p-4 bg-[#8cc63f] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-hand-holding-dollar text-3xl mb-2"></i><span class="font-bold">المصروفات</span></button>
+                </div>
+            </div>
+
+            <!-- شاشة الصيانة والبرمجة -->
+            <div id="maintenance-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-teal-700"><i class="fa-solid fa-screwdriver-wrench"></i> إدارة عمليات الصيانة والبرمجة</h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                        <div class="bg-teal-50 border border-teal-200 rounded-2xl p-4 text-center">
+                            <p class="text-xs font-bold text-teal-800">إجمالي أرباح الصيانة</p>
+                            <h3 class="text-2xl font-black text-teal-700 mt-1" id="totalMaintProfitDisplay">0 د.ع</h3>
+                        </div>
+                        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
+                            <p class="text-xs font-bold text-rose-800">إجمالي خسائر/تالف الصيانة</p>
+                            <h3 class="text-2xl font-black text-rose-700 mt-1" id="totalMaintLossDisplay">0 د.ع</h3>
+                        </div>
+                        <div class="bg-indigo-50 border border-indigo-200 rounded-2xl p-4 text-center">
+                            <p class="text-xs font-bold text-indigo-900">صافي الصيانة العام</p>
+                            <h3 class="text-2xl font-black text-indigo-700 mt-1" id="totalMaintNetDisplay">0 د.ع</h3>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap gap-3 mb-6 bg-gray-50 p-4 rounded-xl border">
+                        <button onclick="openMaintPaymentModal('حساب')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm cursor-pointer flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> تسديد حساب (تحويل من أرباح الصيانة)</button>
+                        <button onclick="openMaintPaymentModal('مصروفات')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm cursor-pointer flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar"></i> تسديد مصروفات من الصيانة</button>
+                    </div>
+
+                    <form onsubmit="saveMaintenanceRecord(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-teal-50/50 p-4 rounded-xl border border-teal-100 items-end">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم الزبون / الجهاز:</label>
+                            <input type="text" id="maintCustomer" required placeholder="اسم الزبون أو نوع الجهاز..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">مصدر المادة / الخدمة:</label>
+                            <select id="maintSourceType" onchange="toggleMaintSourceType()" class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold cursor-pointer">
+                                <option value="none">أرباح صيانة / برمجة فقط (بدون مادة)</option>
+                                <option value="inventory">من محلنا (المخزن - سعر الشراء)</option>
+                                <option value="supplier">من المجهّزين (يضاف لحساب المجهز)</option>
+                            </select>
+                        </div>
+                        <div id="maintInventoryItemBox" class="hidden">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اختر المادة من المخزن:</label>
+                            <select id="maintInventoryItemSelect" class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold"></select>
+                        </div>
+                        <div id="maintSupplierBox" class="hidden">
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم المجهز ونوع المادة:</label>
+                            <div class="flex gap-1">
+                                <input type="text" id="maintSupplierName" placeholder="المجهز..." class="border p-2 rounded-xl bg-white w-1/2 text-xs">
+                                <input type="text" id="maintSupplierItem" placeholder="المادة وسعرها..." class="border p-2 rounded-xl bg-white w-1/2 text-xs">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">البيان (ما تم إنجازه / إصلاحه):</label>
+                            <input type="text" id="maintDescriptionInput" required placeholder="مثال: تبديل شاشة + برمجة سوفتوير..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">أرباح الصيانة (مبلغ الصيانة):</label>
+                            <input type="number" id="maintProfitInput" required placeholder="أرباح الصيانة..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-700">
+                        </div>
+                        <button type="submit" class="col-span-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">حفظ وإضافة العملية</button>
+                    </form>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">سجل عمليات الصيانة والبرمجة والأرباح</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[700px]">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="p-3 border">الزبون / الجهاز</th>
+                                    <th class="p-3 border">البيان (ما تم إصلاحه)</th>
+                                    <th class="p-3 border">المصدر / المادة</th>
+                                    <th class="p-3 border">أرباح الصيانة</th>
+                                    <th class="p-3 border">التاريخ</th>
+                                    <th class="p-3 border text-center">زر تالف (للخسارة)</th>
+                                    <th class="p-3 border text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="maintenanceTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="damaged-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-rose-700"><i class="fa-solid fa-triangle-exclamation"></i> إدارة وتسجيل التالف</h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
+                    </div>
+                    
+                    <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 mb-6 flex justify-between items-center">
+                        <span class="text-rose-900 font-bold">إجمالي خسائر التالف:</span>
+                        <span class="text-2xl font-black text-rose-700" id="totalDamagedLossDisplay">0 د.ع</span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="block text-xs font-bold text-gray-700 mb-1">تصفية حسب الأقسام:</label>
+                        <div id="damaged-categories-container" class="horizontal-scroll-container py-2 mb-3"></div>
+                        <input type="text" id="damagedItemSearchInput" onkeyup="renderDamagedItemsSelector()" placeholder="🔍 ابحث عن مادة لتسجيلها كتالف..." class="w-full border-2 border-rose-200 p-3 rounded-xl font-bold bg-rose-50/30 outline-none">
+                    </div>
+
+                    <div class="mb-6">
+                        <h3 class="font-bold text-sm mb-2 text-gray-700">اختر المادة والكمية التالفة:</h3>
+                        <div id="damaged-items-selector-grid" class="grid grid-cols-1 md:grid-cols-3 gap-3 max-h-60 overflow-y-auto p-2 border rounded-xl bg-gray-50"></div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl shadow-sm p-6">
+                    <h3 class="font-bold text-lg mb-4 text-gray-800 border-b pb-2">سجل المواد التالفة</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="p-3 border">المادة</th>
+                                    <th class="p-3 border">الكمية التالفة</th>
+                                    <th class="p-3 border">سعر الشراء</th>
+                                    <th class="p-3 border">إجمالي الخسارة</th>
+                                    <th class="p-3 border">تاريخ التلف</th>
+                                    <th class="p-3 border text-center">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="damagedLogTableBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -367,7 +490,6 @@
                             <input type="text" id="searchPos" oninput="handleBarcodeOrSearch(event)" placeholder="🔍 امسح الباركود بمسدس الباركود أو اكتب اسم المادة..." class="w-full border-2 border-orange-200 p-3.5 rounded-xl bg-orange-50/30 font-bold focus:border-orange-500 outline-none transition text-lg">
                         </div>
                         
-                        <!-- حاوية الأقسام في نقطة البيع مدعومة بالتمرير الأفقي باللمس والماوس -->
                         <div id="pos-categories-container" class="horizontal-scroll-container py-2 mb-2"></div>
                         <hr class="border-t-2 border-gray-100 my-4">
 
@@ -407,6 +529,21 @@
                 </div>
             </div>
 
+            <!-- مودال تسديد الصيانة -->
+            <div id="maint-payment-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
+                <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-right border modal-box">
+                    <h3 class="font-bold text-lg mb-4 text-teal-700 border-b pb-2" id="maintModalTitle">تسديد من الصيانة</h3>
+                    <div class="space-y-3">
+                        <div><label class="block text-xs font-bold mb-1">اختر الشخص / الجهة المراد تسديده:</label><select id="maintPayeeSelect" class="w-full border p-2.5 rounded-xl bg-white font-bold text-xs"></select></div>
+                        <div><label class="block text-xs font-bold mb-1">المبلغ المراد تسديده:</label><input type="number" id="maintPayAmount" placeholder="المبلغ..." class="w-full border p-2.5 rounded-xl font-bold text-center text-teal-700 outline-none"></div>
+                    </div>
+                    <div class="flex gap-3 mt-6">
+                        <button onclick="closeMaintPaymentModal()" class="flex-1 bg-gray-100 py-2.5 rounded-xl font-bold text-sm cursor-pointer">إلغاء</button>
+                        <button onclick="executeMaintPayment()" class="flex-1 bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer">تأكيد التسديد</button>
+                    </div>
+                </div>
+            </div>
+
             <div id="print-options-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
                 <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border modal-box">
                     <div class="text-green-500 text-5xl mb-3"><i class="fa-solid fa-circle-check"></i></div>
@@ -431,9 +568,10 @@
             <div id="sales-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">سجل المبيعات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
                         <div class="bg-blue-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-blue-800">إجمالي المبيعات</h4><p class="text-3xl font-black text-blue-700 mt-2" id="totalSalesDisplay">0 د.ع</p></div>
                         <div class="bg-green-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-green-800">إجمالي الأرباح</h4><p class="text-3xl font-black text-green-700 mt-2" id="grossProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-rose-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-rose-800">خسائر التالف</h4><p class="text-3xl font-black text-rose-700 mt-2" id="salesDamagedLossDisplay">0 د.ع</p></div>
                         <div class="bg-fuchsia-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-fuchsia-800">الصافي</h4><p class="text-3xl font-black text-fuchsia-700 mt-2" id="netProfitDisplay">0 د.ع</p></div>
                     </div>
                 </div>
@@ -780,15 +918,22 @@
         const ADMIN_SECRET_MASTER_PASSWORD = "07773774773";
 
         let inventory = [], categoriesList = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], fixedItems = [], cashiersList = ["الرئيسي", "مقتدى"];
+        let damagedLog = []; 
+        let maintenanceLog = []; 
         let chatMessages = [];
         let systemNotifications = [];
         let notifiedStockItems = {};
 
         let invoiceTotal = 0, currentActiveCustomer = null, currentActiveSupplier = null, customLogoUrl = "", customReceiptBgUrl = "", pendingResetUser = "", lastCompletedSale = null, currentSelectedCategory = null, defaultCashier = "الرئيسي";
         let currentPOSStockFilter = null;
+        let currentDamagedCategory = null; 
 
         let globalNotificationMode = localStorage.getItem('iStore_NotifMode') || 'active';
-        let chatNotificationMode = 'active';
+
+        function formatMoney(num) {
+            if (num === undefined || num === null || isNaN(num)) return "0";
+            return Number(num).toLocaleString('en-US');
+        }
 
         function updateGlobalNotifButtonUI() {
             let btn = document.getElementById('global-notif-mode-icon');
@@ -1014,7 +1159,7 @@
 
             updateNotificationsBadgeUI();
             triggerDataChangeInstant();
-            document.getElementById('notifications-modal').classList.remove('hidden');
+            document.getElementById('notifications-modal').classList.add('hidden');
         }
 
         function closeNotificationsModal() {
@@ -1036,7 +1181,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "5.0", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            const appData = { version: "5.4", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -1066,6 +1211,8 @@
                         myDebtsList = imported.myDebtsList || [];
                         auditLog = imported.auditLog || [];
                         fixedItems = imported.fixedItems || [];
+                        damagedLog = imported.damagedLog || [];
+                        maintenanceLog = imported.maintenanceLog || [];
                         cashiersList = imported.cashiersList || ["الرئيسي", "مقتدى"];
                         defaultCashier = imported.defaultCashier || "الرئيسي";
                         customLogoUrl = imported.customLogoUrl || "";
@@ -1164,7 +1311,7 @@
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
 
-            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
+            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], damagedLog: [], maintenanceLog: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
 
             localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
             currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
@@ -1201,7 +1348,7 @@
 
         function loadDataFromServerData(data) {
             if(data) {
-                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
+                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; damagedLog = data.damagedLog || []; maintenanceLog = data.maintenanceLog || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
                 document.getElementById('logoUrlInput').value = customLogoUrl; document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
@@ -1215,7 +1362,7 @@
             window.fbOnValue(window.fbRef(window.fbDB, 'stores/' + user), (snapshot) => {
                 if (snapshot.exists()) {
                     let remoteData = snapshot.val();
-                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
+                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; damagedLog = remoteData.damagedLog || []; maintenanceLog = remoteData.maintenanceLog || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
                     localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
                     updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     refreshAllUI();
@@ -1225,7 +1372,7 @@
 
         function triggerDataChangeInstant() {
             if(!currentStoreUser) return;
-            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             if(window.fbDB) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
@@ -1250,7 +1397,7 @@
         });
 
         function refreshAllUI() { 
-            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI();
+            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); updateDamagedUI(); updateMaintenanceUI(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI();
             document.getElementById('chat-device-id').innerText = `جهازك: ${currentDeviceId}`;
             if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer); 
             if(currentActiveSupplier) openSupplierDetail(currentActiveSupplier); 
@@ -1258,7 +1405,6 @@
 
         window.onload = function() { 
             updateGlobalNotifButtonUI();
-            // تفعيل ميزة سحب الماوس لجميع الأقسام الأفقية
             document.querySelectorAll('.horizontal-scroll-container').forEach(container => {
                 let isDown = false; let startX, scrollLeft;
                 container.addEventListener('mousedown', (e) => { isDown = true; container.classList.add('active'); startX = e.pageX - container.offsetLeft; scrollLeft = container.scrollLeft; });
@@ -1279,6 +1425,8 @@
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active')); 
             document.getElementById(viewId).classList.add('active'); 
             if(viewId === 'chat-view') document.getElementById('sidebar-chat-bell').classList.add('hidden');
+            if(viewId === 'damaged-view') { updateDamagedUI(); }
+            if(viewId === 'maintenance-view') { updateMaintenanceUI(); }
         }
 
         function openPicsartLayoutModal() { document.getElementById('editorDocType').value = 'sale'; document.getElementById('editorPaperType').value = 'thermal'; renderPicsartCanvas(); renderPicsartSidebar(); switchView('picsart-editor-view'); }
@@ -1346,7 +1494,7 @@
             let remainingAmount = isDebt ? (sale.total + prev) : (isPartial ? ((sale.total - sale.cashPaid) + prev) : (isCashWithDebt ? prev : 0));
             let fullHtml = '';
             chunks.forEach((chunk) => {
-                let itemsHtml = chunk.map(item => `<tr><td style="border:1px solid #333; padding:4px; font-size:11px;">${item.name}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${item.qty || 1}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${(item.price).toLocaleString()}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center; font-weight:bold;">${(item.price * (item.qty || 1)).toLocaleString()}</td></tr>`).join('');
+                let itemsHtml = chunk.map(item => `<tr><td style="border:1px solid #333; padding:4px; font-size:11px;">${item.name}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${item.qty || 1}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${formatMoney(item.price)}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center; font-weight:bold;">${formatMoney(item.price * (item.qty || 1))}</td></tr>`).join('');
                 let bgStyle = customReceiptBgUrl ? `background-image: url('${customReceiptBgUrl}'); background-size: cover; background-position: center;` : 'background:#fff;';
                 fullHtml += `<div style="position:relative; width:380px; min-height:580px; ${bgStyle} padding:15px; box-sizing:border-box; page-break-after: always; font-family:'Tajawal',sans-serif; font-size:12px; color:#000;">
                     <div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:32px; font-weight:900; font-family:'Poppins',sans-serif;">istore</div><div style="font-size:15px; font-weight:bold;">07723355600</div><div style="font-size:11px; font-weight:bold;">متجر آي ستور - البصرة</div></div>
@@ -1354,10 +1502,10 @@
                     <div style="display:flex; justify-content:space-between; margin-top:2px; font-weight:bold;"><div>الكاشير: ${cashierName || defaultCashier}</div><div>رقم الفاتورة: #${sale.id}</div></div>
                     <table style="width:100%; border-collapse:collapse; margin:10px 0;"><thead><tr style="background:#f3f4f6;"><th style="border:1px solid #333; padding:4px; font-size:11px;">المنتج</th><th style="border:1px solid #333; padding:4px; font-size:11px;">الكمية</th><th style="border:1px solid #333; padding:4px; font-size:11px;">السعر</th><th style="border:1px solid #333; padding:4px; font-size:11px;">الإجمالي</th></tr></thead><tbody>${itemsHtml}</tbody></table>
                     <div style="border-top:1px dashed #333; padding-top:8px; font-weight:bold; font-size:13px;">
-                        <div style="display:flex; justify-content:space-between;"><span>المجموع:</span><span>${sale.total.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between;"><span>الدين السابق:</span><span>${prev.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between;"><span>المدفوع:</span><span>${paidAmount.toLocaleString()}</span></div>
-                        <div style="display:flex; justify-content:space-between; font-size:14px; border-top:1px solid #333; margin-top:4px; padding-top:4px;"><span>المتبقي (الدين):</span><span style="font-weight:900;">${remainingAmount.toLocaleString()}</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>المجموع:</span><span>${formatMoney(sale.total)}</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>الدين السابق:</span><span>${formatMoney(prev)}</span></div>
+                        <div style="display:flex; justify-content:space-between;"><span>المدفوع:</span><span>${formatMoney(paidAmount)}</span></div>
+                        <div style="display:flex; justify-content:space-between; font-size:14px; border-top:1px solid #333; margin-top:4px; padding-top:4px;"><span>المتبقي (الدين):</span><span style="font-weight:900;">${formatMoney(remainingAmount)}</span></div>
                     </div>
                 </div>`;
             });
@@ -1369,14 +1517,14 @@
                 let a = Number(val); if(!a) return;
                 let title = voucherType === 'قبض' ? 'وصل قبض' : 'وصل شراء';
                 let bgStyle = customReceiptBgUrl ? `background-image: url('${customReceiptBgUrl}'); background-size: cover; background-position: center;` : 'background:#fff;';
-                document.getElementById('printable-area').innerHTML = `<div style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif;"><div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:28px; font-weight:900;">istore</div></div><div style="margin-top:15px; font-weight:bold;">الاسم: ${currentActiveCustomer}</div><div style="margin-top:5px; font-weight:bold;">البيان: ${title}</div><div style="margin-top:30px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:10px;">المبلغ: ${a.toLocaleString()} د.ع</div></div>`;
+                document.getElementById('printable-area').innerHTML = `<div style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif;"><div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:28px; font-weight:900;">istore</div></div><div style="margin-top:15px; font-weight:bold;">الاسم: ${currentActiveCustomer}</div><div style="margin-top:5px; font-weight:bold;">البيان: ${title}</div><div style="margin-top:30px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:10px;">المبلغ: ${formatMoney(a)} د.ع</div></div>`;
                 window.print();
             });
         }
 
         function printA4StatementOfAccount() {
             let list = debtsList.filter(d => d.customer === currentActiveCustomer);
-            let html = list.map(d => `<tr><td style="border:1px solid #ddd;padding:8px;">${d.date}</td><td style="border:1px solid #ddd;padding:8px;">${d.details}</td><td style="border:1px solid #ddd;padding:8px;font-weight:bold;color:${d.amount<0?'green':'red'}">${d.amount.toLocaleString()}</td></tr>`).join('');
+            let html = list.map(d => `<tr><td style="border:1px solid #ddd;padding:8px;">${d.date}</td><td style="border:1px solid #ddd;padding:8px;">${d.details}</td><td style="border:1px solid #ddd;padding:8px;font-weight:bold;color:${d.amount<0?'green':'red'}">${formatMoney(d.amount)}</td></tr>`).join('');
             document.getElementById('printable-area').innerHTML = `<div style="padding:30px;font-family:Tajawal;direction:rtl;"><h2>كشف حساب: ${currentActiveCustomer}</h2><table style="width:100%;border-collapse:collapse;margin-top:20px;"><thead><tr style="background:#f3f4f6;"><th style="border:1px solid #ddd;padding:8px;">التاريخ</th><th style="border:1px solid #ddd;padding:8px;">البيان</th><th style="border:1px solid #ddd;padding:8px;">المبلغ</th></tr></thead><tbody>${html}</tbody></table></div>`;
             window.print();
         }
@@ -1424,10 +1572,20 @@
         function closeEditItemModal() { document.getElementById('edit-item-modal').classList.add('hidden'); }
         function saveEditedItem() {
             let index = document.getElementById('editItemIndex').value; let item = inventory[index];
+            let oldBuy = item.buyPrice || 0; let newBuy = Number(document.getElementById('editItemBuyPrice').value);
+            let oldSell = item.price || 0; let newSell = Number(document.getElementById('editItemPrice').value);
+
             item.name = document.getElementById('editItemName').value.trim(); item.barcode = document.getElementById('editItemBarcode').value.trim();
             item.category = document.getElementById('editItemCategory').value; item.image = document.getElementById('editItemImage').value.trim();
             item.quantity = Number(document.getElementById('editItemQuantity').value); item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
-            item.buyPrice = Number(document.getElementById('editItemBuyPrice').value); item.price = Number(document.getElementById('editItemPrice').value);
+            item.buyPrice = newBuy; item.price = newSell;
+
+            if (oldBuy !== newBuy || oldSell !== newSell) {
+                if(!item.priceHistory) item.priceHistory = [];
+                item.priceHistory.push({ date: new Date().toLocaleString('ar-IQ'), oldBuy, newBuy, oldSell, newSell });
+                auditLog.unshift({ type: 'تعديل سعر', details: `تعديل أسعار المادة "${item.name}": الشراء من ${formatMoney(oldBuy)} إلى ${formatMoney(newBuy)} | البيع من ${formatMoney(oldSell)} إلى ${formatMoney(newSell)}`, date: new Date().toLocaleString('ar-IQ') });
+            }
+
             closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث المادة", "نجاح", "success");
         }
         function updateInventoryTable() {
@@ -1440,17 +1598,330 @@
                 if(q === 0) { qtyClass = "text-gray-400 line-through font-black"; statusBadge = `<span class="bg-gray-100 text-gray-800 px-2 rounded text-[10px] block mt-1">منتهية (0)</span>`; }
                 else if(q <= minA) { qtyClass = "text-red-600 font-black"; statusBadge = `<span class="bg-red-100 text-red-700 px-2 rounded text-[10px] block mt-1">قليلة (&lt;=${minA})</span>`; }
                 else { statusBadge = `<span class="bg-green-50 text-green-700 px-2 rounded text-[10px] block mt-1">جيدة</span>`; }
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${item.quantity}</span> ${statusBadge}</td><td class="p-3 border">${(item.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-orange-600 font-bold">${(item.price||0).toLocaleString()}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
+                
+                let priceHistoryNote = '';
+                if(item.priceHistory && item.priceHistory.length > 0) {
+                    let lastH = item.priceHistory[item.priceHistory.length - 1];
+                    priceHistoryNote = `<span class="block text-[11px] text-orange-600 font-bold bg-orange-50 p-1.5 rounded-lg mt-1 border border-orange-200"><i class="fa-solid fa-clock-rotate-left"></i> آخر تعديل شراء: من ${formatMoney(lastH.oldBuy)} إلى ${formatMoney(lastH.newBuy)} (${lastH.date})</span>`;
+                }
+
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml} ${priceHistoryNote}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${formatMoney(item.quantity)}</span> ${statusBadge}</td><td class="p-3 border">${formatMoney(item.buyPrice||0)}</td><td class="p-3 border text-orange-600 font-bold">${formatMoney(item.price||0)}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
             });
         }
         function updateVariableTable() {
             const tbody = document.getElementById('variableTableBody'); tbody.innerHTML = ''; let total = 0;
-            inventory.forEach(i => { let t = (i.quantity||0)*(i.buyPrice||0); total += t; tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${i.name}</td><td class="p-3 border">${i.quantity}</td><td class="p-3 border">${(i.buyPrice||0).toLocaleString()}</td><td class="p-3 border text-indigo-600 font-bold">${t.toLocaleString()}</td></tr>`; });
-            document.getElementById('totalVariableDisplay').innerText = total.toLocaleString() + ' د.ع';
+            inventory.forEach(i => { let t = (i.quantity||0)*(i.buyPrice||0); total += t; tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${i.name}</td><td class="p-3 border">${formatMoney(i.quantity)}</td><td class="p-3 border">${formatMoney(i.buyPrice||0)}</td><td class="p-3 border text-indigo-600 font-bold">${formatMoney(t)} د.ع</td></tr>`; });
+            document.getElementById('totalVariableDisplay').innerText = formatMoney(total) + ' د.ع';
         }
         function saveFixedItem(e) { e.preventDefault(); fixedItems.push({ name: document.getElementById('fixedItemName').value.trim(), price: Number(document.getElementById('fixedItemPrice').value), date: new Date().toLocaleDateString('ar-IQ') }); document.getElementById('fixedItemName').value=''; document.getElementById('fixedItemPrice').value=''; triggerDataChangeInstant(); updateFixedTable(); }
         function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); updateFixedTable(); }); }
-        function updateFixedTable() { const b = document.getElementById('fixedTableBody'); b.innerHTML = ''; let total = 0; fixedItems.forEach((item, idx) => { total += item.price; b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${item.price.toLocaleString()}</td><td class="p-3 border">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; }); document.getElementById('totalFixedDisplay').innerText = total.toLocaleString() + ' د.ع'; }
+        function updateFixedTable() { const b = document.getElementById('fixedTableBody'); b.innerHTML = ''; let total = 0; fixedItems.forEach((item, idx) => { total += item.price; b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${formatMoney(item.price)} د.ع</td><td class="p-3 border">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; }); document.getElementById('totalFixedDisplay').innerText = formatMoney(total) + ' د.ع'; }
+
+        // --- دوال قسم الصيانة والبرمجة ---
+        function updateMaintenanceUI() {
+            const select = document.getElementById('maintInventoryItemSelect');
+            if(select) {
+                select.innerHTML = '';
+                inventory.forEach(i => {
+                    select.innerHTML += `<option value="${i.name}">${i.name} (متوفر: ${i.quantity} | شراء: ${i.buyPrice||0})</option>`;
+                });
+            }
+            renderMaintenanceLogTable();
+        }
+
+        function toggleMaintSourceType() {
+            let type = document.getElementById('maintSourceType').value;
+            let invBox = document.getElementById('maintInventoryItemBox');
+            let suppBox = document.getElementById('maintSupplierBox');
+            if(type === 'inventory') {
+                invBox.classList.remove('hidden');
+                suppBox.classList.add('hidden');
+            } else if(type === 'supplier') {
+                invBox.classList.add('hidden');
+                suppBox.classList.remove('hidden');
+            } else {
+                invBox.classList.add('hidden');
+                suppBox.classList.add('hidden');
+            }
+        }
+
+        function saveMaintenanceRecord(e) {
+            e.preventDefault();
+            let cust = document.getElementById('maintCustomer').value.trim();
+            let desc = document.getElementById('maintDescriptionInput').value.trim();
+            let sourceType = document.getElementById('maintSourceType').value;
+            let profit = Number(document.getElementById('maintProfitInput').value) || 0;
+            
+            let sourceDetails = 'أرباح صيانة / برمجة فقط (بدون مواد)';
+            let costVal = 0;
+
+            if(sourceType === 'inventory') {
+                let itemName = document.getElementById('maintInventoryItemSelect').value;
+                let item = inventory.find(i => i.name === itemName);
+                if(!item) return sysAlert("المادة غير موجودة!", "خطأ", "error");
+                if(item.quantity <= 0) return sysAlert("المادة منتهية من المخزن!", "تنبيه", "error");
+                
+                item.quantity = Math.max(0, item.quantity - 1);
+                costVal = item.buyPrice || 0;
+                sourceDetails = `من المخزن: ${item.name} (تكلفة شراء: ${costVal})`;
+            } else if(sourceType === 'supplier') {
+                let suppName = document.getElementById('maintSupplierName').value.trim();
+                let suppItem = document.getElementById('maintSupplierItem').value.trim();
+                if(!suppName || !suppItem) return sysAlert("أدخل بيانات المجهز والمادة بدقة!", "خطأ", "error");
+                
+                sourceDetails = `من المجهز (${suppName}): ${suppItem}`;
+                myDebtsList.push({
+                    id: Date.now(),
+                    supplier: suppName,
+                    itemName: suppItem,
+                    qty: 1,
+                    price: 0,
+                    amount: 0,
+                    date: new Date().toLocaleDateString('ar-IQ')
+                });
+            }
+
+            maintenanceLog.unshift({
+                id: Date.now(),
+                customer: cust,
+                description: desc,
+                sourceDetails: sourceDetails,
+                profit: profit,
+                cost: costVal,
+                isDamaged: false,
+                date: new Date().toLocaleString('ar-IQ')
+            });
+
+            document.getElementById('maintCustomer').value = '';
+            document.getElementById('maintDescriptionInput').value = '';
+            document.getElementById('maintProfitInput').value = '';
+            document.getElementById('maintSupplierName').value = '';
+            document.getElementById('maintSupplierItem').value = '';
+
+            triggerDataChangeInstant();
+            refreshAllUI();
+            sysAlert("تم تسجيل عملية الصيانة والبرمجة بنجاح!", "نجاح", "success");
+        }
+
+        function markMaintenanceAsDamaged(maintId) {
+            sysConfirm("تأكيد التالف", "هل أنت متأكد من تحويل هذه العملية إلى تالف؟ (تُخصم قيمتها من أرباح الصيانة)", () => {
+                let rec = maintenanceLog.find(m => m.id === maintId);
+                if(rec && !rec.isDamaged) {
+                    rec.isDamaged = true;
+                    triggerDataChangeInstant();
+                    refreshAllUI();
+                    sysAlert("تم تحويل الصيانة إلى تالف وخصمها من أرباح الصيانة بنجاح!", "نجاح", "success");
+                }
+            });
+        }
+
+        function deleteMaintenanceRecord(id) {
+            sysConfirm("تأكيد", "حذف سجل الصيانة؟", () => {
+                maintenanceLog = maintenanceLog.filter(m => m.id !== id);
+                triggerDataChangeInstant();
+                refreshAllUI();
+                sysAlert("تم الحذف", "نجاح", "success");
+            });
+        }
+
+        function renderMaintenanceLogTable() {
+            const tbody = document.getElementById('maintenanceTableBody');
+            const totalProfitDisp = document.getElementById('totalMaintProfitDisplay');
+            const totalLossDisp = document.getElementById('totalMaintLossDisplay');
+            const totalNetDisp = document.getElementById('totalMaintNetDisplay');
+            if(!tbody) return;
+
+            tbody.innerHTML = maintenanceLog.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد عمليات صيانة مسجلة</td></tr>' : '';
+            let totalProfit = 0, totalLoss = 0;
+
+            maintenanceLog.forEach(m => {
+                if(!m.isDamaged) totalProfit += (m.profit || 0);
+                else totalLoss += (m.profit || 0);
+
+                let statusBadge = m.isDamaged ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">تالف (مخصوم من الأرباح)</span>` : `<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-xs font-bold">نشط</span>`;
+                let damagedBtn = !m.isDamaged ? `<button onclick="markMaintenanceAsDamaged(${m.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer">تالف</button>` : `<span class="text-xs text-rose-600 font-bold">تالف</span>`;
+
+                tbody.innerHTML += `<tr class="border-b bg-white ${m.isDamaged ? 'bg-rose-50/50' : ''}">
+                    <td class="p-3 border font-bold">${m.customer}</td>
+                    <td class="p-3 border font-bold text-gray-700">${m.description || '-'}</td>
+                    <td class="p-3 border text-xs">${m.sourceDetails}</td>
+                    <td class="p-3 border font-black text-teal-700">${formatMoney(m.profit)} د.ع ${statusBadge}</td>
+                    <td class="p-3 border text-xs text-gray-500">${m.date}</td>
+                    <td class="p-3 border text-center">${damagedBtn}</td>
+                    <td class="p-3 border text-center"><button onclick="deleteMaintenanceRecord(${m.id})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td>
+                </tr>`;
+            });
+
+            if(totalProfitDisp) totalProfitDisp.innerText = formatMoney(totalProfit) + ' د.ع';
+            if(totalLossDisp) totalLossDisp.innerText = formatMoney(totalLoss) + ' د.ع';
+            if(totalNetDisp) totalNetDisp.innerText = formatMoney(totalProfit - totalLoss) + ' د.ع';
+        }
+
+        let currentMaintPaymentType = 'حساب';
+        function openMaintPaymentModal(type) {
+            currentMaintPaymentType = type;
+            document.getElementById('maintModalTitle').innerText = type === 'حساب' ? 'تسديد حساب (تحويل من أرباح الصيانة)' : 'تسديد مصروفات من الصيانة';
+            const select = document.getElementById('maintPayeeSelect');
+            select.innerHTML = '';
+            if(type === 'حساب') {
+                let m = {}; debtsList.forEach(d => m[d.customer] = 1);
+                Object.keys(m).forEach(c => select.innerHTML += `<option value="${c}">زبون: ${c}</option>`);
+                myDebtsList.forEach(d => select.innerHTML += `<option value="${d.supplier}">مجهز: ${d.supplier}</option>`);
+            } else {
+                select.innerHTML = `<option value="مصروفات عامة">مصروفات تشغيلية وعامة</option>`;
+            }
+            document.getElementById('maintPayAmount').value = '';
+            document.getElementById('maint-payment-modal').classList.remove('hidden');
+        }
+
+        function closeMaintPaymentModal() {
+            document.getElementById('maint-payment-modal').classList.add('hidden');
+        }
+
+        function executeMaintPayment() {
+            let payee = document.getElementById('maintPayeeSelect').value;
+            let amount = Number(document.getElementById('maintPayAmount').value) || 0;
+            if(!payee || amount <= 0) return sysAlert("أدخل مبلغاً صحيحاً!", "خطأ", "error");
+
+            let totalActiveMaintProfit = maintenanceLog.filter(m => !m.isDamaged).reduce((s, m) => s + (m.profit || 0), 0);
+            if(amount > totalActiveMaintProfit) return sysAlert("المبلغ المطلوب تسديده أكبر من إجمالي أرباح الصيانة المتاحة!", "تنبيه", "error");
+
+            if(currentMaintPaymentType === 'حساب') {
+                debtsList.push({
+                    id: Date.now(),
+                    customer: payee,
+                    amount: -amount,
+                    date: new Date().toLocaleDateString('ar-IQ'),
+                    details: `تسديد من أرباح الصيانة والبرمجة`
+                });
+            } else {
+                expensesList.push({
+                    desc: `تسديد مصروف من الصيانة (${payee})`,
+                    amount: amount,
+                    date: new Date().toLocaleDateString('ar-IQ')
+                });
+            }
+
+            maintenanceLog.unshift({
+                id: Date.now(),
+                customer: `تسديد: ${payee}`,
+                description: `عملية تسديد حساب / مصروف`,
+                sourceDetails: `تحويل من الأرباح`,
+                profit: -amount,
+                cost: 0,
+                isDamaged: false,
+                date: new Date().toLocaleString('ar-IQ')
+            });
+
+            closeMaintPaymentModal();
+            triggerDataChangeInstant();
+            refreshAllUI();
+            sysAlert("تمت عملية التسديد بنجاح وتحويل الأرباح!", "نجاح", "success");
+        }
+        // --- نهاية دوال الصيانة والبرمجة ---
+
+        function updateDamagedUI() {
+            const catContainer = document.getElementById('damaged-categories-container');
+            if(catContainer) {
+                catContainer.innerHTML = `<div onclick="selectDamagedCategory(null)" class="border-2 ${!currentDamagedCategory ? 'border-rose-600 bg-rose-50 text-rose-700' : 'border-gray-200 bg-white'} rounded-xl px-4 py-2 cursor-pointer font-bold text-xs shrink-0 text-center">الكل</div>`;
+                categoriesList.forEach(cat => {
+                    catContainer.innerHTML += `<div onclick="selectDamagedCategory('${cat.name}')" class="border-2 ${currentDamagedCategory === cat.name ? 'border-rose-600 bg-rose-50 text-rose-700' : 'border-gray-200 bg-white'} rounded-xl px-4 py-2 cursor-pointer font-bold text-xs shrink-0 text-center">${cat.name}</div>`;
+                });
+            }
+            renderDamagedItemsSelector();
+            renderDamagedLogTable();
+        }
+
+        function selectDamagedCategory(catName) {
+            currentDamagedCategory = catName;
+            updateDamagedUI();
+        }
+
+        function renderDamagedItemsSelector() {
+            const grid = document.getElementById('damaged-items-selector-grid');
+            const searchInput = document.getElementById('damagedItemSearchInput');
+            if(!grid) return;
+            let query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+
+            let items = inventory;
+            if(currentDamagedCategory) items = items.filter(i => i.category === currentDamagedCategory);
+            if(query) items = items.filter(i => i.name.toLowerCase().includes(query) || (i.barcode && i.barcode.toLowerCase().includes(query)));
+
+            grid.innerHTML = items.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-6 text-sm">لا توجد مواد مطابقة</div>' : '';
+            items.forEach((item) => {
+                let realIdx = inventory.findIndex(i => i.name === item.name);
+                grid.innerHTML += `<div class="bg-white p-3 rounded-xl border shadow-xs flex flex-col justify-between gap-2">
+                    <div>
+                        <h4 class="font-bold text-xs text-gray-800">${item.name}</h4>
+                        <span class="text-[10px] text-gray-500 block">المتوفر: <b class="text-blue-600">${formatMoney(item.quantity)}</b> | الشراء: <b class="text-rose-600">${formatMoney(item.buyPrice||0)}</b></span>
+                    </div>
+                    <div class="flex gap-2 items-center">
+                        <input type="number" min="1" max="${item.quantity}" value="1" id="damagedQtyInput_${realIdx}" class="w-16 border p-1.5 rounded-lg text-center text-xs font-bold bg-gray-50">
+                        <button onclick="submitItemAsDamaged(${realIdx})" class="flex-1 bg-rose-600 hover:bg-rose-700 text-white py-1.5 rounded-lg text-xs font-bold cursor-pointer shadow-xs">تسجيل تالف</button>
+                    </div>
+                </div>`;
+            });
+        }
+
+        function submitItemAsDamaged(invIndex) {
+            let item = inventory[invIndex];
+            let qtyInput = document.getElementById('damagedQtyInput_' + invIndex);
+            let qty = qtyInput ? Number(qtyInput.value) : 1;
+            if(qty <= 0 || isNaN(qty)) return sysAlert("أدخل كمية صحيحة!", "خطأ", "error");
+            if(qty > (item.quantity || 0)) return sysAlert("الكمية المدخلة أكبر من المتوفر في المخزن!", "خطأ", "error");
+
+            item.quantity = Math.max(0, item.quantity - qty);
+            let lossAmount = qty * (item.buyPrice || 0);
+
+            damagedLog.unshift({
+                id: Date.now(),
+                itemName: item.name,
+                qty: qty,
+                buyPrice: item.buyPrice || 0,
+                lossAmount: lossAmount,
+                date: new Date().toLocaleString('ar-IQ')
+            });
+
+            auditLog.unshift({ type: 'تالف جديد', details: `تسجيل مادة تالفة "${item.name}" بالكمية (${qty}) بخسارة ${formatMoney(lossAmount)} د.ع`, date: new Date().toLocaleString('ar-IQ') });
+
+            triggerDataChangeInstant();
+            refreshAllUI();
+            sysAlert(`تم تسطير المادة كتالف وخصمها من المخزن بنجاح!`, "نجاح", "success");
+        }
+
+        function removeDamagedItemLog(logId) {
+            sysConfirm("تأكيد الحذف", "هل تريد حذف سجل التالف وإعادة الكمية للمخزن؟", () => {
+                let logItem = damagedLog.find(d => d.id === logId);
+                if(logItem) {
+                    let matchedInv = inventory.find(i => i.name === logItem.itemName);
+                    if(matchedInv) matchedInv.quantity += logItem.qty;
+                }
+                damagedLog = damagedLog.filter(d => d.id !== logId);
+                triggerDataChangeInstant();
+                refreshAllUI();
+                sysAlert("تم الحذف وإعادة الكمية بنجاح", "نجاح", "success");
+            });
+        }
+
+        function renderDamagedLogTable() {
+            const tbody = document.getElementById('damagedLogTableBody');
+            const totalDisplay = document.getElementById('totalDamagedLossDisplay');
+            if(!tbody) return;
+            tbody.innerHTML = damagedLog.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد سجلات تالفة حالياً</td></tr>' : '';
+            let totalLoss = 0;
+            damagedLog.forEach(d => {
+                totalLoss += (d.lossAmount || 0);
+                tbody.innerHTML += `<tr class="border-b bg-white">
+                    <td class="p-3 border font-bold">${d.itemName}</td>
+                    <td class="p-3 border text-center font-bold text-rose-600">${formatMoney(d.qty)}</td>
+                    <td class="p-3 border">${formatMoney(d.buyPrice)} د.ع</td>
+                    <td class="p-3 border font-black text-rose-700">${formatMoney(d.lossAmount)} د.ع</td>
+                    <td class="p-3 border text-sm text-gray-500">${d.date}</td>
+                    <td class="p-3 border text-center"><button onclick="removeDamagedItemLog(${d.id})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف / استرجاع</button></td>
+                </tr>`;
+            });
+            if(totalDisplay) totalDisplay.innerText = formatMoney(totalLoss) + ' د.ع';
+        }
 
         function filterPOSStockType(type) {
             if(currentPOSStockFilter === type) {
@@ -1475,6 +1946,8 @@
         function selectCategory(name) { currentSelectedCategory = name; document.getElementById('pos-back-bar').classList.remove('hidden'); updatePOSCategories(); updatePOSGrid(); }
         function clearCategorySelection() { currentSelectedCategory = null; currentPOSStockFilter = null; document.getElementById('pos-back-bar').classList.add('hidden'); document.querySelectorAll('#pos-view .grid-cols-2 button').forEach(b => b.classList.remove('border-gray-800', 'border-red-500', 'border-amber-500', 'border-green-500', 'bg-orange-50')); updatePOSCategories(); updatePOSGrid(); }
 
+        let activePosItemDetailsId = null;
+
         function updatePOSGrid() {
             const grid = document.getElementById('pos-items-grid'); 
             let items = currentSelectedCategory ? inventory.filter(i => i.category === currentSelectedCategory) : inventory;
@@ -1486,12 +1959,54 @@
                 });
             }
             grid.innerHTML = items.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا توجد مواد مطابقة</div>' : '';
-            items.forEach(item => {
+            items.forEach((item) => {
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
-                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs">${img}<h3 class="font-bold text-xs mb-1">${item.name}</h3><span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${item.quantity}</b></span><p class="text-xs font-black text-orange-600">${Number(item.price).toLocaleString()} د.ع</p></div>`;
+                
+                let isDetailsOpen = activePosItemDetailsId === item.name;
+                let priceDetailsHtml = '';
+                if(isDetailsOpen) {
+                    priceDetailsHtml = `<div onclick="event.stopPropagation()" class="mt-3 pt-3 border-t bg-gray-50 p-2 rounded-xl text-right space-y-2">
+                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر البيع:</label><input type="number" value="${item.price}" onchange="updatePOSItemPriceDirect('${item.name}', 'sell', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-orange-600 bg-white"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر الشراء:</label><input type="number" value="${item.buyPrice||0}" onchange="updatePOSItemPriceDirect('${item.name}', 'buy', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-blue-600 bg-white"></div>
+                    </div>`;
+                }
+
+                grid.innerHTML += `<div onclick="togglePOSItemDetails('${item.name}')" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
+                    ${img}
+                    <h3 class="font-bold text-xs mb-1">${item.name}</h3>
+                    <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
+                    <p class="text-xs font-black text-orange-600" onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q}); event.stopPropagation();">${formatMoney(item.price)} د.ع</p>
+                    <span class="text-[10px] text-gray-400 block mt-1 underline">اضغط للتعديل السريع للأسعار</span>
+                    ${priceDetailsHtml}
+                </div>`;
             });
+        }
+
+        function togglePOSItemDetails(itemName) {
+            if(activePosItemDetailsId === itemName) activePosItemDetailsId = null;
+            else activePosItemDetailsId = itemName;
+            updatePOSGrid();
+        }
+
+        function updatePOSItemPriceDirect(itemName, type, val) {
+            let item = inventory.find(i => i.name === itemName);
+            if(!item) return;
+            let numericVal = Number(val) || 0;
+            let oldBuy = item.buyPrice || 0; let oldSell = item.price || 0;
+
+            if(type === 'sell') {
+                item.price = numericVal;
+                auditLog.unshift({ type: 'تعديل سعر', details: `تعديل سعر بيع المادة "${item.name}" من نقطة البيع إلى ${formatMoney(numericVal)}`, date: new Date().toLocaleString('ar-IQ') });
+            } else {
+                item.buyPrice = numericVal;
+                if(!item.priceHistory) item.priceHistory = [];
+                item.priceHistory.push({ date: new Date().toLocaleString('ar-IQ'), oldBuy, newBuy: numericVal, oldSell, newSell: oldSell });
+                auditLog.unshift({ type: 'تعديل سعر', details: `تعديل سعر شراء المادة "${item.name}" من نقطة البيع إلى ${formatMoney(numericVal)}`, date: new Date().toLocaleString('ar-IQ') });
+            }
+            triggerDataChangeInstant();
+            refreshAllUI();
         }
 
         function handleBarcodeOrSearch(e) {
@@ -1503,7 +2018,26 @@
             const grid = document.getElementById('pos-items-grid'); grid.innerHTML = res.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا نتائج مطابقة</div>' : '';
             res.forEach(item => {
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
-                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${Number(item.quantity)||0})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs">${img}<h3 class="font-bold text-xs mb-1">${item.name}</h3><span class="text-[10px] font-mono text-purple-600 block mb-1">${item.barcode||''}</span><p class="text-xs font-black text-orange-600">${Number(item.price).toLocaleString()} د.ع</p></div>`;
+                let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
+                let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
+                
+                let isDetailsOpen = activePosItemDetailsId === item.name;
+                let priceDetailsHtml = '';
+                if(isDetailsOpen) {
+                    priceDetailsHtml = `<div onclick="event.stopPropagation()" class="mt-3 pt-3 border-t bg-gray-50 p-2 rounded-xl text-right space-y-2">
+                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر البيع:</label><input type="number" value="${item.price}" onchange="updatePOSItemPriceDirect('${item.name}', 'sell', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-orange-600 bg-white"></div>
+                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر الشراء:</label><input type="number" value="${item.buyPrice||0}" onchange="updatePOSItemPriceDirect('${item.name}', 'buy', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-blue-600 bg-white"></div>
+                    </div>`;
+                }
+
+                grid.innerHTML += `<div onclick="togglePOSItemDetails('${item.name}')" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
+                    ${img}
+                    <h3 class="font-bold text-xs mb-1">${item.name}</h3>
+                    <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
+                    <p class="text-xs font-black text-orange-600" onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q}); event.stopPropagation();">${formatMoney(item.price)} د.ع</p>
+                    <span class="text-[10px] text-gray-400 block mt-1 underline">اضغط للتعديل السريع للأسعار</span>
+                    ${priceDetailsHtml}
+                </div>`;
             });
         }
 
@@ -1519,7 +2053,7 @@
             currentInvoiceItems.forEach((item, idx) => {
                 box.innerHTML += `<div class="bg-white p-2.5 rounded-xl border shadow-xs mb-2 flex flex-col gap-2"><div class="flex justify-between items-center"><span class="font-bold text-xs text-gray-800">${item.name}</span><button onclick="removeInvoiceItem(${idx})" class="text-red-400 cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center gap-2"><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">الكمية:</span><input type="number" min="1" value="${item.qty || 1}" onchange="updateItemQty(${idx}, this.value)" class="w-12 border p-1 rounded text-center text-xs font-bold"></div><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">السعر:</span><input type="number" value="${item.price}" onchange="updateItemPriceDirect(${idx}, this.value)" class="w-20 border p-1 rounded text-center text-xs font-bold text-fuchsia-600"></div></div></div>`;
             });
-            document.getElementById('total-price').innerText = invoiceTotal.toLocaleString() + ' د.ع';
+            document.getElementById('total-price').innerText = formatMoney(invoiceTotal) + ' د.ع';
         }
         function updateItemQty(idx, val) { currentInvoiceItems[idx].qty = Math.max(1, Number(val)); calculateInvoiceTotal(); renderInvoice(); }
         function updateItemPriceDirect(idx, val) { currentInvoiceItems[idx].price = Number(val) || 0; calculateInvoiceTotal(); renderInvoice(); }
@@ -1575,7 +2109,7 @@
                 debtsList.push({ id: sale.id + 1, customer: cust, amount: -cashPaid, date: new Date().toLocaleDateString('ar-IQ'), details: `دفعة نقدية عند الشراء #${sale.id}` });
             }
 
-            auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${invoiceTotal.toLocaleString()}`, date: new Date().toLocaleString('ar-IQ') });
+            auditLog.unshift({ type: 'بيع', details: `عملية بيع (${saleTypeLabel}) بقيمة ${formatMoney(invoiceTotal)}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant(); lastCompletedSale = sale; currentInvoiceItems = []; invoiceTotal = 0; 
             document.getElementById('posCustomerName').value = ''; document.getElementById('posCashPaidInput').value = '';
             renderInvoice(); refreshAllUI();
@@ -1619,17 +2153,20 @@
         function updateSalesTable() {
             const body = document.getElementById('salesTableBody'); body.innerHTML = ''; let t = 0, g = 0, exp = 0, loss = 0;
             expensesList.forEach(e => exp += e.amount); returnsHistory.forEach(r => loss += (r.lossAmount||0));
-            if(salesHistory.length === 0) return body.innerHTML = '<tr><td colspan="8" class="text-center p-4">لا يوجد مبيعات</td></tr>';
+            let totalDamagedLoss = damagedLog.reduce((sum, d) => sum + (d.lossAmount || 0), 0);
+
+            if(salesHistory.length === 0) body.innerHTML = '<tr><td colspan="8" class="text-center p-4">لا يوجد مبيعات</td></tr>';
             salesHistory.forEach(s => {
                 s.items.forEach((i, idx) => {
                     let prof = (i.price - (i.buyPrice||0)) * (i.qty || 1);
                     if(!i.returned) { t += i.price * (i.qty || 1); g += prof; }
-                    body.innerHTML += `<tr class="border-b bg-white ${i.returned?'bg-red-50/50 line-through text-gray-400':''}"><td class="p-3 border font-bold">#${s.id}</td><td class="p-3 border">${s.type}</td><td class="p-3 border font-bold">${s.customer}</td><td class="p-3 border text-purple-700 font-bold">${s.cashier || 'الرئيسي'}</td><td class="p-3 border">${i.name} (${i.qty||1})</td><td class="p-3 border font-bold text-fuchsia-600">${(i.price*(i.qty||1)).toLocaleString()}</td><td class="p-3 border text-green-600 font-bold">${prof.toLocaleString()}</td><td class="p-3 border text-center">${!i.returned?`<button onclick="returnSingleItem(${s.id}, ${idx})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">إرجاع</button>`:'<span class="text-xs text-red-500 font-bold">مرتجع</span>'}</td></tr>`;
+                    body.innerHTML += `<tr class="border-b bg-white ${i.returned?'bg-red-50/50 line-through text-gray-400':''}"><td class="p-3 border font-bold">#${s.id}</td><td class="p-3 border">${s.type}</td><td class="p-3 border font-bold">${s.customer}</td><td class="p-3 border text-purple-700 font-bold">${s.cashier || 'الرئيسي'}</td><td class="p-3 border">${i.name} (${formatMoney(i.qty||1)})</td><td class="p-3 border font-bold text-fuchsia-600">${formatMoney(i.price*(i.qty||1))}</td><td class="p-3 border text-green-600 font-bold">${formatMoney(prof)}</td><td class="p-3 border text-center">${!i.returned?`<button onclick="returnSingleItem(${s.id}, ${idx})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">إرجاع</button>`:'<span class="text-xs text-red-500 font-bold">مرتجع</span>'}</td></tr>`;
                 });
             });
-            document.getElementById('totalSalesDisplay').innerText = t.toLocaleString() + ' د.ع';
-            document.getElementById('grossProfitDisplay').innerText = g.toLocaleString() + ' د.ع';
-            document.getElementById('netProfitDisplay').innerText = (g - exp - loss).toLocaleString() + ' د.ع';
+            document.getElementById('totalSalesDisplay').innerText = formatMoney(t) + ' د.ع';
+            document.getElementById('grossProfitDisplay').innerText = formatMoney(g) + ' د.ع';
+            document.getElementById('salesDamagedLossDisplay').innerText = formatMoney(totalDamagedLoss) + ' د.ع';
+            document.getElementById('netProfitDisplay').innerText = formatMoney(g - exp - loss - totalDamagedLoss) + ' د.ع';
         }
 
         function returnSingleItem(id, idx) { sysConfirm("تأكيد الإرجاع", "اختر حالة المنتج:", () => { processReturnAction(id, idx, 'سليم'); }); }
@@ -1646,7 +2183,7 @@
             const body = document.getElementById('returnsTableBody'); body.innerHTML = returnsHistory.length===0?'<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مرتجعات</td></tr>':'';
             returnsHistory.forEach((r, idx) => {
                 let statusBadge = r.status === 'تالف' ? `<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">تالف (خسارة)</span>` : `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">سليم</span>`;
-                body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">#${r.invoiceId}</td><td class="p-3 border">${r.customer}</td><td class="p-3 border font-bold">${r.itemName} (${r.qty})</td><td class="p-3 border">${statusBadge}</td><td class="p-3 border text-red-600 font-bold">${(r.lossAmount||0).toLocaleString()} د.ع</td><td class="p-3 border text-sm">${r.date}</td><td class="p-3 border text-center"><button onclick="toggleReturnStatus(${idx})" class="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer">تبديل الحالة</button></td></tr>`;
+                body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">#${r.invoiceId}</td><td class="p-3 border">${r.customer}</td><td class="p-3 border font-bold">${r.itemName} (${formatMoney(r.qty)})</td><td class="p-3 border">${statusBadge}</td><td class="p-3 border text-red-600 font-bold">${formatMoney(r.lossAmount||0)} د.ع</td><td class="p-3 border text-sm">${r.date}</td><td class="p-3 border text-center"><button onclick="toggleReturnStatus(${idx})" class="bg-amber-100 text-amber-800 px-3 py-1.5 rounded-lg text-xs font-bold cursor-pointer">تبديل الحالة</button></td></tr>`;
             });
         }
         function filterReturnsTable() { let val = document.getElementById('searchReturnsInput').value.toLowerCase(); document.querySelectorAll('#returnsTableBody tr').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(val) ? '' : 'none'; }); }
@@ -1670,7 +2207,7 @@
             const body = document.getElementById('customersTableBody'); body.innerHTML = ''; let map = {};
             debtsList.forEach(d => { if(!map[d.customer]) map[d.customer]=0; map[d.customer]+=d.amount; });
             let keys = Object.keys(map); if(keys.length === 0) return body.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد حسابات</td></tr>';
-            keys.forEach(k => { body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${k}</td><td class="p-3 border font-black text-blue-600">${map[k].toLocaleString()} د.ع</td><td class="p-3 border text-center"><button onclick="openCustomerDetail('${k}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold cursor-pointer">فتح السجل</button></td></tr>`; });
+            keys.forEach(k => { body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${k}</td><td class="p-3 border font-black text-blue-600">${formatMoney(map[k])} د.ع</td><td class="p-3 border text-center"><button onclick="openCustomerDetail('${k}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold cursor-pointer">فتح السجل</button></td></tr>`; });
         }
         function filterCustomersList() {}
         function addNewCustomerAccount() {
@@ -1682,9 +2219,9 @@
         function openCustomerDetail(name) {
             currentActiveCustomer = name; document.getElementById('detailCustomerName').innerText = name; document.getElementById('newCustomerNameInput').value = name;
             let totalCustDebt = 0; debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += d.amount);
-            document.getElementById('detailCustomerTotalDebtDisplay').innerText = totalCustDebt.toLocaleString() + ' د.ع';
+            document.getElementById('detailCustomerTotalDebtDisplay').innerText = formatMoney(totalCustDebt) + ' د.ع';
             const body = document.getElementById('customerInvoicesBody'); body.innerHTML = '';
-            debtsList.filter(d => d.customer === name).forEach(d => { body.innerHTML += `<tr class="border-b"><td class="p-3 border font-bold">${d.details}</td><td class="p-3 border font-bold ${d.amount<0?'text-green-600':'text-blue-600'}">${d.amount.toLocaleString()}</td><td class="p-3 border text-sm">${d.date}</td></tr>`; });
+            debtsList.filter(d => d.customer === name).forEach(d => { body.innerHTML += `<tr class="border-b"><td class="p-3 border font-bold">${d.details}</td><td class="p-3 border font-bold ${d.amount<0?'text-green-600':'text-blue-600'}">${formatMoney(d.amount)}</td><td class="p-3 border text-sm">${d.date}</td></tr>`; });
             switchView('customer-detail-view');
         }
 
@@ -1692,7 +2229,7 @@
             const body = document.getElementById('customerPaymentsLogBody'); body.innerHTML = '';
             let payments = debtsList.filter(d => d.customer === currentActiveCustomer && d.amount < 0);
             if(payments.length === 0) body.innerHTML = '<div class="text-center text-gray-400 py-6">لا توجد تسديدات مسجلة</div>';
-            else payments.forEach(p => body.innerHTML += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs font-bold"><div><span class="text-gray-700 block">${p.details}</span><span class="text-gray-400 text-[10px]">${p.date}</span></div><span class="text-green-600 font-black text-sm">${Math.abs(p.amount).toLocaleString()} د.ع</span></div>`);
+            else payments.forEach(p => body.innerHTML += `<div class="bg-gray-50 border p-3 rounded-xl flex justify-between items-center text-xs font-bold"><div><span class="text-gray-700 block">${p.details}</span><span class="text-gray-400 text-[10px]">${p.date}</span></div><span class="text-green-600 font-black text-sm">${formatMoney(Math.abs(p.amount))} د.ع</span></div>`);
             document.getElementById('customer-payments-log-modal').classList.remove('hidden');
         }
         function closeCustomerPaymentsLogModal() { document.getElementById('customer-payments-log-modal').classList.add('hidden'); }
@@ -1770,10 +2307,10 @@
         function openSupplierDetail(supplierName) {
             currentActiveSupplier = supplierName; document.getElementById('detailSupplierName').innerText = supplierName;
             let records = myDebtsList.filter(d => d.supplier === supplierName); let totalAmount = records.reduce((s, r) => s + (r.amount || 0), 0);
-            document.getElementById('suppDetailTotal').innerText = totalAmount.toLocaleString() + ' د.ع';
+            document.getElementById('suppDetailTotal').innerText = formatMoney(totalAmount) + ' د.ع';
             const tbody = document.getElementById('supplierInvoicesBody'); tbody.innerHTML = records.length === 0 ? '<tr><td colspan="6" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
             records.forEach(r => {
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${r.itemName}</td><td class="p-3 border">${r.price.toLocaleString()}</td><td class="p-3 border text-center font-bold">${r.qty}</td><td class="p-3 border font-black text-red-600">${r.amount.toLocaleString()}</td><td class="p-3 border text-sm text-gray-500">${r.date}</td><td class="p-3 border text-center flex gap-1 justify-center"><button onclick="openSupplierItemModalForEdit(${r.id})" class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button><button onclick="deleteSupplierItem(${r.id})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${r.itemName}</td><td class="p-3 border">${formatMoney(r.price)}</td><td class="p-3 border text-center font-bold">${formatMoney(r.qty)}</td><td class="p-3 border font-black text-red-600">${formatMoney(r.amount)}</td><td class="p-3 border text-sm text-gray-500">${r.date}</td><td class="p-3 border text-center flex gap-1 justify-center"><button onclick="openSupplierItemModalForEdit(${r.id})" class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button><button onclick="deleteSupplierItem(${r.id})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
             });
             switchView('supplier-detail-view');
         }
@@ -1785,10 +2322,10 @@
             let grandTotal = 0;
             suppliers.forEach(supp => {
                 let total = map[supp]; grandTotal += total;
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${supp}</td><td class="p-3 border font-black text-red-600">${total.toLocaleString()} د.ع</td><td class="p-3 border text-center"><button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer">كشف الحساب</button></td></tr>`;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${supp}</td><td class="p-3 border font-black text-red-600">${formatMoney(total)} د.ع</td><td class="p-3 border text-center"><button onclick="openSupplierDetail('${supp}')" class="bg-blue-600 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer">كشف الحساب</button></td></tr>`;
             });
-            document.getElementById('totalTheyWantDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
-            document.getElementById('totalNetSuppliersDisplay').innerText = grandTotal.toLocaleString() + ' د.ع';
+            document.getElementById('totalTheyWantDisplay').innerText = formatMoney(grandTotal) + ' د.ع';
+            document.getElementById('totalNetSuppliersDisplay').innerText = formatMoney(grandTotal) + ' د.ع';
         }
 
         function saveExpense(e) {
@@ -1798,7 +2335,7 @@
         function deleteExpense(i) { sysConfirm("تأكيد", "حذف المصروف؟", () => { expensesList.splice(i, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
         function updateExpensesTable() {
             const b = document.getElementById('expensesTableBody'); b.innerHTML = '';
-            expensesList.forEach((e, i) => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${e.desc}</td><td class="p-3 border text-red-500">${e.amount.toLocaleString()}</td><td class="p-3 border">${e.date}</td><td class="p-3 border text-center"><button onclick="deleteExpense(${i})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; });
+            expensesList.forEach((e, i) => { b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${e.desc}</td><td class="p-3 border text-red-500">${formatMoney(e.amount)}</td><td class="p-3 border">${e.date}</td><td class="p-3 border text-center"><button onclick="deleteExpense(${i})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; });
         }
         function updateAuditTable() {
             const b = document.getElementById('auditTableBody'); b.innerHTML = '';
