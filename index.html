@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Native PWA Edition v5.6</title>
+    <title>iStore POS & ERP System - Native PWA Edition v5.7</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     
     <meta name="theme-color" content="#111827">
@@ -121,7 +121,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.6)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.7)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -199,6 +199,7 @@
                 <div><label class="block text-xs font-bold mb-1">اسم المادة</label><input type="text" id="editItemName" class="w-full border p-2.5 rounded-xl outline-none"></div>
                 <div><label class="block text-xs font-bold mb-1">الباركود</label><input type="text" id="editItemBarcode" class="w-full border p-2.5 rounded-xl outline-none font-mono text-center tracking-widest font-bold bg-gray-50" placeholder="امسح أو اكتب الباركود..."></div>
                 <div><label class="block text-xs font-bold mb-1">القسم</label><select id="editItemCategory" class="w-full border p-2.5 rounded-xl bg-white font-bold"></select></div>
+                <div><label class="block text-xs font-bold mb-1">وصف المادة (يظهر في نقطة البيع)</label><textarea id="editItemDesc" rows="2" class="w-full border p-2 rounded-xl outline-none text-xs" placeholder="أدخل وصفاً للمادة..."></textarea></div>
                 <div><label class="block text-xs font-bold mb-1">صورة المادة</label><div class="flex gap-2 border p-1.5 rounded-xl"><input type="text" id="editItemImage" class="p-2 w-full outline-none text-sm"><button type="button" onclick="document.getElementById('editItemImageFile').click()" class="bg-gray-100 px-3"><i class="fa-solid fa-camera"></i></button><input type="file" id="editItemImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'editItemImage')"></div></div>
                 <div class="grid grid-cols-2 gap-2">
                     <div><label class="block text-xs font-bold mb-1">الكمية الحالية</label><input type="number" id="editItemQuantity" class="w-full border p-2 text-center"></div>
@@ -316,11 +317,18 @@
                             <label class="block text-xs font-bold text-gray-700 mb-1">اختر المادة من المخزن:</label>
                             <select id="maintInventoryItemSelect" class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold"></select>
                         </div>
-                        <div id="maintSupplierBox" class="hidden">
-                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم المجهز ونوع المادة:</label>
-                            <div class="flex gap-1">
-                                <input type="text" id="maintSupplierName" placeholder="المجهز..." class="border p-2 rounded-xl bg-white w-1/2 text-xs">
-                                <input type="text" id="maintSupplierItem" placeholder="المادة وسعرها..." class="border p-2 rounded-xl bg-white w-1/2 text-xs">
+                        <!-- تم فصل اسم المادة عن السعر بدقة هنا -->
+                        <div id="maintSupplierBox" class="hidden col-span-full grid grid-cols-1 md:grid-cols-2 gap-3 bg-white p-3 rounded-xl border">
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">اسم المجهز ونوع المادة:</label>
+                                <div class="flex gap-1">
+                                    <input type="text" id="maintSupplierName" placeholder="اسم المجهز..." class="border p-2.5 rounded-xl bg-gray-50 w-1/2 text-xs font-bold">
+                                    <input type="text" id="maintSupplierItem" placeholder="نوع المادة..." class="border p-2.5 rounded-xl bg-gray-50 w-1/2 text-xs font-bold">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">سعر المادة من المجهز:</label>
+                                <input type="number" id="maintSupplierPrice" placeholder="أدخل السعر..." class="border p-2.5 rounded-xl bg-gray-50 w-full text-center font-bold text-red-600">
                             </div>
                         </div>
                         <div>
@@ -500,6 +508,7 @@
                         <div><input type="text" id="itemName" required placeholder="اسم المادة" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"></div>
                         <div><input type="text" id="itemBarcode" placeholder="الباركود (اختياري لمسدس الباركود)" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none font-mono text-center tracking-widest font-bold bg-gray-50"></div>
                         <div><select id="itemCategorySelect" required class="w-full border-2 border-gray-100 p-3 rounded-xl bg-white font-bold"><option value="">اختر القسم...</option></select></div>
+                        <div class="col-span-full"><textarea id="itemDescription" rows="2" placeholder="وصف المادة (يظهر للرؤية السريعة في نقطة البيع عند الضغط على السهم ^)" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none text-xs"></textarea></div>
                         <div><div class="flex gap-1 border-2 border-gray-100 p-1.5 rounded-xl bg-white"><input type="text" id="itemImage" class="p-2 w-full outline-none text-sm" placeholder="صورة المادة"><button type="button" onclick="document.getElementById('itemImageFile').click()" class="bg-gray-100 px-3 cursor-pointer"><i class="fa-solid fa-camera"></i></button><input type="file" id="itemImageFile" accept="image/*" class="hidden" onchange="processImageUpload(event, 'itemImage')"></div></div>
                         <div><input type="number" id="itemQuantity" required placeholder="الكمية الحالية" class="w-full border-2 border-gray-100 p-3 rounded-xl outline-none"></div>
                         <div><input type="number" id="itemMinAlert" value="1" required placeholder="عدد التنبيه القليل (افتراضي 1)" class="w-full border-2 border-amber-100 p-3 rounded-xl outline-none font-bold text-amber-600 bg-amber-50/30"></div>
@@ -510,8 +519,11 @@
                 </div>
 
                 <div class="bg-white rounded-2xl shadow-sm p-6">
-                    <h3 class="font-bold mb-4">المواد المتوفرة</h3>
-                    <div class="overflow-x-auto"><table class="w-full text-right border-collapse min-w-[700px]"><thead><tr class="bg-gray-50"><th class="p-3 border">الصورة</th><th class="p-3 border">المادة والباركود</th><th class="p-3 border">القسم</th><th class="p-3 border">الكمية / الحد الأدنى</th><th class="p-3 border">الشراء</th><th class="p-3 border">البيع</th><th class="p-3 border text-center">إجراءات</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h3 class="font-bold text-lg">المواد المتوفرة في المخزن</h3>
+                        <input type="text" id="inventorySearchInput" onkeyup="updateInventoryTable()" placeholder="🔍 ابحث في المخزن..." class="border-2 border-gray-200 p-2 rounded-xl text-xs font-bold outline-none w-64 bg-gray-50">
+                    </div>
+                    <div class="overflow-x-auto"><table class="w-full text-right border-collapse min-w-[700px]"><thead><tr class="bg-gray-50"><th class="p-3 border">الصورة</th><th class="p-3 border">المادة والباركود والوصف</th><th class="p-3 border">القسم</th><th class="p-3 border">الكمية / الحد الأدنى</th><th class="p-3 border">الشراء</th><th class="p-3 border">البيع</th><th class="p-3 border text-center">إجراءات</th></tr></thead><tbody id="inventoryTableBody"></tbody></table></div>
                 </div>
             </div>
 
@@ -961,7 +973,7 @@
         let notifiedStockItems = {};
 
         let invoiceTotal = 0, currentActiveCustomer = null, currentActiveSupplier = null, customLogoUrl = "", customReceiptBgUrl = "", pendingResetUser = "", lastCompletedSale = null, currentSelectedCategory = null, defaultCashier = "الرئيسي";
-        let isNoPrintMode = false; // متغير عدم الطباعة في نقطة البيع
+        let isNoPrintMode = false;
         let currentPOSStockFilter = null;
         let currentDamagedCategory = null; 
 
@@ -1218,7 +1230,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "5.6", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            const appData = { version: "5.7", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -1596,8 +1608,18 @@
 
         function saveItem(event) {
             event.preventDefault();
-            inventory.push({ name: document.getElementById('itemName').value.trim(), barcode: document.getElementById('itemBarcode').value.trim(), category: document.getElementById('itemCategorySelect').value, image: document.getElementById('itemImage').value.trim(), quantity: Number(document.getElementById('itemQuantity').value), minAlert: Number(document.getElementById('itemMinAlert').value) || 1, buyPrice: Number(document.getElementById('itemBuyPrice').value), price: Number(document.getElementById('itemPrice').value) });
-            ['itemName','itemBarcode','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
+            inventory.push({ 
+                name: document.getElementById('itemName').value.trim(), 
+                barcode: document.getElementById('itemBarcode').value.trim(), 
+                category: document.getElementById('itemCategorySelect').value, 
+                description: document.getElementById('itemDescription').value.trim(),
+                image: document.getElementById('itemImage').value.trim(), 
+                quantity: Number(document.getElementById('itemQuantity').value), 
+                minAlert: Number(document.getElementById('itemMinAlert').value) || 1, 
+                buyPrice: Number(document.getElementById('itemBuyPrice').value), 
+                price: Number(document.getElementById('itemPrice').value) 
+            });
+            ['itemName','itemBarcode','itemDescription','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
             triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم حفظ المادة بنجاح", "نجاح", "success");
         }
         function deleteItem(index) { sysConfirm("تأكيد", "حذف المادة؟", () => { inventory.splice(index, 1); triggerDataChangeInstant(); refreshAllUI(); }); }
@@ -1605,6 +1627,7 @@
             const item = inventory[index]; document.getElementById('editItemIndex').value = index;
             document.getElementById('editItemName').value = item.name; document.getElementById('editItemBarcode').value = item.barcode || '';
             const select = document.getElementById('editItemCategory'); select.innerHTML = '<option value="">بدون</option>'; categoriesList.forEach(c => select.innerHTML += `<option value="${c.name}">${c.name}</option>`); select.value = item.category || '';
+            document.getElementById('editItemDesc').value = item.description || '';
             document.getElementById('editItemImage').value = item.image || ''; document.getElementById('editItemQuantity').value = item.quantity; document.getElementById('editItemMinAlert').value = item.minAlert !== undefined ? item.minAlert : 1; document.getElementById('editItemBuyPrice').value = item.buyPrice || 0; document.getElementById('editItemPrice').value = item.price;
             document.getElementById('edit-item-modal').classList.remove('hidden');
         }
@@ -1615,7 +1638,7 @@
             let oldSell = item.price || 0; let newSell = Number(document.getElementById('editItemPrice').value);
 
             item.name = document.getElementById('editItemName').value.trim(); item.barcode = document.getElementById('editItemBarcode').value.trim();
-            item.category = document.getElementById('editItemCategory').value; item.image = document.getElementById('editItemImage').value.trim();
+            item.category = document.getElementById('editItemCategory').value; item.description = document.getElementById('editItemDesc').value.trim(); item.image = document.getElementById('editItemImage').value.trim();
             item.quantity = Number(document.getElementById('editItemQuantity').value); item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
             item.buyPrice = newBuy; item.price = newSell;
 
@@ -1628,10 +1651,22 @@
             closeEditItemModal(); triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم تحديث المادة", "نجاح", "success");
         }
         function updateInventoryTable() {
-            const tbody = document.getElementById('inventoryTableBody'); tbody.innerHTML = inventory.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مواد</td></tr>' : '';
-            inventory.forEach((item, index) => {
+            const tbody = document.getElementById('inventoryTableBody'); 
+            const searchInput = document.getElementById('inventorySearchInput');
+            let query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+            
+            let filteredItems = inventory;
+            if(query) {
+                filteredItems = inventory.filter(i => i.name.toLowerCase().includes(query) || (i.barcode && i.barcode.toLowerCase().includes(query)) || (i.category && i.category.toLowerCase().includes(query)) || (i.description && i.description.toLowerCase().includes(query)));
+            }
+
+            tbody.innerHTML = filteredItems.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد مواد مطابقة للبحث</td></tr>' : '';
+            
+            filteredItems.forEach((item) => {
+                let index = inventory.findIndex(i => i === item);
                 let img = item.image ? `<img src="${item.image}" class="w-12 h-12 object-cover rounded-xl mx-auto border" />` : 'لا توجد';
                 let barcodeHtml = item.barcode ? `<span class="block font-mono text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1">🏷️ ${item.barcode}</span>` : '<span class="text-[10px] text-gray-400">بدون باركود</span>';
+                let descHtml = item.description ? `<span class="block text-xs text-gray-600 bg-gray-50 p-1 rounded mt-1 border">📝 الوصف: ${item.description}</span>` : '';
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let qtyClass = "text-blue-600 font-black"; let statusBadge = "";
                 if(q === 0) { qtyClass = "text-gray-400 line-through font-black"; statusBadge = `<span class="bg-gray-100 text-gray-800 px-2 rounded text-[10px] block mt-1">منتهية (0)</span>`; }
@@ -1644,7 +1679,7 @@
                     priceHistoryNote = `<span class="block text-[11px] text-orange-600 font-bold bg-orange-50 p-1.5 rounded-lg mt-1 border border-orange-200"><i class="fa-solid fa-clock-rotate-left"></i> آخر تعديل شراء: من ${formatMoney(lastH.oldBuy)} إلى ${formatMoney(lastH.newBuy)} (${lastH.date})</span>`;
                 }
 
-                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml} ${priceHistoryNote}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${formatMoney(item.quantity)}</span> ${statusBadge}</td><td class="p-3 border">${formatMoney(item.buyPrice||0)}</td><td class="p-3 border text-orange-600 font-bold">${formatMoney(item.price||0)}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
+                tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml} ${descHtml} ${priceHistoryNote}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border"><span class="${qtyClass}">${formatMoney(item.quantity)}</span> ${statusBadge}</td><td class="p-3 border">${formatMoney(item.buyPrice||0)}</td><td class="p-3 border text-orange-600 font-bold">${formatMoney(item.price||0)}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
             });
         }
         function updateVariableTable() {
@@ -1707,16 +1742,18 @@
             } else if(sourceType === 'supplier') {
                 let suppName = document.getElementById('maintSupplierName').value.trim();
                 let suppItem = document.getElementById('maintSupplierItem').value.trim();
-                if(!suppName || !suppItem) return sysAlert("أدخل بيانات المجهز والمادة بدقة!", "خطأ", "error");
+                let suppPrice = Number(document.getElementById('maintSupplierPrice').value) || 0;
                 
-                sourceDetails = `من المجهز (${suppName}): ${suppItem}`;
+                if(!suppName || !suppItem || !suppPrice) return sysAlert("أدخل اسم المجهز ونوع المادة وسعرها بدقة!", "خطأ", "error");
+                
+                sourceDetails = `من المجهز (${suppName}): ${suppItem} (سعر: ${formatMoney(suppPrice)})`;
                 myDebtsList.push({
                     id: Date.now(),
                     supplier: suppName,
                     itemName: suppItem,
                     qty: 1,
-                    price: 0,
-                    amount: 0,
+                    price: suppPrice,
+                    amount: suppPrice,
                     date: new Date().toLocaleDateString('ar-IQ')
                 });
             }
@@ -1739,6 +1776,7 @@
             document.getElementById('maintProfitInput').value = '';
             document.getElementById('maintSupplierName').value = '';
             document.getElementById('maintSupplierItem').value = '';
+            document.getElementById('maintSupplierPrice').value = '';
 
             triggerDataChangeInstant();
             refreshAllUI();
@@ -1920,7 +1958,7 @@
             let qtyInput = document.getElementById('damagedQtyInput_' + invIndex);
             let qty = qtyInput ? Number(qtyInput.value) : 1;
             if(qty <= 0 || isNaN(qty)) return sysAlert("أدخل كمية صحيحة!", "خطأ", "error");
-            if(qty > (item.quantity || 0)) return sysAlert("الكمية المدخلة أكبر من المتوفر في المخزن!", "خطأ", "error");
+            if(qty > (item.quantity || 0)) return sysAlert("الكمية المدخلة أكبر من المتوفر في المخزن!", "تنبيه", "error");
 
             item.quantity = Math.max(0, item.quantity - qty);
             let lossAmount = qty * (item.buyPrice || 0);
@@ -2010,17 +2048,39 @@
             }
             grid.innerHTML = items.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا توجد مواد مطابقة</div>' : '';
             items.forEach((item) => {
+                let realIdx = inventory.findIndex(i => i.name === item.name);
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
                 
-                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
-                    ${img}
-                    <h3 class="font-bold text-xs mb-1">${item.name}</h3>
-                    <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
-                    <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
+                let descToggleHtml = '';
+                if(item.description) {
+                    descToggleHtml = `<div class="mt-2 pt-2 border-t border-gray-100"><button type="button" onclick="event.stopPropagation(); togglePosItemDesc(${realIdx})" class="text-[11px] text-purple-600 font-bold hover:underline flex items-center justify-center gap-1 w-full"><span>الوصف</span> <i id="posDescArrow_${realIdx}" class="fa-solid fa-chevron-up transition-transform"></i></button><div id="posDescBox_${realIdx}" class="hidden mt-1 p-2 bg-purple-50 text-purple-900 rounded-xl text-xs font-semibold text-right shadow-inner">${item.description}</div></div>`;
+                }
+
+                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative flex flex-col justify-between">
+                    <div>
+                        ${img}
+                        <h3 class="font-bold text-xs mb-1">${item.name}</h3>
+                        <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
+                        <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
+                    </div>
+                    ${descToggleHtml}
                 </div>`;
             });
+        }
+
+        function togglePosItemDesc(idx) {
+            let box = document.getElementById(`posDescBox_${idx}`);
+            let arrow = document.getElementById(`posDescArrow_${idx}`);
+            if(!box) return;
+            if(box.classList.contains('hidden')) {
+                box.classList.remove('hidden');
+                arrow.style.transform = "rotate(180deg)";
+            } else {
+                box.classList.add('hidden');
+                arrow.style.transform = "rotate(0deg)";
+            }
         }
 
         function handleBarcodeOrSearch(e) {
@@ -2031,15 +2091,24 @@
             let res = inventory.filter(i => i.name.toLowerCase().includes(val.toLowerCase()) || (i.category && i.category.toLowerCase().includes(val.toLowerCase())));
             const grid = document.getElementById('pos-items-grid'); grid.innerHTML = res.length === 0 ? '<div class="col-span-full text-center text-gray-400 py-10">لا نتائج مطابقة</div>' : '';
             res.forEach(item => {
+                let realIdx = inventory.findIndex(i => i.name === item.name);
                 let img = item.image ? `<img src="${item.image}" class="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border" />` : '<div class="w-16 h-16 bg-gray-50 text-gray-300 rounded-xl flex items-center justify-center mx-auto mb-2"><i class="fa-solid fa-box"></i></div>';
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
                 
-                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
-                    ${img}
-                    <h3 class="font-bold text-xs mb-1">${item.name}</h3>
-                    <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
-                    <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
+                let descToggleHtml = '';
+                if(item.description) {
+                    descToggleHtml = `<div class="mt-2 pt-2 border-t border-gray-100"><button type="button" onclick="event.stopPropagation(); togglePosItemDesc(${realIdx})" class="text-[11px] text-purple-600 font-bold hover:underline flex items-center justify-center gap-1 w-full"><span>الوصف</span> <i id="posDescArrow_${realIdx}" class="fa-solid fa-chevron-up transition-transform"></i></button><div id="posDescBox_${realIdx}" class="hidden mt-1 p-2 bg-purple-50 text-purple-900 rounded-xl text-xs font-semibold text-right shadow-inner">${item.description}</div></div>`;
+                }
+
+                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative flex flex-col justify-between">
+                    <div>
+                        ${img}
+                        <h3 class="font-bold text-xs mb-1">${item.name}</h3>
+                        <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
+                        <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
+                    </div>
+                    ${descToggleHtml}
                 </div>`;
             });
         }
@@ -2103,7 +2172,6 @@
             triggerDataChangeInstant(); refreshAllUI(); sysAlert(`تم إضافة الحساب الآجل "${name}" بنجاح!`, "نجاح", "success");
         }
 
-        // --- إدارة الكاشير الافتراضي وإضافة كاشير جديد من القائمة ---
         function updateCashierDropdownUI() {
             const select = document.getElementById('posCashierSelect');
             if(!select) return;
@@ -2174,7 +2242,6 @@
             document.getElementById('posCustomerName').value = ''; document.getElementById('posCashPaidInput').value = '';
             renderInvoice(); refreshAllUI();
             
-            // الطباعة تتوقف إذا كان خيار "عدم الطباعة" مفعلًا
             if(!isNoPrintMode) {
                 printSaleReceipt(sale, sale.customer, sale.cashier);
             } else {
