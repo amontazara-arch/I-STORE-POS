@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Native PWA Edition v5.4</title>
+    <title>iStore POS & ERP System - Native PWA Edition v5.6</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     
     <meta name="theme-color" content="#111827">
@@ -121,7 +121,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.4)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.6)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -237,6 +237,7 @@
             <button onclick="switchView('add-item-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-cubes pl-3 text-gray-400"></i> إدارة المخزن</button>
             <button onclick="switchView('damaged-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-rose-400 font-bold flex items-center"><i class="fa-solid fa-triangle-exclamation pl-3 text-rose-500"></i> تالف</button>
             <button onclick="switchView('maintenance-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-teal-300 font-bold flex items-center"><i class="fa-solid fa-screwdriver-wrench pl-3 text-teal-400"></i> الصيانة والبرمجة</button>
+            <button onclick="switchView('memos-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-amber-300 font-bold flex items-center"><i class="fa-solid fa-note-sticky pl-3 text-amber-400"></i> المذكرات</button>
             <button onclick="switchView('values-dashboard-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-yellow-400 font-bold flex items-center"><i class="fa-solid fa-coins pl-3"></i> القيم والجرد</button>
             <button onclick="switchView('sales-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice pl-3 text-gray-400"></i> سجل المبيعات</button>
             <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-red-300 font-bold flex items-center"><i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات</button>
@@ -265,13 +266,13 @@
                     <button onclick="switchView('add-item-view')" class="flex flex-col items-center justify-center p-4 bg-[#00aeef] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-cubes text-3xl mb-2"></i><span class="font-bold">إدارة المخزن</span></button>
                     <button onclick="switchView('damaged-view')" class="flex flex-col items-center justify-center p-4 bg-rose-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-triangle-exclamation text-3xl mb-2"></i><span class="font-bold">تالف</span></button>
                     <button onclick="switchView('maintenance-view')" class="flex flex-col items-center justify-center p-4 bg-teal-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-screwdriver-wrench text-3xl mb-2"></i><span class="font-bold">الصيانة والبرمجة</span></button>
-                    <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
+                    <button onclick="switchView('memos-view')" class="flex flex-col items-center justify-center p-4 bg-amber-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-note-sticky text-3xl mb-2"></i><span class="font-bold">المذكرات</span></button>
+                    <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-yellow-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
                     <button onclick="switchView('customers-view')" class="flex flex-col items-center justify-center p-4 bg-[#1d71b8] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-address-book text-3xl mb-2"></i><span class="font-bold">حساب الزبائن</span></button>
                     <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">المجهّزون والديون</span></button>
                 </div>
             </div>
 
-            <!-- شاشة الصيانة والبرمجة -->
             <div id="maintenance-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -294,15 +295,14 @@
                         </div>
                     </div>
 
-                    <div class="flex flex-wrap gap-3 mb-6 bg-gray-50 p-4 rounded-xl border">
-                        <button onclick="openMaintPaymentModal('حساب')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm cursor-pointer flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar"></i> تسديد حساب (تحويل من أرباح الصيانة)</button>
-                        <button onclick="openMaintPaymentModal('مصروفات')" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm cursor-pointer flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar"></i> تسديد مصروفات من الصيانة</button>
-                    </div>
-
                     <form onsubmit="saveMaintenanceRecord(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-teal-50/50 p-4 rounded-xl border border-teal-100 items-end">
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم الزبون / الجهاز:</label>
                             <input type="text" id="maintCustomer" required placeholder="اسم الزبون أو نوع الجهاز..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم المصلح:</label>
+                            <input type="text" id="maintTechnician" placeholder="الرئيسي (افتراضي)..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-800">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">مصدر المادة / الخدمة:</label>
@@ -342,6 +342,7 @@
                             <thead>
                                 <tr class="bg-gray-50">
                                     <th class="p-3 border">الزبون / الجهاز</th>
+                                    <th class="p-3 border">المصلح</th>
                                     <th class="p-3 border">البيان (ما تم إصلاحه)</th>
                                     <th class="p-3 border">المصدر / المادة</th>
                                     <th class="p-3 border">أرباح الصيانة</th>
@@ -351,6 +352,57 @@
                                 </tr>
                             </thead>
                             <tbody id="maintenanceTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="memos-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold text-amber-700"><i class="fa-solid fa-note-sticky"></i> المذكرات (طلبات الزبائن والهواتف المعلقة)</h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
+                    </div>
+
+                    <form onsubmit="saveMemoRecord(event)" class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-amber-50/50 p-4 rounded-xl border border-amber-100 items-end mb-6">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم الزبون / صاحب الجهاز:</label>
+                            <input type="text" id="memoCustomer" required placeholder="اسم الزبون..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">تفاصيل الطلب / نوع الهاتف المشكلة:</label>
+                            <input type="text" id="memoDetails" required placeholder="مثال: آيفون 13 برو - شاشة وفصل..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                        </div>
+                        <button type="submit" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">إضافة مذكرة جديدة</button>
+                    </form>
+
+                    <h3 class="font-bold text-md mb-3 text-gray-800">الطلبات والمذكرات النشطة (غير المكتملة)</h3>
+                    <div class="overflow-x-auto mb-8">
+                        <table class="w-full text-right border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="p-3 border">الزبون</th>
+                                    <th class="p-3 border">التفاصيل والطلب</th>
+                                    <th class="p-3 border">التاريخ</th>
+                                    <th class="p-3 border text-center">إجراء (اكتمل)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="activeMemosTableBody"></tbody>
+                        </table>
+                    </div>
+
+                    <h3 class="font-bold text-md mb-3 text-green-800">سجل الطلبات والمذكرات المكتملة</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-green-50">
+                                    <th class="p-3 border">الزبون</th>
+                                    <th class="p-3 border">التفاصيل والطلب</th>
+                                    <th class="p-3 border">تاريخ الاكمال</th>
+                                    <th class="p-3 border text-center">حذف</th>
+                                </tr>
+                            </thead>
+                            <tbody id="completedMemosTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -523,44 +575,26 @@
                                     <input type="number" id="posCashPaidInput" placeholder="أدخل المبلغ المدفوع..." class="w-full border-2 border-green-200 p-3 rounded-xl bg-green-50/50 font-bold text-green-700 outline-none">
                                 </div>
                             </div>
-                            <button onclick="checkout()" class="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg">إتمام البيع</button>
+                            
+                            <!-- خيار الكاشير الافتراضي وعدم الطباعة -->
+                            <div class="bg-purple-50 border-2 border-purple-200 rounded-xl p-3 space-y-2">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-bold text-purple-900"><i class="fa-solid fa-user-tie"></i> الكاشير:</span>
+                                    <select id="posCashierSelect" onchange="onCashierSelectionChange(this)" class="border rounded-lg px-2 py-1 font-bold text-xs bg-white text-purple-900 outline-none cursor-pointer">
+                                        <!-- سيتم تعبئتها ديناميكياً -->
+                                    </select>
+                                </div>
+                                <div class="flex items-center justify-between pt-1 border-t border-purple-200">
+                                    <span class="text-xs font-bold text-purple-900"><i class="fa-solid fa-print"></i> طباعة الوصل:</span>
+                                    <label class="flex items-center gap-1.5 cursor-pointer">
+                                        <input type="checkbox" id="noPrintCheckbox" onchange="toggleNoPrintMode()" class="w-4 h-4 accent-purple-700 cursor-pointer">
+                                        <span class="text-xs font-bold text-red-600">عدم الطباعة</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button onclick="checkoutDirect()" class="w-full bg-fuchsia-600 hover:bg-fuchsia-700 text-white py-3.5 rounded-xl font-bold cursor-pointer shadow-lg">إتمام البيع</button>
                         </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- مودال تسديد الصيانة -->
-            <div id="maint-payment-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
-                <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-right border modal-box">
-                    <h3 class="font-bold text-lg mb-4 text-teal-700 border-b pb-2" id="maintModalTitle">تسديد من الصيانة</h3>
-                    <div class="space-y-3">
-                        <div><label class="block text-xs font-bold mb-1">اختر الشخص / الجهة المراد تسديده:</label><select id="maintPayeeSelect" class="w-full border p-2.5 rounded-xl bg-white font-bold text-xs"></select></div>
-                        <div><label class="block text-xs font-bold mb-1">المبلغ المراد تسديده:</label><input type="number" id="maintPayAmount" placeholder="المبلغ..." class="w-full border p-2.5 rounded-xl font-bold text-center text-teal-700 outline-none"></div>
-                    </div>
-                    <div class="flex gap-3 mt-6">
-                        <button onclick="closeMaintPaymentModal()" class="flex-1 bg-gray-100 py-2.5 rounded-xl font-bold text-sm cursor-pointer">إلغاء</button>
-                        <button onclick="executeMaintPayment()" class="flex-1 bg-teal-700 text-white py-2.5 rounded-xl font-bold text-sm shadow-md cursor-pointer">تأكيد التسديد</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="print-options-modal" class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden modal-overlay">
-                <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full p-6 text-center border modal-box">
-                    <div class="text-green-500 text-5xl mb-3"><i class="fa-solid fa-circle-check"></i></div>
-                    <h3 class="text-xl font-black mb-1">تم البيع بنجاح!</h3>
-                    <p class="text-gray-500 text-xs mb-4">اختر الكاشير المسؤول عن هذه الفاتورة قبل الطباعة:</p>
-                    
-                    <div class="space-y-3 text-right mb-6">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم الكاشير:</label>
-                            <select id="checkoutCashierSelect" onchange="handleCashierDropdownChange(this.value)" class="w-full border-2 border-gray-200 p-3 rounded-xl font-bold bg-gray-50 outline-none cursor-pointer">
-                            </select>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-3">
-                        <button onclick="executePrintChoice(true)" class="flex-1 bg-fuchsia-600 text-white font-bold py-3 rounded-xl shadow-lg cursor-pointer">نعم، اطبع</button>
-                        <button onclick="executePrintChoice(false)" class="flex-1 bg-gray-100 text-gray-800 font-bold py-3 rounded-xl cursor-pointer">تخطي</button>
                     </div>
                 </div>
             </div>
@@ -568,11 +602,12 @@
             <div id="sales-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">سجل المبيعات</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-center">
-                        <div class="bg-blue-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-blue-800">إجمالي المبيعات</h4><p class="text-3xl font-black text-blue-700 mt-2" id="totalSalesDisplay">0 د.ع</p></div>
-                        <div class="bg-green-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-green-800">إجمالي الأرباح</h4><p class="text-3xl font-black text-green-700 mt-2" id="grossProfitDisplay">0 د.ع</p></div>
-                        <div class="bg-rose-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-rose-800">خسائر التالف</h4><p class="text-3xl font-black text-rose-700 mt-2" id="salesDamagedLossDisplay">0 د.ع</p></div>
-                        <div class="bg-fuchsia-50 p-5 rounded-2xl border"><h4 class="text-sm font-bold text-fuchsia-800">الصافي</h4><p class="text-3xl font-black text-fuchsia-700 mt-2" id="netProfitDisplay">0 د.ع</p></div>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-3 text-center">
+                        <div class="bg-blue-50 p-4 rounded-2xl border"><h4 class="text-xs font-bold text-blue-800">إجمالي المبيعات</h4><p class="text-2xl font-black text-blue-700 mt-1" id="totalSalesDisplay">0 د.ع</p></div>
+                        <div class="bg-green-50 p-4 rounded-2xl border"><h4 class="text-xs font-bold text-green-800">إجمالي الأرباح</h4><p class="text-2xl font-black text-green-700 mt-1" id="grossProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-teal-50 p-4 rounded-2xl border"><h4 class="text-xs font-bold text-teal-800">أرباح الصيانة</h4><p class="text-2xl font-black text-teal-700 mt-1" id="salesMaintProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-amber-50 p-4 rounded-2xl border"><h4 class="text-xs font-bold text-amber-900">الإجمالي الكلي للأرباح مع الصيانة</h4><p class="text-2xl font-black text-amber-700 mt-1" id="totalProfitWithMaintDisplay">0 د.ع</p></div>
+                        <div class="bg-fuchsia-50 p-4 rounded-2xl border"><h4 class="text-xs font-bold text-fuchsia-800">الصافي النهائي</h4><p class="text-2xl font-black text-fuchsia-700 mt-1" id="netProfitDisplay">0 د.ع</p></div>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -920,11 +955,13 @@
         let inventory = [], categoriesList = [], salesHistory = [], returnsHistory = [], expensesList = [], debtsList = [], myDebtsList = [], auditLog = [], fixedItems = [], cashiersList = ["الرئيسي", "مقتدى"];
         let damagedLog = []; 
         let maintenanceLog = []; 
+        let memosLog = [];
         let chatMessages = [];
         let systemNotifications = [];
         let notifiedStockItems = {};
 
         let invoiceTotal = 0, currentActiveCustomer = null, currentActiveSupplier = null, customLogoUrl = "", customReceiptBgUrl = "", pendingResetUser = "", lastCompletedSale = null, currentSelectedCategory = null, defaultCashier = "الرئيسي";
+        let isNoPrintMode = false; // متغير عدم الطباعة في نقطة البيع
         let currentPOSStockFilter = null;
         let currentDamagedCategory = null; 
 
@@ -1181,7 +1218,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "5.4", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            const appData = { version: "5.6", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -1213,6 +1250,7 @@
                         fixedItems = imported.fixedItems || [];
                         damagedLog = imported.damagedLog || [];
                         maintenanceLog = imported.maintenanceLog || [];
+                        memosLog = imported.memosLog || [];
                         cashiersList = imported.cashiersList || ["الرئيسي", "مقتدى"];
                         defaultCashier = imported.defaultCashier || "الرئيسي";
                         customLogoUrl = imported.customLogoUrl || "";
@@ -1311,7 +1349,7 @@
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
 
-            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], damagedLog: [], maintenanceLog: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
+            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], damagedLog: [], maintenanceLog: [], memosLog: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
 
             localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
             currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
@@ -1348,7 +1386,7 @@
 
         function loadDataFromServerData(data) {
             if(data) {
-                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; damagedLog = data.damagedLog || []; maintenanceLog = data.maintenanceLog || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
+                inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; damagedLog = data.damagedLog || []; maintenanceLog = data.maintenanceLog || []; memosLog = data.memosLog || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
                 document.getElementById('logoUrlInput').value = customLogoUrl; document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
@@ -1362,7 +1400,7 @@
             window.fbOnValue(window.fbRef(window.fbDB, 'stores/' + user), (snapshot) => {
                 if (snapshot.exists()) {
                     let remoteData = snapshot.val();
-                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; damagedLog = remoteData.damagedLog || []; maintenanceLog = remoteData.maintenanceLog || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
+                    inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; damagedLog = remoteData.damagedLog || []; maintenanceLog = remoteData.maintenanceLog || []; memosLog = remoteData.memosLog || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
                     localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
                     updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     refreshAllUI();
@@ -1372,7 +1410,7 @@
 
         function triggerDataChangeInstant() {
             if(!currentStoreUser) return;
-            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             if(window.fbDB) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
@@ -1397,7 +1435,7 @@
         });
 
         function refreshAllUI() { 
-            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); updateDamagedUI(); updateMaintenanceUI(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI();
+            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); updateDamagedUI(); updateMaintenanceUI(); updateMemosUI(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI(); updateCashierDropdownUI();
             document.getElementById('chat-device-id').innerText = `جهازك: ${currentDeviceId}`;
             if(currentActiveCustomer) openCustomerDetail(currentActiveCustomer); 
             if(currentActiveSupplier) openSupplierDetail(currentActiveSupplier); 
@@ -1427,6 +1465,7 @@
             if(viewId === 'chat-view') document.getElementById('sidebar-chat-bell').classList.add('hidden');
             if(viewId === 'damaged-view') { updateDamagedUI(); }
             if(viewId === 'maintenance-view') { updateMaintenanceUI(); }
+            if(viewId === 'memos-view') { updateMemosUI(); }
         }
 
         function openPicsartLayoutModal() { document.getElementById('editorDocType').value = 'sale'; document.getElementById('editorPaperType').value = 'thermal'; renderPicsartCanvas(); renderPicsartSidebar(); switchView('picsart-editor-view'); }
@@ -1617,7 +1656,6 @@
         function deleteFixedItem(i) { sysConfirm("تأكيد", "حذف المعدة؟", () => { fixedItems.splice(i, 1); triggerDataChangeInstant(); updateFixedTable(); }); }
         function updateFixedTable() { const b = document.getElementById('fixedTableBody'); b.innerHTML = ''; let total = 0; fixedItems.forEach((item, idx) => { total += item.price; b.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${item.name}</td><td class="p-3 border text-teal-600 font-bold">${formatMoney(item.price)} د.ع</td><td class="p-3 border">${item.date}</td><td class="p-3 border text-center"><button onclick="deleteFixedItem(${idx})" class="bg-red-50 text-red-600 px-2 py-1 rounded text-xs cursor-pointer">حذف</button></td></tr>`; }); document.getElementById('totalFixedDisplay').innerText = formatMoney(total) + ' د.ع'; }
 
-        // --- دوال قسم الصيانة والبرمجة ---
         function updateMaintenanceUI() {
             const select = document.getElementById('maintInventoryItemSelect');
             if(select) {
@@ -1648,6 +1686,8 @@
         function saveMaintenanceRecord(e) {
             e.preventDefault();
             let cust = document.getElementById('maintCustomer').value.trim();
+            let techInput = document.getElementById('maintTechnician').value.trim();
+            let technician = techInput ? techInput : "الرئيسي";
             let desc = document.getElementById('maintDescriptionInput').value.trim();
             let sourceType = document.getElementById('maintSourceType').value;
             let profit = Number(document.getElementById('maintProfitInput').value) || 0;
@@ -1684,6 +1724,7 @@
             maintenanceLog.unshift({
                 id: Date.now(),
                 customer: cust,
+                technician: technician,
                 description: desc,
                 sourceDetails: sourceDetails,
                 profit: profit,
@@ -1693,6 +1734,7 @@
             });
 
             document.getElementById('maintCustomer').value = '';
+            document.getElementById('maintTechnician').value = '';
             document.getElementById('maintDescriptionInput').value = '';
             document.getElementById('maintProfitInput').value = '';
             document.getElementById('maintSupplierName').value = '';
@@ -1731,18 +1773,20 @@
             const totalNetDisp = document.getElementById('totalMaintNetDisplay');
             if(!tbody) return;
 
-            tbody.innerHTML = maintenanceLog.length === 0 ? '<tr><td colspan="7" class="text-center p-4 text-gray-400">لا توجد عمليات صيانة مسجلة</td></tr>' : '';
+            tbody.innerHTML = maintenanceLog.length === 0 ? '<tr><td colspan="8" class="text-center p-4 text-gray-400">لا توجد عمليات صيانة مسجلة</td></tr>' : '';
             let totalProfit = 0, totalLoss = 0;
 
             maintenanceLog.forEach(m => {
                 if(!m.isDamaged) totalProfit += (m.profit || 0);
                 else totalLoss += (m.profit || 0);
 
+                let techName = m.technician || "الرئيسي";
                 let statusBadge = m.isDamaged ? `<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs font-bold">تالف (مخصوم من الأرباح)</span>` : `<span class="bg-teal-100 text-teal-800 px-2 py-0.5 rounded text-xs font-bold">نشط</span>`;
                 let damagedBtn = !m.isDamaged ? `<button onclick="markMaintenanceAsDamaged(${m.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer">تالف</button>` : `<span class="text-xs text-rose-600 font-bold">تالف</span>`;
 
                 tbody.innerHTML += `<tr class="border-b bg-white ${m.isDamaged ? 'bg-rose-50/50' : ''}">
                     <td class="p-3 border font-bold">${m.customer}</td>
+                    <td class="p-3 border font-bold text-teal-800">${techName}</td>
                     <td class="p-3 border font-bold text-gray-700">${m.description || '-'}</td>
                     <td class="p-3 border text-xs">${m.sourceDetails}</td>
                     <td class="p-3 border font-black text-teal-700">${formatMoney(m.profit)} د.ع ${statusBadge}</td>
@@ -1757,68 +1801,76 @@
             if(totalNetDisp) totalNetDisp.innerText = formatMoney(totalProfit - totalLoss) + ' د.ع';
         }
 
-        let currentMaintPaymentType = 'حساب';
-        function openMaintPaymentModal(type) {
-            currentMaintPaymentType = type;
-            document.getElementById('maintModalTitle').innerText = type === 'حساب' ? 'تسديد حساب (تحويل من أرباح الصيانة)' : 'تسديد مصروفات من الصيانة';
-            const select = document.getElementById('maintPayeeSelect');
-            select.innerHTML = '';
-            if(type === 'حساب') {
-                let m = {}; debtsList.forEach(d => m[d.customer] = 1);
-                Object.keys(m).forEach(c => select.innerHTML += `<option value="${c}">زبون: ${c}</option>`);
-                myDebtsList.forEach(d => select.innerHTML += `<option value="${d.supplier}">مجهز: ${d.supplier}</option>`);
-            } else {
-                select.innerHTML = `<option value="مصروفات عامة">مصروفات تشغيلية وعامة</option>`;
-            }
-            document.getElementById('maintPayAmount').value = '';
-            document.getElementById('maint-payment-modal').classList.remove('hidden');
-        }
+        function saveMemoRecord(e) {
+            e.preventDefault();
+            let customer = document.getElementById('memoCustomer').value.trim();
+            let details = document.getElementById('memoDetails').value.trim();
+            if(!customer || !details) return;
 
-        function closeMaintPaymentModal() {
-            document.getElementById('maint-payment-modal').classList.add('hidden');
-        }
-
-        function executeMaintPayment() {
-            let payee = document.getElementById('maintPayeeSelect').value;
-            let amount = Number(document.getElementById('maintPayAmount').value) || 0;
-            if(!payee || amount <= 0) return sysAlert("أدخل مبلغاً صحيحاً!", "خطأ", "error");
-
-            let totalActiveMaintProfit = maintenanceLog.filter(m => !m.isDamaged).reduce((s, m) => s + (m.profit || 0), 0);
-            if(amount > totalActiveMaintProfit) return sysAlert("المبلغ المطلوب تسديده أكبر من إجمالي أرباح الصيانة المتاحة!", "تنبيه", "error");
-
-            if(currentMaintPaymentType === 'حساب') {
-                debtsList.push({
-                    id: Date.now(),
-                    customer: payee,
-                    amount: -amount,
-                    date: new Date().toLocaleDateString('ar-IQ'),
-                    details: `تسديد من أرباح الصيانة والبرمجة`
-                });
-            } else {
-                expensesList.push({
-                    desc: `تسديد مصروف من الصيانة (${payee})`,
-                    amount: amount,
-                    date: new Date().toLocaleDateString('ar-IQ')
-                });
-            }
-
-            maintenanceLog.unshift({
+            memosLog.unshift({
                 id: Date.now(),
-                customer: `تسديد: ${payee}`,
-                description: `عملية تسديد حساب / مصروف`,
-                sourceDetails: `تحويل من الأرباح`,
-                profit: -amount,
-                cost: 0,
-                isDamaged: false,
-                date: new Date().toLocaleString('ar-IQ')
+                customer,
+                details,
+                completed: false,
+                date: new Date().toLocaleString('ar-IQ'),
+                completedDate: null
             });
 
-            closeMaintPaymentModal();
+            document.getElementById('memoCustomer').value = '';
+            document.getElementById('memoDetails').value = '';
             triggerDataChangeInstant();
-            refreshAllUI();
-            sysAlert("تمت عملية التسديد بنجاح وتحويل الأرباح!", "نجاح", "success");
+            updateMemosUI();
+            sysAlert("تم حفظ المذكرة بنجاح!", "نجاح", "success");
         }
-        // --- نهاية دوال الصيانة والبرمجة ---
+
+        function completeMemoItem(memoId) {
+            let item = memosLog.find(m => m.id === memoId);
+            if(item) {
+                item.completed = true;
+                item.completedDate = new Date().toLocaleString('ar-IQ');
+                triggerDataChangeInstant();
+                updateMemosUI();
+                sysAlert("تم نقل الطلب إلى سجل المكتملة بنجاح!", "نجاح", "success");
+            }
+        }
+
+        function deleteMemoItem(memoId) {
+            sysConfirm("تأكيد", "حذف المذكرة نهائياً؟", () => {
+                memosLog = memosLog.filter(m => m.id !== memoId);
+                triggerDataChangeInstant();
+                updateMemosUI();
+                sysAlert("تم الحذف بنجاح", "نجاح", "success");
+            });
+        }
+
+        function updateMemosUI() {
+            const activeBody = document.getElementById('activeMemosTableBody');
+            const completedBody = document.getElementById('completedMemosTableBody');
+            if(!activeBody || !completedBody) return;
+
+            let activeItems = memosLog.filter(m => !m.completed);
+            let completedItems = memosLog.filter(m => m.completed);
+
+            activeBody.innerHTML = activeItems.length === 0 ? '<tr><td colspan="4" class="text-center p-4 text-gray-400">لا توجد مذكرات أو طلبات نشطة</td></tr>' : '';
+            activeItems.forEach(m => {
+                activeBody.innerHTML += `<tr class="border-b bg-white">
+                    <td class="p-3 border font-bold">${m.customer}</td>
+                    <td class="p-3 border font-bold text-gray-800">${m.details}</td>
+                    <td class="p-3 border text-xs text-gray-500">${m.date}</td>
+                    <td class="p-3 border text-center"><button onclick="completeMemoItem(${m.id})" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-1.5 rounded-xl text-xs font-bold cursor-pointer shadow-xs">اكتمل</button></td>
+                </tr>`;
+            });
+
+            completedBody.innerHTML = completedItems.length === 0 ? '<tr><td colspan="4" class="text-center p-4 text-gray-400">لا توجد طلبات مكتملة في السجل</td></tr>' : '';
+            completedItems.forEach(m => {
+                completedBody.innerHTML += `<tr class="border-b bg-green-50/40">
+                    <td class="p-3 border font-bold">${m.customer}</td>
+                    <td class="p-3 border font-bold text-gray-700 line-through">${m.details}</td>
+                    <td class="p-3 border text-xs text-green-700">${m.completedDate || m.date}</td>
+                    <td class="p-3 border text-center"><button onclick="deleteMemoItem(${m.id})" class="bg-red-50 text-red-600 px-2.5 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td>
+                </tr>`;
+            });
+        }
 
         function updateDamagedUI() {
             const catContainer = document.getElementById('damaged-categories-container');
@@ -1946,8 +1998,6 @@
         function selectCategory(name) { currentSelectedCategory = name; document.getElementById('pos-back-bar').classList.remove('hidden'); updatePOSCategories(); updatePOSGrid(); }
         function clearCategorySelection() { currentSelectedCategory = null; currentPOSStockFilter = null; document.getElementById('pos-back-bar').classList.add('hidden'); document.querySelectorAll('#pos-view .grid-cols-2 button').forEach(b => b.classList.remove('border-gray-800', 'border-red-500', 'border-amber-500', 'border-green-500', 'bg-orange-50')); updatePOSCategories(); updatePOSGrid(); }
 
-        let activePosItemDetailsId = null;
-
         function updatePOSGrid() {
             const grid = document.getElementById('pos-items-grid'); 
             let items = currentSelectedCategory ? inventory.filter(i => i.category === currentSelectedCategory) : inventory;
@@ -1964,49 +2014,13 @@
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
                 
-                let isDetailsOpen = activePosItemDetailsId === item.name;
-                let priceDetailsHtml = '';
-                if(isDetailsOpen) {
-                    priceDetailsHtml = `<div onclick="event.stopPropagation()" class="mt-3 pt-3 border-t bg-gray-50 p-2 rounded-xl text-right space-y-2">
-                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر البيع:</label><input type="number" value="${item.price}" onchange="updatePOSItemPriceDirect('${item.name}', 'sell', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-orange-600 bg-white"></div>
-                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر الشراء:</label><input type="number" value="${item.buyPrice||0}" onchange="updatePOSItemPriceDirect('${item.name}', 'buy', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-blue-600 bg-white"></div>
-                    </div>`;
-                }
-
-                grid.innerHTML += `<div onclick="togglePOSItemDetails('${item.name}')" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
+                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
                     ${img}
                     <h3 class="font-bold text-xs mb-1">${item.name}</h3>
                     <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
-                    <p class="text-xs font-black text-orange-600" onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q}); event.stopPropagation();">${formatMoney(item.price)} د.ع</p>
-                    <span class="text-[10px] text-gray-400 block mt-1 underline">اضغط للتعديل السريع للأسعار</span>
-                    ${priceDetailsHtml}
+                    <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
                 </div>`;
             });
-        }
-
-        function togglePOSItemDetails(itemName) {
-            if(activePosItemDetailsId === itemName) activePosItemDetailsId = null;
-            else activePosItemDetailsId = itemName;
-            updatePOSGrid();
-        }
-
-        function updatePOSItemPriceDirect(itemName, type, val) {
-            let item = inventory.find(i => i.name === itemName);
-            if(!item) return;
-            let numericVal = Number(val) || 0;
-            let oldBuy = item.buyPrice || 0; let oldSell = item.price || 0;
-
-            if(type === 'sell') {
-                item.price = numericVal;
-                auditLog.unshift({ type: 'تعديل سعر', details: `تعديل سعر بيع المادة "${item.name}" من نقطة البيع إلى ${formatMoney(numericVal)}`, date: new Date().toLocaleString('ar-IQ') });
-            } else {
-                item.buyPrice = numericVal;
-                if(!item.priceHistory) item.priceHistory = [];
-                item.priceHistory.push({ date: new Date().toLocaleString('ar-IQ'), oldBuy, newBuy: numericVal, oldSell, newSell: oldSell });
-                auditLog.unshift({ type: 'تعديل سعر', details: `تعديل سعر شراء المادة "${item.name}" من نقطة البيع إلى ${formatMoney(numericVal)}`, date: new Date().toLocaleString('ar-IQ') });
-            }
-            triggerDataChangeInstant();
-            refreshAllUI();
         }
 
         function handleBarcodeOrSearch(e) {
@@ -2021,22 +2035,11 @@
                 let q = Number(item.quantity) || 0; let minA = Number(item.minAlert) || 1;
                 let numColorClass = q === 0 ? "text-gray-400 font-black line-through" : (q <= minA ? "text-red-600 font-black" : "text-blue-600");
                 
-                let isDetailsOpen = activePosItemDetailsId === item.name;
-                let priceDetailsHtml = '';
-                if(isDetailsOpen) {
-                    priceDetailsHtml = `<div onclick="event.stopPropagation()" class="mt-3 pt-3 border-t bg-gray-50 p-2 rounded-xl text-right space-y-2">
-                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر البيع:</label><input type="number" value="${item.price}" onchange="updatePOSItemPriceDirect('${item.name}', 'sell', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-orange-600 bg-white"></div>
-                        <div><label class="block text-[10px] font-bold text-gray-600 mb-0.5">سعر الشراء:</label><input type="number" value="${item.buyPrice||0}" onchange="updatePOSItemPriceDirect('${item.name}', 'buy', this.value)" class="w-full border p-1 rounded text-center text-xs font-bold text-blue-600 bg-white"></div>
-                    </div>`;
-                }
-
-                grid.innerHTML += `<div onclick="togglePOSItemDetails('${item.name}')" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
+                grid.innerHTML += `<div onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q})" class="bg-white rounded-2xl p-3 cursor-pointer hover:border-fuchsia-400 border-2 border-transparent text-center shadow-xs transition relative">
                     ${img}
                     <h3 class="font-bold text-xs mb-1">${item.name}</h3>
                     <span class="text-[10px] font-mono text-purple-600 block mb-1">الكمية: <b class="${numColorClass}">${formatMoney(item.quantity)}</b></span>
-                    <p class="text-xs font-black text-orange-600" onclick="addDirectToInvoice('${item.name}', ${item.price}, ${item.buyPrice||0}, ${q}); event.stopPropagation();">${formatMoney(item.price)} د.ع</p>
-                    <span class="text-[10px] text-gray-400 block mt-1 underline">اضغط للتعديل السريع للأسعار</span>
-                    ${priceDetailsHtml}
+                    <p class="text-xs font-black text-orange-600">${formatMoney(item.price)} د.ع</p>
                 </div>`;
             });
         }
@@ -2048,13 +2051,30 @@
             calculateInvoiceTotal(); renderInvoice();
         }
         function calculateInvoiceTotal() { invoiceTotal = currentInvoiceItems.reduce((sum, item) => sum + (item.price * (item.qty || 1)), 0); }
+        
         function renderInvoice() {
             const box = document.getElementById('invoice-items'); box.innerHTML = currentInvoiceItems.length === 0 ? '<div class="text-center text-gray-400 py-6">فارغة</div>' : '';
             currentInvoiceItems.forEach((item, idx) => {
-                box.innerHTML += `<div class="bg-white p-2.5 rounded-xl border shadow-xs mb-2 flex flex-col gap-2"><div class="flex justify-between items-center"><span class="font-bold text-xs text-gray-800">${item.name}</span><button onclick="removeInvoiceItem(${idx})" class="text-red-400 cursor-pointer"><i class="fa-solid fa-xmark"></i></button></div><div class="flex justify-between items-center gap-2"><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">الكمية:</span><input type="number" min="1" value="${item.qty || 1}" onchange="updateItemQty(${idx}, this.value)" class="w-12 border p-1 rounded text-center text-xs font-bold"></div><div class="flex items-center gap-1"><span class="text-[10px] text-gray-500">السعر:</span><input type="number" value="${item.price}" onchange="updateItemPriceDirect(${idx}, this.value)" class="w-20 border p-1 rounded text-center text-xs font-bold text-fuchsia-600"></div></div></div>`;
+                box.innerHTML += `<div class="bg-white p-2.5 rounded-xl border shadow-xs mb-2 flex flex-col gap-2">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-xs text-gray-800">${item.name}</span>
+                        <button onclick="removeInvoiceItem(${idx})" class="text-red-400 cursor-pointer"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="flex justify-between items-center gap-2">
+                        <div class="flex items-center gap-1">
+                            <span class="text-[10px] text-gray-500">الكمية:</span>
+                            <input type="number" min="1" value="${item.qty || 1}" onchange="updateItemQty(${idx}, this.value)" class="w-12 border p-1 rounded text-center text-xs font-bold">
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <span class="text-[10px] text-gray-500">السعر:</span>
+                            <input type="number" value="${item.price}" onchange="updateItemPriceDirect(${idx}, this.value)" class="w-24 border p-1 rounded text-center text-xs font-bold text-fuchsia-600 bg-fuchsia-50/50">
+                        </div>
+                    </div>
+                </div>`;
             });
             document.getElementById('total-price').innerText = formatMoney(invoiceTotal) + ' د.ع';
         }
+
         function updateItemQty(idx, val) { currentInvoiceItems[idx].qty = Math.max(1, Number(val)); calculateInvoiceTotal(); renderInvoice(); }
         function updateItemPriceDirect(idx, val) { currentInvoiceItems[idx].price = Number(val) || 0; calculateInvoiceTotal(); renderInvoice(); }
         function removeInvoiceItem(idx) { currentInvoiceItems.splice(idx, 1); calculateInvoiceTotal(); renderInvoice(); }
@@ -2083,7 +2103,47 @@
             triggerDataChangeInstant(); refreshAllUI(); sysAlert(`تم إضافة الحساب الآجل "${name}" بنجاح!`, "نجاح", "success");
         }
 
-        function checkout() {
+        // --- إدارة الكاشير الافتراضي وإضافة كاشير جديد من القائمة ---
+        function updateCashierDropdownUI() {
+            const select = document.getElementById('posCashierSelect');
+            if(!select) return;
+            if(!cashiersList.includes(defaultCashier)) defaultCashier = "الرئيسي";
+            if(!cashiersList.includes("الرئيسي")) cashiersList.unshift("الرئيسي");
+
+            select.innerHTML = '';
+            cashiersList.forEach(c => {
+                select.innerHTML += `<option value="${c}" ${c === defaultCashier ? 'selected' : ''}>${c}</option>`;
+            });
+            select.innerHTML += `<option value="ADD_NEW" class="font-bold text-purple-700">+ إضافة كاشير جديد...</option>`;
+        }
+
+        function onCashierSelectionChange(selectEl) {
+            let val = selectEl.value;
+            if(val === 'ADD_NEW') {
+                sysPrompt("إضافة كاشير جديد", "أدخل اسم الكاشير الجديد:", "", (newCashierName) => {
+                    let name = newCashierName ? newCashierName.trim() : '';
+                    if(!name) {
+                        updateCashierDropdownUI();
+                        return;
+                    }
+                    if(!cashiersList.includes(name)) {
+                        cashiersList.push(name);
+                    }
+                    defaultCashier = name;
+                    triggerDataChangeInstant();
+                    updateCashierDropdownUI();
+                    sysAlert(`تم إضافة وتحديد الكاشير "${name}" بنجاح!`, "نجاح", "success");
+                });
+            } else {
+                defaultCashier = val;
+            }
+        }
+
+        function toggleNoPrintMode() {
+            isNoPrintMode = document.getElementById('noPrintCheckbox').checked;
+        }
+
+        function checkoutDirect() {
             if(invoiceTotal === 0) return sysAlert("الفاتورة فارغة!", "خطأ", "error");
             let type = document.getElementById('saleType').value; let cust = document.getElementById('posCustomerName').value.trim();
             if((type === 'debt' || type === 'debt_cash_payment') && !cust) return sysAlert("يرجى إدخال اسم الزبون الآجل!", "خطأ", "error");
@@ -2114,46 +2174,19 @@
             document.getElementById('posCustomerName').value = ''; document.getElementById('posCashPaidInput').value = '';
             renderInvoice(); refreshAllUI();
             
-            setupCashierModalDropdown();
-            document.getElementById('print-options-modal').classList.remove('hidden');
-            setTimeout(() => document.getElementById('print-options-modal').classList.add('opacity-100'), 10);
-        }
-
-        function setupCashierModalDropdown() {
-            const select = document.getElementById('checkoutCashierSelect'); select.innerHTML = '';
-            cashiersList.forEach(c => select.innerHTML += `<option value="${c}" ${c === defaultCashier ? 'selected' : ''}>${c}</option>`);
-            select.innerHTML += `<option value="ADD_NEW" class="text-blue-600 font-bold">+ إضافة كاشير جديد...</option>`;
-        }
-
-        function handleCashierDropdownChange(val) {
-            if(val === 'ADD_NEW') {
-                sysPrompt("إضافة كاشير", "أدخل اسم الكاشير الجديد:", "", (newName) => {
-                    let cleaned = newName ? newName.trim() : '';
-                    if(!cleaned) { document.getElementById('checkoutCashierSelect').value = defaultCashier; return; }
-                    if(!cashiersList.includes(cleaned)) cashiersList.push(cleaned);
-                    defaultCashier = cleaned; triggerDataChangeInstant(); setupCashierModalDropdown();
-                });
-            } else defaultCashier = val;
-        }
-
-        function executePrintChoice(print) {
-            const overlay = document.getElementById('print-options-modal'); overlay.classList.remove('opacity-100');
-            setTimeout(() => { 
-                overlay.classList.add('hidden'); 
-                if(print && lastCompletedSale) {
-                    let selectedCashier = document.getElementById('checkoutCashierSelect').value;
-                    if(selectedCashier === 'ADD_NEW') selectedCashier = defaultCashier;
-                    lastCompletedSale.cashier = selectedCashier;
-                    printSaleReceipt(lastCompletedSale, lastCompletedSale.customer, selectedCashier); 
-                }
-                lastCompletedSale = null; switchView('pos-view'); document.getElementById('searchPos').focus();
-            }, 300);
+            // الطباعة تتوقف إذا كان خيار "عدم الطباعة" مفعلًا
+            if(!isNoPrintMode) {
+                printSaleReceipt(sale, sale.customer, sale.cashier);
+            } else {
+                sysAlert("تمت عملية البيع بنجاح (بدون طباعة الوصل بناءً على خيارك)", "نجاح", "success");
+            }
         }
 
         function updateSalesTable() {
             const body = document.getElementById('salesTableBody'); body.innerHTML = ''; let t = 0, g = 0, exp = 0, loss = 0;
             expensesList.forEach(e => exp += e.amount); returnsHistory.forEach(r => loss += (r.lossAmount||0));
             let totalDamagedLoss = damagedLog.reduce((sum, d) => sum + (d.lossAmount || 0), 0);
+            let totalMaintProfit = maintenanceLog.filter(m => !m.isDamaged).reduce((s, m) => s + (m.profit || 0), 0);
 
             if(salesHistory.length === 0) body.innerHTML = '<tr><td colspan="8" class="text-center p-4">لا يوجد مبيعات</td></tr>';
             salesHistory.forEach(s => {
@@ -2163,10 +2196,12 @@
                     body.innerHTML += `<tr class="border-b bg-white ${i.returned?'bg-red-50/50 line-through text-gray-400':''}"><td class="p-3 border font-bold">#${s.id}</td><td class="p-3 border">${s.type}</td><td class="p-3 border font-bold">${s.customer}</td><td class="p-3 border text-purple-700 font-bold">${s.cashier || 'الرئيسي'}</td><td class="p-3 border">${i.name} (${formatMoney(i.qty||1)})</td><td class="p-3 border font-bold text-fuchsia-600">${formatMoney(i.price*(i.qty||1))}</td><td class="p-3 border text-green-600 font-bold">${formatMoney(prof)}</td><td class="p-3 border text-center">${!i.returned?`<button onclick="returnSingleItem(${s.id}, ${idx})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">إرجاع</button>`:'<span class="text-xs text-red-500 font-bold">مرتجع</span>'}</td></tr>`;
                 });
             });
+
             document.getElementById('totalSalesDisplay').innerText = formatMoney(t) + ' د.ع';
             document.getElementById('grossProfitDisplay').innerText = formatMoney(g) + ' د.ع';
-            document.getElementById('salesDamagedLossDisplay').innerText = formatMoney(totalDamagedLoss) + ' د.ع';
-            document.getElementById('netProfitDisplay').innerText = formatMoney(g - exp - loss - totalDamagedLoss) + ' د.ع';
+            document.getElementById('salesMaintProfitDisplay').innerText = formatMoney(totalMaintProfit) + ' د.ع';
+            document.getElementById('totalProfitWithMaintDisplay').innerText = formatMoney(g + totalMaintProfit) + ' د.ع';
+            document.getElementById('netProfitDisplay').innerText = formatMoney((g + totalMaintProfit) - exp - loss - totalDamagedLoss) + ' د.ع';
         }
 
         function returnSingleItem(id, idx) { sysConfirm("تأكيد الإرجاع", "اختر حالة المنتج:", () => { processReturnAction(id, idx, 'سليم'); }); }
