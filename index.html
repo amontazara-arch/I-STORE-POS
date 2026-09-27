@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iStore POS & ERP System - Native PWA Edition v5.10</title>
+    <title>iStore POS & ERP System - Native PWA Edition v5.11</title>
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAACXBIWXMAAA7DAAAOwwHHb6hkAAAAGXRFWHRTb2Z0d2FyZQB3d3cuaW5rc2NhcGUub3JnmP48GAAAAWlJREFUWIXtV1sOwjAM82kntpvsHl04AU5A12EldmC3YoeSShVpE0n64fSS2O7j804iUj9u2p8i8mYk5T0qQAAi4H9aE0AAaL8rJAEAkH1fAAHw3wYQAAWADbZ9T4AA0AGk/7hAAIAAAAC02N7b3RvbjpzYXR1cmF0ZWQ7c2F0dXJhdGVkOjpzdG9yZWQ prb2ZpbGVBY2NvdW50Omlncns7ICAgICAgICAgICAgICAgICAg" id="dynamic-favicon">
     
     <meta name="theme-color" content="#111827">
@@ -11,6 +11,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- مكتبة تحويل HTML إلى صور لإرسال الوصولات -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
@@ -93,7 +95,7 @@
                 </div>
                 <div class="flex gap-2">
                     <button onclick="clearAllNotifications()" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">مسح الكل</button>
-                    <button onclick="closeNotificationsModal()" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">إغلاق</button>
+                    <button onclick="closeNotificationsModal()" class="bg-gray-100 hover:bg-gray-200 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer">إإغلاق</button>
                 </div>
             </div>
             <div class="flex-1 overflow-y-auto space-y-3 pr-1" id="notifications-modal-list"></div>
@@ -121,7 +123,7 @@
                 <span class="text-orange-500 text-5xl font-black">i</span>
                 <span class="text-gray-900 text-4xl font-bold uppercase tracking-wide">store</span>
             </div>
-            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.10)</p>
+            <p class="text-gray-500 text-sm mb-8">نظام إدارة المحلات والمبيعات - تطبيق غيتهب السحابي (v5.11)</p>
             
             <div id="login-form-box" class="space-y-5 text-right">
                 <div>
@@ -244,7 +246,9 @@
             <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-red-300 font-bold flex items-center"><i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات</button>
             <button onclick="switchView('customers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-address-book pl-3 text-gray-400"></i> كشف حساب الزبائن</button>
             <button onclick="switchView('my-debts-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice-dollar pl-3 text-red-400"></i> المجهّزون والديون</button>
-            <button onclick="switchView('vouchers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-receipt pl-3 text-gray-400"></i> السندات والنسخ الاحتياطي</button>
+            <button onclick="switchView('vouchers-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-emerald-400 font-bold flex items-center justify-between">
+                <span class="flex items-center"><i class="fa-brands fa-whatsapp pl-3 text-emerald-500 text-lg"></i> السندات وإعدادات الواتساب</span>
+            </button>
             <button onclick="switchView('expenses-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-hand-holding-dollar pl-3 text-gray-400"></i> المصروفات</button>
             <button onclick="switchView('audit-view'); toggleMobileSidebar(true);" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-shield-halved pl-3 text-amber-400"></i> سجل الرقابة والحذف</button>
             
@@ -271,6 +275,7 @@
                     <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-yellow-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
                     <button onclick="switchView('customers-view')" class="flex flex-col items-center justify-center p-4 bg-[#1d71b8] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-address-book text-3xl mb-2"></i><span class="font-bold">حساب الزبائن</span></button>
                     <button onclick="switchView('my-debts-view')" class="flex flex-col items-center justify-center p-4 bg-red-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-file-invoice-dollar text-3xl mb-2"></i><span class="font-bold">المجهّزون والديون</span></button>
+                    <button onclick="switchView('vouchers-view')" class="flex flex-col items-center justify-center p-4 bg-emerald-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-brands fa-whatsapp text-3xl mb-2"></i><span class="font-bold">السندات والواتساب</span></button>
                     <button onclick="switchView('expenses-view')" class="flex flex-col items-center justify-center p-4 bg-[#8cc63f] rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-hand-holding-dollar text-3xl mb-2"></i><span class="font-bold">المصروفات</span></button>
                 </div>
             </div>
@@ -647,11 +652,12 @@
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">حسابات الزبائن (كشف الحساب)</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
                     <div class="bg-blue-50 p-4 rounded-2xl border mb-6 flex flex-col md:flex-row gap-3">
                         <input type="text" id="newCustAccountName" placeholder="اسم الزبون الجديد..." class="border p-2.5 rounded-xl flex-1 outline-none bg-white">
+                        <input type="tel" id="newCustAccountPhone" placeholder="رقم واتساب الزبون (مثال: 07700000000)..." class="border p-2.5 rounded-xl w-full md:w-60 outline-none bg-white font-bold">
                         <input type="number" id="newCustAccountDebt" placeholder="الدين الافتتاحي (اختياري)..." class="border p-2.5 rounded-xl w-full md:w-48 outline-none bg-white">
                         <button onclick="addNewCustomerAccount()" class="bg-blue-600 text-white px-5 py-2.5 rounded-xl font-bold cursor-pointer">إضافة حساب زبون</button>
                     </div>
                     <input type="text" id="searchCustomerInput" onkeyup="filterCustomersList()" placeholder="🔍 بحث عن زبون..." class="w-full border p-3 rounded-xl bg-gray-50 font-bold mb-4 outline-none">
-                    <div class="overflow-x-auto"><table class="w-full text-right border-collapse"><thead><tr class="bg-gray-50"><th class="p-3 border">الزبون</th><th class="p-3 border">الدين الحالي</th><th class="p-3 border text-center">عرض كشف الحساب</th></tr></thead><tbody id="customersTableBody"></tbody></table></div>
+                    <div class="overflow-x-auto"><table class="w-full text-right border-collapse"><thead><tr class="bg-gray-50"><th class="p-3 border">الزبون</th><th class="p-3 border">رقم الهاتف</th><th class="p-3 border">الدين الحالي</th><th class="p-3 border text-center">عرض كشف الحساب</th></tr></thead><tbody id="customersTableBody"></tbody></table></div>
                 </div>
             </div>
 
@@ -666,7 +672,12 @@
                     </div>
                     <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex justify-between items-center"><span class="text-blue-900 font-bold">إجمالي المبلغ (الدين الحالي):</span><span class="text-2xl font-black text-blue-700" id="detailCustomerTotalDebtDisplay">0 د.ع</span></div>
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <div class="bg-gray-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">تعديل الاسم</h3><input type="text" id="newCustomerNameInput" class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="updateCustomerName()" class="bg-blue-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">حفظ</button></div>
+                        <div class="bg-gray-50 p-4 rounded-xl border">
+                            <h3 class="font-bold mb-2 text-xs">تعديل الاسم والهاتف</h3>
+                            <input type="text" id="newCustomerNameInput" placeholder="الاسم..." class="border p-2 rounded-lg w-full text-xs mb-1 bg-white">
+                            <input type="tel" id="newCustomerPhoneInput" placeholder="رقم الهاتف..." class="border p-2 rounded-lg w-full text-xs mb-2 bg-white">
+                            <button onclick="updateCustomerName()" class="bg-blue-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">حفظ</button>
+                        </div>
                         <div class="bg-indigo-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">دين خارجي</h3><input type="text" id="extItemDesc" placeholder="الوصف" class="border p-2 rounded-lg w-full text-xs mb-1 bg-white"><input type="number" id="extItemAmount" placeholder="المبلغ" class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="addExternalItemDebt()" class="bg-indigo-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">إضافة</button></div>
                         <div class="bg-green-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">تسديد (قبض)</h3><input type="number" id="quickPayAmount" placeholder="المبلغ..." class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="quickPayDebt()" class="bg-green-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">قبض</button></div>
                         <div class="bg-amber-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">خصم/إعفاء</h3><input type="number" id="exemptionAmount" placeholder="الخصم..." class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="exemptCustomerDebt()" class="bg-amber-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">إعفاء</button></div>
@@ -772,10 +783,56 @@
                 </div>
             </div>
 
+            <!-- ========================================== -->
+            <!-- 🟢 قسم السندات والنسخ وإعدادات الواتساب البارزة -->
+            <!-- ========================================== -->
             <div id="vouchers-view" class="app-view max-w-4xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">السندات والنسخ الاحتياطي وإعدادات الطباعة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <h2 class="text-xl font-bold flex items-center gap-2">
+                            <i class="fa-brands fa-whatsapp text-emerald-600 text-2xl"></i>
+                            السندات وإعدادات الواتساب والطباعة
+                        </h2>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button>
+                    </div>
                     
+                    <!-- كارت إعدادات الواتساب البارز مع الزر والتجربة -->
+                    <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border-2 border-emerald-300 rounded-2xl p-5 mb-6 shadow-sm">
+                        <div class="flex justify-between items-center mb-3">
+                            <h3 class="font-black text-emerald-900 text-base flex items-center gap-2">
+                                <i class="fa-brands fa-whatsapp text-2xl text-emerald-600"></i> إعدادات وبوابة إرسال الوصولات عبر الواتساب
+                            </h3>
+                            <span class="bg-emerald-200 text-emerald-900 font-bold text-xs px-2.5 py-1 rounded-full">مفعل 🟢</span>
+                        </div>
+                        <p class="text-xs text-gray-600 mb-4 font-bold">حدد خيار إرسال الوصولات (قبض، شراء، وكشف حساب) تلقائياً برقم الواتساب الخاص بالزبون.</p>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block font-bold text-xs mb-1 text-emerald-900">طريقة الإرسال المعتمدة:</label>
+                                <select id="waGatewayType" class="w-full border-2 border-emerald-300 p-2.5 rounded-xl bg-white font-bold text-xs outline-none">
+                                    <option value="web">WhatsApp Web (مجاني 100% - يفتح التطبيق/المتصفح)</option>
+                                    <option value="api">سيرفر API أوتوماتيكي (إرسال صامت خلف الكواليس)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block font-bold text-xs mb-1 text-emerald-900">معرّف الجلسة / Instance ID (خاص بـ API):</label>
+                                <input type="text" id="waInstanceId" placeholder="instance12345" class="w-full border-2 border-gray-200 p-2.5 rounded-xl bg-white font-bold text-xs outline-none">
+                            </div>
+                            <div>
+                                <label class="block font-bold text-xs mb-1 text-emerald-900">رمز الوصول / API Token (خاص بـ API):</label>
+                                <input type="password" id="waApiToken" placeholder="••••••••••••••••" class="w-full border-2 border-gray-200 p-2.5 rounded-xl bg-white font-bold text-xs outline-none">
+                            </div>
+                            <div class="flex items-end gap-2">
+                                <button onclick="saveWhatsAppSettings()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl font-bold text-xs shadow transition cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-floppy-disk"></i> حفظ الإعدادات
+                                </button>
+                                <button onclick="testWhatsAppSending()" class="bg-teal-800 hover:bg-teal-900 text-white px-3 py-2.5 rounded-xl font-bold text-xs shadow transition cursor-pointer flex items-center justify-center gap-1.5">
+                                    <i class="fa-solid fa-paper-plane"></i> تجربة إرسال
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl p-5 mb-6">
                         <h3 class="font-bold text-blue-900 mb-2"><i class="fa-solid fa-cloud-arrow-down"></i> إدارة النسخ الاحتياطي للبيانات</h3>
                         <p class="text-xs text-gray-600 mb-4">قم بأخذ نسخة احتياطية لحفظ جميع بيانات محلك محلياً وفي تطبيق الملفات (جوجل درايف أو مجلد الجهاز).</p>
@@ -985,6 +1042,41 @@
         let currentDamagedCategory = null; 
 
         let globalNotificationMode = localStorage.getItem('iStore_NotifMode') || 'active';
+
+        // إعدادات الواتساب
+        let waSettings = JSON.parse(localStorage.getItem('iStore_WASettings')) || { type: 'web', instanceId: '', token: '' };
+
+        function updateWASettingsInputsUI() {
+            let typeEl = document.getElementById('waGatewayType');
+            let instEl = document.getElementById('waInstanceId');
+            let tokEl = document.getElementById('waApiToken');
+            if(typeEl) typeEl.value = waSettings.type || 'web';
+            if(instEl) instEl.value = waSettings.instanceId || '';
+            if(tokEl) tokEl.value = waSettings.token || '';
+        }
+
+        function saveWhatsAppSettings() {
+            let typeEl = document.getElementById('waGatewayType');
+            let instEl = document.getElementById('waInstanceId');
+            let tokEl = document.getElementById('waApiToken');
+            
+            if(typeEl) waSettings.type = typeEl.value;
+            if(instEl) waSettings.instanceId = instEl.value.trim();
+            if(tokEl) waSettings.token = tokEl.value.trim();
+            
+            localStorage.setItem('iStore_WASettings', JSON.stringify(waSettings));
+            triggerDataChangeInstant();
+            sysAlert("تم حفظ إعدادات الواتساب بنجاح!", "نجاح", "success");
+        }
+
+        function testWhatsAppSending() {
+            sysPrompt("تجربة إرسال عبر الواتساب", "أدخل رقم هاتف للتجربة (مثال: 07700000000):", "", (phone) => {
+                if(!phone) return;
+                let cleanPhone = formatIQPhoneNumber(phone);
+                let text = "مرحباً! هذه رسالة تجريبية من نظام iStore POS والربط يعمل بنجاح 🛍️";
+                openWhatsAppWebDirect(cleanPhone, text);
+            });
+        }
 
         function formatMoney(num) {
             if (num === undefined || num === null || isNaN(num)) return "0";
@@ -1237,7 +1329,7 @@
         }
 
         function exportBackupFile() {
-            const appData = { version: "5.10", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            const appData = { version: "5.11", storeUser: currentStoreUser, date: new Date().toISOString(), inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems, waSettings };
             if(currentStoreUser) localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(appData, null, 2));
             const downloadAnchor = document.createElement('a');
@@ -1277,6 +1369,7 @@
                         chatMessages = imported.chatMessages || [];
                         systemNotifications = imported.systemNotifications || [];
                         notifiedStockItems = imported.notifiedStockItems || {};
+                        if(imported.waSettings) waSettings = imported.waSettings;
                         if(imported.picsartLayouts) picsartLayouts = imported.picsartLayouts;
                         if(imported.layoutSettings) layoutSettings = imported.layoutSettings;
                         document.getElementById('logoUrlInput').value = customLogoUrl;
@@ -1368,7 +1461,7 @@
             let p = document.getElementById('regPassword').value.trim();
             if(!u || !email || !p) return sysAlert("أكمل الحقول!", "خطأ", "error"); 
 
-            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], damagedLog: [], maintenanceLog: [], memosLog: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {} };
+            let initialData = { pass: p, email, inventory: [], categoriesList: [], salesHistory: [], returnsHistory: [], expensesList: [], debtsList: [], myDebtsList: [], auditLog: [], fixedItems: [], damagedLog: [], maintenanceLog: [], memosLog: [], cashiersList: ["الرئيسي", "مقتدى"], defaultCashier: "الرئيسي", customLogoUrl: "", customReceiptBgUrl: "", chatMessages: [], systemNotifications: [], notifiedStockItems: {}, waSettings: { type: 'web', instanceId: '', token: '' } };
 
             localStorage.setItem('iStore_LocalData_' + u, JSON.stringify(initialData));
             currentStoreUser = u; localStorage.setItem('iStoreCurrentStore', u); 
@@ -1406,6 +1499,7 @@
         function loadDataFromServerData(data) {
             if(data) {
                 inventory = data.inventory || []; categoriesList = data.categoriesList || []; salesHistory = data.salesHistory || []; returnsHistory = data.returnsHistory || []; expensesList = data.expensesList || []; debtsList = data.debtsList || []; myDebtsList = data.myDebtsList || []; auditLog = data.auditLog || []; fixedItems = data.fixedItems || []; damagedLog = data.damagedLog || []; maintenanceLog = data.maintenanceLog || []; memosLog = data.memosLog || []; cashiersList = data.cashiersList || ["الرئيسي", "مقتدى"]; defaultCashier = data.defaultCashier || "الرئيسي"; customLogoUrl = data.customLogoUrl || ""; customReceiptBgUrl = data.customReceiptBgUrl || ""; chatMessages = data.chatMessages || []; systemNotifications = data.systemNotifications || []; notifiedStockItems = data.notifiedStockItems || {};
+                if(data.waSettings) waSettings = data.waSettings;
                 if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
                 if(data.layoutSettings) layoutSettings = data.layoutSettings;
                 document.getElementById('logoUrlInput').value = customLogoUrl; document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
@@ -1420,6 +1514,7 @@
                 if (snapshot.exists()) {
                     let remoteData = snapshot.val();
                     inventory = remoteData.inventory || []; categoriesList = remoteData.categoriesList || []; salesHistory = remoteData.salesHistory || []; returnsHistory = remoteData.returnsHistory || []; expensesList = remoteData.expensesList || []; debtsList = remoteData.debtsList || []; myDebtsList = remoteData.myDebtsList || []; auditLog = remoteData.auditLog || []; fixedItems = remoteData.fixedItems || []; damagedLog = remoteData.damagedLog || []; maintenanceLog = remoteData.maintenanceLog || []; memosLog = remoteData.memosLog || []; chatMessages = remoteData.chatMessages || []; systemNotifications = remoteData.systemNotifications || []; notifiedStockItems = remoteData.notifiedStockItems || {};
+                    if(remoteData.waSettings) waSettings = remoteData.waSettings;
                     localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
                     updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     refreshAllUI();
@@ -1429,7 +1524,7 @@
 
         function triggerDataChangeInstant() {
             if(!currentStoreUser) return;
-            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems };
+            let appData = { pass: ADMIN_SECRET_MASTER_PASSWORD, inventory, categoriesList, salesHistory, returnsHistory, expensesList, debtsList, myDebtsList, auditLog, fixedItems, damagedLog, maintenanceLog, memosLog, cashiersList, defaultCashier, customLogoUrl, customReceiptBgUrl, picsartLayouts, layoutSettings, chatMessages, systemNotifications, notifiedStockItems, waSettings };
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             if(window.fbDB) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
@@ -1455,6 +1550,8 @@
 
         function renderCustomerDetailData(name) {
             document.getElementById('detailCustomerName').innerText = name; document.getElementById('newCustomerNameInput').value = name;
+            let custObj = debtsList.find(d => d.customer === name && d.phone);
+            if(custObj) document.getElementById('newCustomerPhoneInput').value = custObj.phone || '';
             let totalCustDebt = 0; debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += d.amount);
             document.getElementById('detailCustomerTotalDebtDisplay').innerText = formatMoney(totalCustDebt) + ' د.ع';
             const body = document.getElementById('customerInvoicesBody'); if(body) { body.innerHTML = ''; debtsList.filter(d => d.customer === name).forEach(d => { body.innerHTML += `<tr class="border-b"><td class="p-3 border font-bold">${d.details}</td><td class="p-3 border font-bold ${d.amount<0?'text-green-600':'text-blue-600'}">${formatMoney(d.amount)}</td><td class="p-3 border text-sm">${d.date}</td></tr>`; }); }
@@ -1468,7 +1565,7 @@
         }
 
         function refreshAllUI() { 
-            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); updateDamagedUI(); updateMaintenanceUI(); updateMemosUI(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI(); updateCashierDropdownUI();
+            updateCategoriesUI(); updateInventoryTable(); updatePOSCategories(); updatePOSGrid(); updateSalesTable(); updateReturnsTable(); updateExpensesTable(); updateCustomersTable(); updateMyDebtsTable(); updateAuditTable(); updateVariableTable(); updateFixedTable(); updateDamagedUI(); updateMaintenanceUI(); updateMemosUI(); checkLowStockAlerts(); updateChatUI(); updateGlobalNotifButtonUI(); updateCashierDropdownUI(); updateWASettingsInputsUI();
             document.getElementById('chat-device-id').innerText = `جهازك: ${currentDeviceId}`;
             if(currentActiveCustomer && document.getElementById('customer-detail-view').classList.contains('active')) renderCustomerDetailData(currentActiveCustomer); 
             if(currentActiveSupplier && document.getElementById('supplier-detail-view').classList.contains('active')) renderSupplierDetailData(currentActiveSupplier); 
@@ -1476,6 +1573,7 @@
 
         window.onload = function() { 
             updateGlobalNotifButtonUI();
+            updateWASettingsInputsUI();
             document.querySelectorAll('.horizontal-scroll-container').forEach(container => {
                 let isDown = false; let startX, scrollLeft;
                 container.addEventListener('mousedown', (e) => { isDown = true; container.classList.add('active'); startX = e.pageX - container.offsetLeft; scrollLeft = container.scrollLeft; });
@@ -1495,6 +1593,7 @@
         function switchView(viewId) { 
             document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active')); 
             document.getElementById(viewId).classList.add('active'); 
+            if(viewId === 'vouchers-view') updateWASettingsInputsUI();
             if(viewId === 'chat-view') document.getElementById('sidebar-chat-bell').classList.add('hidden');
             if(viewId === 'damaged-view') { updateDamagedUI(); }
             if(viewId === 'maintenance-view') { updateMaintenanceUI(); }
@@ -1553,6 +1652,114 @@
         }
         function savePicsartLayout() { triggerDataChangeInstant(); sysAlert("تم حفظ التعديلات بنجاح!", "نجاح", "success"); switchView('vouchers-view'); }
 
+        // ==========================================
+        // 📱 نظام إدارة وإرسال الوصولات عبر الواتساب
+        // ==========================================
+
+        function formatIQPhoneNumber(phone) {
+            if (!phone) return '';
+            let clean = phone.replace(/[^0-9]/g, '');
+            if (clean.startsWith('07')) {
+                clean = '964' + clean.substring(1);
+            } else if (clean.startsWith('7')) {
+                clean = '964' + clean;
+            }
+            return clean;
+        }
+
+        async function generateVoucherImageBase64(elementId) {
+            const elem = document.getElementById(elementId);
+            if (!elem) return null;
+            try {
+                const canvas = await html2canvas(elem, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: "#ffffff"
+                });
+                return canvas.toDataURL('image/png');
+            } catch (err) {
+                console.error("خطأ في توليد صورة الوصل:", err);
+                return null;
+            }
+        }
+
+        function showPrintAndWhatsAppOptionsModal({ title, customerName, phone, messageText, elementToCaptureId }) {
+            let cleanPhone = formatIQPhoneNumber(phone);
+            
+            let modalButtonsHtml = `
+                <div class="flex flex-col gap-2.5 w-full mt-2">
+                    <button onclick="executeActionChoice('print', '${cleanPhone}', \`${messageText}\`, '${elementToCaptureId}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-print"></i> طباعة ورقية فقط
+                    </button>
+                    <button onclick="executeActionChoice('whatsapp', '${cleanPhone}', \`${messageText}\`, '${elementToCaptureId}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <i class="fa-brands fa-whatsapp text-lg"></i> إرسال الوصل عبر الواتساب
+                    </button>
+                    <button onclick="executeActionChoice('both', '${cleanPhone}', \`${messageText}\`, '${elementToCaptureId}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                        <i class="fa-solid fa-layer-group"></i> كلاهما (طباعة ورقية + إرسال واتساب)
+                    </button>
+                    <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer">
+                        إلغاء
+                    </button>
+                </div>
+            `;
+
+            openSysModal({
+                type: 'custom',
+                title: title || "خيارات الإصدار والطباعة",
+                message: `العميل: ${customerName || 'غير محدد'} (${cleanPhone || 'لا يوجد رقم'})`,
+                icon: '<i class="fa-brands fa-whatsapp text-emerald-500 text-5xl"></i>',
+                customHtmlButtons: modalButtonsHtml
+            });
+        }
+
+        async function executeActionChoice(choice, phone, messageText, elementId) {
+            closeSysModal();
+
+            if (choice === 'print' || choice === 'both') {
+                window.print();
+            }
+
+            if (choice === 'whatsapp' || choice === 'both') {
+                if (!phone) {
+                    return sysAlert("لم يتم العثور على رقم واتساب مسجل لهذا الزبون!", "تنبيه", "error");
+                }
+
+                let imgData = await generateVoucherImageBase64(elementId);
+
+                if (waSettings.type === 'api' && waSettings.instanceId && waSettings.token) {
+                    sysAlert("جاري إرسال الوصل تلقائياً عبر الواتساب...", "تنبيه", "info");
+                    try {
+                        let response = await fetch(`https://api.ultramsg.com/${waSettings.instanceId}/messages/image`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: new URLSearchParams({
+                                'token': waSettings.token,
+                                'to': phone,
+                                'image': imgData,
+                                'caption': messageText
+                            })
+                        });
+                        let res = await response.json();
+                        if (res.sent === "true" || res.id) {
+                            sysAlert("تم إرسال صورة الوصل بنجاح إلى الواتساب!", "نجاح", "success");
+                        } else {
+                            sysAlert("تعذر الإرسال عبر API، جاري الفتح عبر WhatsApp Web...", "تنبيه", "info");
+                            openWhatsAppWebDirect(phone, messageText);
+                        }
+                    } catch (e) {
+                        openWhatsAppWebDirect(phone, messageText);
+                    }
+                } else {
+                    openWhatsAppWebDirect(phone, messageText);
+                }
+            }
+        }
+
+        function openWhatsAppWebDirect(phone, text) {
+            let url = `https://api.whatsapp.com/send?phone=${phone}&text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        }
+
         function printSaleReceipt(sale, cust, cashierName) {
             let area = document.getElementById('printable-area');
             let prev = 0; let targetCustomer = cust || sale.customer;
@@ -1586,19 +1793,66 @@
 
         function printCustomerVoucherModal(voucherType) {
             sysPrompt("مبلغ الوصل", "أدخل المبلغ:", "", (val) => {
-                let a = Number(val); if(!a) return;
+                let a = Number(val); if (!a) return;
                 let title = voucherType === 'قبض' ? 'وصل قبض' : 'وصل شراء';
                 let bgStyle = customReceiptBgUrl ? `background-image: url('${customReceiptBgUrl}'); background-size: cover; background-position: center;` : 'background:#fff;';
-                document.getElementById('printable-area').innerHTML = `<div style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif;"><div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;"><div style="font-size:28px; font-weight:900;">istore</div></div><div style="margin-top:15px; font-weight:bold;">الاسم: ${currentActiveCustomer}</div><div style="margin-top:5px; font-weight:bold;">البيان: ${title}</div><div style="margin-top:30px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:10px;">المبلغ: ${formatMoney(a)} د.ع</div></div>`;
-                window.print();
+                
+                let custObj = debtsList.find(d => d.customer === currentActiveCustomer && d.phone);
+                let phone = custObj ? (custObj.phone || '') : '';
+
+                document.getElementById('printable-area').innerHTML = `
+                    <div id="voucher-capture-target" style="position:relative; width:380px; min-height:500px; ${bgStyle} padding:20px; box-sizing:border-box; font-family:'Tajawal',sans-serif; color:#000; background-color:#fff;">
+                        <div style="text-align:center; padding-bottom:8px; border-bottom:1px dashed #333;">
+                            <div style="font-size:28px; font-weight:900;">iStore</div>
+                            <div style="font-size:12px; font-weight:bold;">${title}</div>
+                        </div>
+                        <div style="margin-top:15px; font-weight:bold; font-size:13px;">الاسم: ${currentActiveCustomer}</div>
+                        <div style="margin-top:5px; font-weight:bold; font-size:12px;">التاريخ: ${new Date().toLocaleString('ar-IQ')}</div>
+                        <div style="margin-top:25px; font-weight:900; font-size:20px; color:#0d9488; text-align:center; border:2px dashed #0d9488; padding:12px; border-radius:12px;">
+                            المبلغ: ${formatMoney(a)} د.ع
+                        </div>
+                    </div>`;
+
+                let msgText = `أهلاً بك ${currentActiveCustomer}🌸\nتم إصدآر ${title} بمبلغ: ${formatMoney(a)} د.ع\nشكراً لتعاملكم معنا - iStore 🛍️`;
+
+                showPrintAndWhatsAppOptionsModal({
+                    title: `إصدار ${title}`,
+                    customerName: currentActiveCustomer,
+                    phone: phone,
+                    messageText: msgText,
+                    elementToCaptureId: 'voucher-capture-target'
+                });
             });
         }
 
         function printA4StatementOfAccount() {
             let list = debtsList.filter(d => d.customer === currentActiveCustomer);
+            let custObj = debtsList.find(d => d.customer === currentActiveCustomer && d.phone);
+            let phone = custObj ? (custObj.phone || '') : '';
+
+            let totalDebt = list.reduce((s, x) => s + x.amount, 0);
             let html = list.map(d => `<tr><td style="border:1px solid #ddd;padding:8px;">${d.date}</td><td style="border:1px solid #ddd;padding:8px;">${d.details}</td><td style="border:1px solid #ddd;padding:8px;font-weight:bold;color:${d.amount<0?'green':'red'}">${formatMoney(d.amount)}</td></tr>`).join('');
-            document.getElementById('printable-area').innerHTML = `<div style="padding:30px;font-family:Tajawal;direction:rtl;"><h2>كشف حساب: ${currentActiveCustomer}</h2><table style="width:100%;border-collapse:collapse;margin-top:20px;"><thead><tr style="background:#f3f4f6;"><th style="border:1px solid #ddd;padding:8px;">التاريخ</th><th style="border:1px solid #ddd;padding:8px;">البيان</th><th style="border:1px solid #ddd;padding:8px;">المبلغ</th></tr></thead><tbody>${html}</tbody></table></div>`;
-            window.print();
+            
+            document.getElementById('printable-area').innerHTML = `
+                <div id="statement-capture-target" style="padding:30px;font-family:Tajawal;direction:rtl;background:#fff;width:700px;color:#000;">
+                    <h2 style="margin-bottom:5px;">كشف حساب: ${currentActiveCustomer}</h2>
+                    <p style="font-size:12px;color:#555;">التاريخ: ${new Date().toLocaleDateString('ar-IQ')}</p>
+                    <table style="width:100%;border-collapse:collapse;margin-top:15px;">
+                        <thead><tr style="background:#f3f4f6;"><th style="border:1px solid #ddd;padding:8px;">التاريخ</th><th style="border:1px solid #ddd;padding:8px;">البيان</th><th style="border:1px solid #ddd;padding:8px;">المبلغ</th></tr></thead>
+                        <tbody>${html}</tbody>
+                    </table>
+                    <h3 style="margin-top:15px;text-align:left;color:#1d4ed8;">الرصيد المتبقي: ${formatMoney(totalDebt)} د.ع</h3>
+                </div>`;
+
+            let msgText = `مرحباً ${currentActiveCustomer}🌸\nمرفق لكم كشف الحساب الخاص بكم.\nالرصيد الحالي: ${formatMoney(totalDebt)} د.ع\niStore POS 🛍️`;
+
+            showPrintAndWhatsAppOptionsModal({
+                title: "إصدار كشف حساب A4",
+                customerName: currentActiveCustomer,
+                phone: phone,
+                messageText: msgText,
+                elementToCaptureId: 'statement-capture-target'
+            });
         }
 
         function saveCategory(event) { event.preventDefault(); let name = document.getElementById('catName').value.trim(); let image = document.getElementById('catImage').value.trim(); if(!name) return; categoriesList.unshift({ name, image }); document.getElementById('catName').value=''; document.getElementById('catImage').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة القسم", "نجاح", "success"); }
@@ -1892,7 +2146,7 @@
                                         if(suppRec) myDebtsList = myDebtsList.filter(d => d.id !== suppRec.id);
                                     }
                                     rec.isDamaged = false;
-                                    rec.isResolved = true; // تلغى كلمة تالف وارجاع سليم نهائيا
+                                    rec.isResolved = true;
                                     triggerDataChangeInstant();
                                     renderMaintenanceLogTable(); 
                                     sysAlert("تم خصم السعر من حساب المجهز وتصفير الأرباح بنجاح!", "نجاح", "success");
@@ -1902,11 +2156,10 @@
                                     let itemName = rec.description || rec.sourceDetails || "مادة صيانة";
 
                                     rec.isDamaged = false;
-                                    rec.isResolved = true; // تلغى كلمة تالف وارجاع سليم نهائيا
+                                    rec.isResolved = true;
                                     triggerDataChangeInstant();
                                     renderMaintenanceLogTable(); 
                                     
-                                    // تعبئة البيانات تلقائياً في صفحة إضافة مادة مع التحويل المباشر
                                     document.getElementById('itemName').value = itemName;
                                     document.getElementById('itemBuyPrice').value = unitBuyPrice;
                                     document.getElementById('itemQuantity').value = rec.usedQty || 1;
@@ -1922,7 +2175,6 @@
                                     if(hasMaintCat) catSelect.value = 'صيانة';
                                     else catSelect.value = '';
 
-                                    // تحويل مباشر لإيقونة المخزن
                                     switchView('add-item-view');
                                     sysAlert("تم تحويلك إلى المخزن وتمرير اسم المنتج وسعر الشراء. أكمل باقي البيانات واضغط حفظ.", "تنبيه", "info");
                                 }
@@ -1973,7 +2225,7 @@
 
             maintenanceLog.forEach(m => {
                 if(!m.isDamaged && !m.isResolved) totalProfit += (m.profit || 0);
-                else if (m.isDamaged) totalLoss += (m.cost || 0); // سعر شراء المادة فقط
+                else if (m.isDamaged) totalLoss += (m.cost || 0);
             });
 
             filteredList.forEach(m => {
@@ -1982,7 +2234,7 @@
                 
                 let actionBtn = '';
                 if (m.isResolved) {
-                    actionBtn = `<span class="text-xs text-gray-400 font-bold">-</span>`; // إلغاء كلمة تالف وارجاع سليم نهائياً
+                    actionBtn = `<span class="text-xs text-gray-400 font-bold">-</span>`;
                 } else {
                     actionBtn = !m.isDamaged ? `<button type="button" onclick="markMaintenanceAsDamaged(${m.id})" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer">تالف</button>` : `<button type="button" onclick="restoreMaintenanceToActive(${m.id})" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1 rounded-lg text-xs font-bold cursor-pointer">إرجاع سليم</button>`;
                 }
@@ -2000,7 +2252,7 @@
             });
 
             if(totalProfitDisp) totalProfitDisp.innerText = formatMoney(totalProfit) + ' د.ع';
-            if(totalLossDisp) totalLossDisp.innerText = formatMoney(totalLoss) + ' د.ع'; // الخسائر تظهر بسعر الشراء فوق
+            if(totalLossDisp) totalLossDisp.innerText = formatMoney(totalLoss) + ' د.ع';
             if(totalNetDisp) totalNetDisp.innerText = formatMoney(totalProfit - totalLoss) + ' د.ع';
         }
 
@@ -2333,7 +2585,7 @@
             let nameInput = document.getElementById('posCustomerName'); let name = nameInput.value.trim();
             if(!name) return sysAlert("أدخل اسم الحساب في حقل اسم الزبون أولاً!", "تنبيه", "error");
             if(debtsList.some(d => d.customer.toLowerCase() === name.toLowerCase())) return sysAlert("الحساب موجود بالفعل!", "تنبيه", "error");
-            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: name, amount: 0, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
+            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: name, phone: '', amount: 0, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
             auditLog.unshift({ type: 'حساب جديد', details: `فتح حساب للزبون: ${name}`, date: new Date().toLocaleString('ar-IQ') });
             triggerDataChangeInstant(); refreshAllUI(); sysAlert(`تم إضافة الحساب الآجل "${name}" بنجاح!`, "نجاح", "success");
         }
@@ -2484,18 +2736,33 @@
         }
 
         function updateCustomersTable() {
-            const body = document.getElementById('customersTableBody'); body.innerHTML = ''; let map = {};
-            debtsList.forEach(d => { if(!map[d.customer]) map[d.customer]=0; map[d.customer]+=d.amount; });
-            let keys = Object.keys(map); if(keys.length === 0) return body.innerHTML = '<tr><td colspan="3" class="text-center p-4 text-gray-400">لا توجد حسابات</td></tr>';
-            keys.forEach(k => { body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${k}</td><td class="p-3 border font-black text-blue-600">${formatMoney(map[k])} د.ع</td><td class="p-3 border text-center"><button type="button" onclick="openCustomerDetail('${k}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold cursor-pointer">فتح السجل</button></td></tr>`; });
+            const body = document.getElementById('customersTableBody'); body.innerHTML = ''; let map = {}; let phoneMap = {};
+            debtsList.forEach(d => { 
+                if(!map[d.customer]) map[d.customer]=0; 
+                map[d.customer]+=d.amount; 
+                if(d.phone) phoneMap[d.customer] = d.phone;
+            });
+            let keys = Object.keys(map); if(keys.length === 0) return body.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-400">لا توجد حسابات</td></tr>';
+            keys.forEach(k => { 
+                body.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border font-bold">${k}</td><td class="p-3 border font-mono text-xs text-gray-600">${phoneMap[k]||'-'}</td><td class="p-3 border font-black text-blue-600">${formatMoney(map[k])} د.ع</td><td class="p-3 border text-center"><button type="button" onclick="openCustomerDetail('${k}')" class="bg-blue-100 text-blue-800 px-3 py-1 rounded text-xs font-bold cursor-pointer">فتح السجل</button></td></tr>`; 
+            });
         }
         function filterCustomersList() {}
+        
         function addNewCustomerAccount() {
-            let n = document.getElementById('newCustAccountName').value.trim(); let a = Number(document.getElementById('newCustAccountDebt').value);
+            let n = document.getElementById('newCustAccountName').value.trim(); 
+            let phone = document.getElementById('newCustAccountPhone').value.trim();
+            let a = Number(document.getElementById('newCustAccountDebt').value);
             if(!n) return sysAlert("أدخل اسم الزبون", "خطأ", "error");
-            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: n, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
-            document.getElementById('newCustAccountName').value=''; document.getElementById('newCustAccountDebt').value=''; triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة الحساب بنجاح", "نجاح", "success");
+            
+            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: n, phone: phone, amount: isNaN(a)?0:a, date: new Date().toLocaleDateString('ar-IQ'), details: `فتح حساب جديد` });
+            
+            document.getElementById('newCustAccountName').value=''; 
+            document.getElementById('newCustAccountPhone').value='';
+            document.getElementById('newCustAccountDebt').value=''; 
+            triggerDataChangeInstant(); refreshAllUI(); sysAlert("تم إضافة الحساب بنجاح", "نجاح", "success");
         }
+        
         function openCustomerDetail(name) {
             currentActiveCustomer = name; 
             renderCustomerDetailData(name);
@@ -2512,24 +2779,40 @@
         function closeCustomerPaymentsLogModal() { document.getElementById('customer-payments-log-modal').classList.add('hidden'); }
 
         function updateCustomerName() {
-            let n = document.getElementById('newCustomerNameInput').value.trim(); if(!n) return;
-            debtsList.forEach(d => { if(d.customer === currentActiveCustomer) d.customer = n; });
+            let n = document.getElementById('newCustomerNameInput').value.trim();
+            let p = document.getElementById('newCustomerPhoneInput').value.trim();
+            if(!n) return;
+            debtsList.forEach(d => { 
+                if(d.customer === currentActiveCustomer) {
+                    d.customer = n;
+                    if(p !== undefined) d.phone = p;
+                }
+            });
             salesHistory.forEach(s => { if(s.customer === currentActiveCustomer) s.customer = n; });
             triggerDataChangeInstant(); openCustomerDetail(n); sysAlert("تم التعديل", "نجاح", "success");
         }
+        
         function addExternalItemDebt() {
             let d = document.getElementById('extItemDesc').value.trim(); let a = Number(document.getElementById('extItemAmount').value);
-            if(!d || !a) return; debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: a, date: new Date().toLocaleDateString('ar-IQ'), details: d });
+            let custObj = debtsList.find(x => x.customer === currentActiveCustomer && x.phone);
+            let phone = custObj ? custObj.phone : '';
+            if(!d || !a) return; debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, phone: phone, amount: a, date: new Date().toLocaleDateString('ar-IQ'), details: d });
             document.getElementById('extItemDesc').value=''; document.getElementById('extItemAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer);
         }
+        
         function quickPayDebt() {
             let a = Number(document.getElementById('quickPayAmount').value); if(!a) return;
-            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد من الزبون)` });
+            let custObj = debtsList.find(x => x.customer === currentActiveCustomer && x.phone);
+            let phone = custObj ? custObj.phone : '';
+            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, phone: phone, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `قبض (تسديد من الزبون)` });
             document.getElementById('quickPayAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم القبض بنجاح", "نجاح", "success");
         }
+        
         function exemptCustomerDebt() {
             let a = Number(document.getElementById('exemptionAmount').value); if(!a) return;
-            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `خصم / إعفاء` });
+            let custObj = debtsList.find(x => x.customer === currentActiveCustomer && x.phone);
+            let phone = custObj ? custObj.phone : '';
+            debtsList.unshift({ id: Math.floor(Math.random()*1000000), customer: currentActiveCustomer, phone: phone, amount: -a, date: new Date().toLocaleDateString('ar-IQ'), details: `خصم / إعفاء` });
             document.getElementById('exemptionAmount').value=''; triggerDataChangeInstant(); openCustomerDetail(currentActiveCustomer); sysAlert("تم الخصم", "نجاح", "success");
         }
         
