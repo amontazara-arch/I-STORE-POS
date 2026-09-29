@@ -1515,12 +1515,19 @@
                         <h2 class="text-xl font-bold">سجل المبيعات</h2>
                         <button type="button" onclick="switchView('dashboard-view')" class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer transition">العودة</button>
                     </div>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 text-center">
+                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
                         <div class="bg-blue-50 p-3.5 rounded-2xl border border-blue-200"><h4 class="text-xs font-bold text-blue-800">إجمالي المبيعات</h4><p class="text-xl font-black text-blue-700 mt-1" id="totalSalesDisplay">0 د.ع</p></div>
                         <div class="bg-green-50 p-3.5 rounded-2xl border border-green-200"><h4 class="text-xs font-bold text-green-800">إجمالي الأرباح</h4><p class="text-xl font-black text-green-700 mt-1" id="grossProfitDisplay">0 د.ع</p></div>
                         <div class="bg-teal-50 p-3.5 rounded-2xl border border-teal-200"><h4 class="text-xs font-bold text-teal-800">أرباح الصيانة</h4><p class="text-xl font-black text-teal-700 mt-1" id="salesMaintProfitDisplay">0 د.ع</p></div>
                         <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200"><h4 class="text-xs font-bold text-amber-900">الإجمالي الكلي للأرباح مع الصيانة</h4><p class="text-xl font-black text-amber-700 mt-1" id="totalProfitWithMaintDisplay">0 د.ع</p></div>
                         <div class="bg-fuchsia-50 p-3.5 rounded-2xl border border-fuchsia-200"><h4 class="text-xs font-bold text-fuchsia-800">الصافي النهائي</h4><p class="text-xl font-black text-fuchsia-700 mt-1" id="netProfitDisplay">0 د.ع</p></div>
+                        <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-3.5 rounded-2xl border-2 border-indigo-300 text-center shadow-xs cursor-pointer hover:shadow-md transition active:scale-[0.98]" onclick="showComprehensiveTotalBreakdownModal()" title="اضغط لعرض تفاصيل الحسبة الشاملة">
+                            <h4 class="text-xs font-black text-indigo-900 flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-scale-balanced text-indigo-600"></i> الإجمالي الكلي النهائي
+                            </h4>
+                            <p class="text-xl font-black text-indigo-700 mt-1" id="finalComprehensiveTotalDisplay">0 د.ع</p>
+                            <span class="text-[9px] text-indigo-800 font-bold block mt-0.5" id="finalComprehensiveSubtitle">شامل الحسابات والسيولة</span>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-white rounded-2xl shadow-sm p-6">
@@ -4391,6 +4398,37 @@ function clearPOSInvoice() {
     renderInvoice();
 }
 
+function updateCartItemPrice(idx, newPrice) {
+    if (!currentInvoiceItems[idx]) return;
+    let price = parseFloat(newPrice);
+    if (isNaN(price) || price < 0) {
+        sysToast("يرجى إدخال سعر بيع صحيح!", "warning");
+        renderInvoice();
+        return;
+    }
+    let oldPrice = currentInvoiceItems[idx].price;
+    currentInvoiceItems[idx].price = price;
+    renderInvoice();
+    if (oldPrice !== price) {
+        sysToast(`تم تعديل سعر بيع (${currentInvoiceItems[idx].name}) إلى ${formatMoney(price)} د.ع ✓`, "success");
+    }
+}
+
+function promptEditCartItemPrice(idx) {
+    if (!currentInvoiceItems[idx]) return;
+    let item = currentInvoiceItems[idx];
+    sysPrompt(
+        "تعديل سعر البيع", 
+        `أدخل سعر البيع الجديد للمادة (${item.name}):`, 
+        item.price, 
+        (val) => {
+            if (val !== null && val !== undefined && String(val).trim() !== '') {
+                updateCartItemPrice(idx, String(val).trim());
+            }
+        }
+    );
+}
+
 function renderInvoice() {
     const container = document.getElementById('invoice-items');
     const totalPriceEl = document.getElementById('total-price');
@@ -4415,19 +4453,39 @@ function renderInvoice() {
         subTotal += lineTotal;
 
         return `
-            <div class="bg-white p-2.5 rounded-xl border flex items-center justify-between text-xs shadow-2xs">
+            <div class="bg-white p-2.5 rounded-xl border border-gray-200 hover:border-purple-300 flex items-center justify-between text-xs shadow-2xs gap-3 transition">
+                <!-- اسم المادة -->
                 <div class="flex-1 min-w-0 pr-1">
-                    <div class="font-bold text-gray-800 truncate">${item.name}</div>
-                    <div class="text-[11px] text-gray-400 font-mono">${formatMoney(item.price)} د.ع × ${item.qty}</div>
+                    <div class="font-bold text-gray-800 truncate text-[13px]" title="${item.name}">${item.name}</div>
                 </div>
-                <div class="flex items-center gap-2">
-                    <div class="flex items-center border rounded-lg bg-gray-50 overflow-hidden">
-                        <button type="button" onclick="updateCartQty(${idx}, -1)" class="px-2 py-1 text-gray-600 hover:bg-gray-200 cursor-pointer font-bold">-</button>
-                        <span class="px-2 py-1 font-bold text-xs text-gray-800 bg-white">${item.qty}</span>
-                        <button type="button" onclick="updateCartQty(${idx}, 1)" class="px-2 py-1 text-gray-600 hover:bg-gray-200 cursor-pointer font-bold">+</button>
+                
+                <!-- في الفاتورة: العدد وسعر البيع المدمج فقط -->
+                <div class="flex items-center gap-2 shrink-0">
+                    <!-- 1. العدد -->
+                    <div class="flex items-center border border-gray-200 rounded-lg bg-gray-50 overflow-hidden shadow-2xs" title="العدد">
+                        <button type="button" onclick="updateCartQty(${idx}, -1)" class="w-6 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 cursor-pointer font-bold transition">-</button>
+                        <span class="w-7 h-7 flex items-center justify-center font-bold text-xs text-gray-800 bg-white font-mono border-x border-gray-200">${item.qty}</span>
+                        <button type="button" onclick="updateCartQty(${idx}, 1)" class="w-6 h-7 flex items-center justify-center text-gray-600 hover:bg-gray-200 hover:text-gray-900 cursor-pointer font-bold">+</button>
                     </div>
-                    <span class="font-black text-purple-700 min-w-[65px] text-left">${formatMoney(lineTotal)} د.ع</span>
-                    <button type="button" onclick="removeCartItem(${idx})" class="text-red-500 hover:text-red-700 p-1 cursor-pointer"><i class="fa-solid fa-trash-can"></i></button>
+
+                    <!-- 2. سعر البيع مدمج مع إمكانية تعديل السعر مباشرة -->
+                    <div class="flex items-center border border-purple-200 hover:border-purple-400 bg-purple-50/70 hover:bg-purple-100/70 rounded-lg px-2 py-0.5 transition focus-within:ring-2 focus-within:ring-purple-400 focus-within:bg-white shadow-2xs cursor-text" title="سعر البيع - انقر للتعديل">
+                        <input type="number" 
+                               value="${item.price}" 
+                               min="0" 
+                               step="any"
+                               onchange="updateCartItemPrice(${idx}, this.value)" 
+                               onkeyup="if(event.key==='Enter') this.blur()"
+                               onclick="this.select()"
+                               class="w-20 bg-transparent font-mono font-black text-purple-900 text-xs text-center focus:outline-none cursor-pointer focus:cursor-text py-0.5" 
+                               title="سعر البيع (انقر للتعديل)" />
+                        <span class="text-[10px] text-purple-700 font-bold mr-0.5">د.ع</span>
+                    </div>
+
+                    <!-- زر الحذف -->
+                    <button type="button" onclick="removeCartItem(${idx})" class="text-gray-400 hover:text-red-600 p-1.5 rounded-lg hover:bg-red-50 cursor-pointer transition" title="حذف المادة من الفاتورة">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
                 </div>
             </div>
         `;
@@ -4857,6 +4915,94 @@ function toggleNoPrintMode() {
 // ==========================================
 // 📊 جداول المبيعات والمرتجعات والحسابات والرقابة
 // ==========================================
+function showComprehensiveTotalBreakdownModal() {
+    let totalSales = 0;
+    let grossProfit = 0;
+    ensureArray(salesHistory).forEach(s => {
+        totalSales += (Number(s.total) || 0);
+        grossProfit += (Number(s.profit) || 0);
+    });
+
+    let maintProfit = ensureArray(maintItems).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let totalExpenses = ensureArray(expensesList).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+
+    let totalDamagedLoss = 0;
+    let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
+    damList.forEach(d => {
+        let q = Number(d.qty || d.quantity) || 1;
+        let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
+        totalDamagedLoss += c;
+    });
+
+    let totalSupplierPayments = 0;
+    ensureArray(myDebtsList).forEach(d => {
+        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
+            totalSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+        }
+    });
+
+    let totalCustomerDebtCollections = 0;
+    ensureArray(debtsList).forEach(d => {
+        let amt = Number(d.amount);
+        if (d.isPayment || (amt < 0 && !d.isDiscount)) {
+            let details = String(d.details || '');
+            if (!details.includes('استرجاع') && !details.includes('إرجاع') && !details.includes('خصم') && !details.includes('إعفاء')) {
+                totalCustomerDebtCollections += Math.abs(amt || 0);
+            }
+        }
+    });
+
+    let finalComprehensiveSalesTotal = (totalSales + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
+    let finalComprehensiveProfitTotal = (grossProfit + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
+
+    openSysModal({
+        type: 'custom',
+        title: 'تفاصيل الإجمالي الكلي النهائي',
+        icon: '<i class="fa-solid fa-scale-balanced text-indigo-600 text-3xl"></i>',
+        message: 'كشف تفصيلي لحساب الإجمالي الكلي النهائي:',
+        customHtmlButtons: `
+            <div class="w-full text-right text-xs space-y-2.5 my-2">
+                <div class="bg-gray-50 p-3 rounded-xl border space-y-1.5 font-bold">
+                    <div class="flex justify-between items-center text-blue-700">
+                        <span><i class="fa-solid fa-cart-shopping"></i> إجمالي المبيعات (+):</span>
+                        <span class="font-mono text-sm">+${formatMoney(totalSales)} د.ع</span>
+                    </div>
+                    <div class="flex justify-between items-center text-emerald-700">
+                        <span><i class="fa-solid fa-screwdriver-wrench"></i> مقبوضات الصيانة (+):</span>
+                        <span class="font-mono text-sm">+${formatMoney(maintProfit)} د.ع</span>
+                    </div>
+                    <div class="flex justify-between items-center text-teal-700">
+                        <span><i class="fa-solid fa-hand-holding-dollar"></i> قبض ديون الآجل من الزبائن (+):</span>
+                        <span class="font-mono text-sm">+${formatMoney(totalCustomerDebtCollections)} د.ع</span>
+                    </div>
+                    <div class="border-t pt-1.5 flex justify-between items-center text-red-600">
+                        <span><i class="fa-solid fa-money-bill-transfer"></i> إجمالي المصروفات (-):</span>
+                        <span class="font-mono text-sm">-${formatMoney(totalExpenses)} د.ع</span>
+                    </div>
+                    <div class="flex justify-between items-center text-amber-700">
+                        <span><i class="fa-solid fa-triangle-exclamation"></i> خسائر المواد التالفة (-):</span>
+                        <span class="font-mono text-sm">-${formatMoney(totalDamagedLoss)} د.ع</span>
+                    </div>
+                    <div class="flex justify-between items-center text-rose-700">
+                        <span><i class="fa-solid fa-truck-field"></i> تسديدات حساب المجهّزين (-):</span>
+                        <span class="font-mono text-sm">-${formatMoney(totalSupplierPayments)} د.ع</span>
+                    </div>
+                </div>
+
+                <div class="bg-indigo-50 border-2 border-indigo-200 p-3.5 rounded-xl text-center">
+                    <div class="text-xs text-indigo-900 font-bold mb-1">الإجمالي الكلي النهائي (بحساب حركة المبيعات والسيولة):</div>
+                    <div class="text-2xl font-black text-indigo-700 font-mono">${formatMoney(finalComprehensiveSalesTotal)} د.ع</div>
+                    <div class="text-[11px] text-gray-600 mt-1 font-bold">صافي الأرباح الشاملة: <span class="text-purple-700 font-mono">${formatMoney(finalComprehensiveProfitTotal)} د.ع</span></div>
+                </div>
+
+                <button type="button" onclick="closeSysModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold cursor-pointer transition">
+                    إغلاق
+                </button>
+            </div>
+        `
+    });
+}
+
 function updateSalesTable() {
     const tbody = document.getElementById('salesTableBody');
     if (!tbody) return;
@@ -4881,6 +5027,40 @@ function updateSalesTable() {
     let totalProfitWithMaint = grossProfit + maintProfit;
     let netFinal = totalProfitWithMaint - totalExpenses;
 
+    // 1. حساب خسائر التالف
+    let totalDamagedLoss = 0;
+    let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
+    damList.forEach(d => {
+        let q = Number(d.qty || d.quantity) || 1;
+        let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
+        totalDamagedLoss += c;
+    });
+
+    // 2. حساب تسديد المجهّزين
+    let totalSupplierPayments = 0;
+    ensureArray(myDebtsList).forEach(d => {
+        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
+            totalSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+        }
+    });
+
+    // 3. حساب قبض ديون المأخوذين بالآجل (دفعات تسديد الديون من الزبائن)
+    let totalCustomerDebtCollections = 0;
+    ensureArray(debtsList).forEach(d => {
+        let amt = Number(d.amount);
+        if (d.isPayment || (amt < 0 && !d.isDiscount)) {
+            let details = String(d.details || '');
+            if (!details.includes('استرجاع') && !details.includes('إرجاع') && !details.includes('خصم') && !details.includes('إعفاء')) {
+                totalCustomerDebtCollections += Math.abs(amt || 0);
+            }
+        }
+    });
+
+    // 4. حساب الإجمالي الكلي النهائي بعد حساب المصروفات والتالف والصيانة والمبيعات وتسديد المجهزين وقبض ديون الآجل
+    // المعادلة: (المبيعات + الصيانة + قبض ديون الآجل) - (المصروفات + التالف + تسديد المجهزين)
+    let finalComprehensiveSalesTotal = (totalSales + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
+    let finalComprehensiveProfitTotal = (grossProfit + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
+
     if (document.getElementById('totalSalesDisplay')) {
         document.getElementById('totalSalesDisplay').innerText = `${formatMoney(totalSales)} د.ع`;
     }
@@ -4895,6 +5075,12 @@ function updateSalesTable() {
     }
     if (document.getElementById('netProfitDisplay')) {
         document.getElementById('netProfitDisplay').innerText = `${formatMoney(netFinal)} د.ع`;
+    }
+    if (document.getElementById('finalComprehensiveTotalDisplay')) {
+        document.getElementById('finalComprehensiveTotalDisplay').innerText = `${formatMoney(finalComprehensiveSalesTotal)} د.ع`;
+    }
+    if (document.getElementById('finalComprehensiveSubtitle')) {
+        document.getElementById('finalComprehensiveSubtitle').innerHTML = `صافي الأرباح: ${formatMoney(finalComprehensiveProfitTotal)} د.ع`;
     }
     if (document.getElementById('totalSupplierPaymentsDisplay')) {
         document.getElementById('totalSupplierPaymentsDisplay').innerText = '0 د.ع';
@@ -8788,6 +8974,8 @@ window.addToPOSCart = addToPOSCart;
 window.updateCartQty = updateCartQty;
 window.removeCartItem = removeCartItem;
 window.clearPOSInvoice = clearPOSInvoice;
+window.updateCartItemPrice = updateCartItemPrice;
+window.promptEditCartItemPrice = promptEditCartItemPrice;
 window.renderInvoice = renderInvoice;
 window.toggleCustomerInput = toggleCustomerInput;
 window.filterCustomerSearch = filterCustomerSearch;
@@ -8804,6 +8992,7 @@ window.sysToast = sysToast;
 window.onCashierSelectionChange = onCashierSelectionChange;
 window.toggleNoPrintMode = toggleNoPrintMode;
 window.updateSalesTable = updateSalesTable;
+window.showComprehensiveTotalBreakdownModal = showComprehensiveTotalBreakdownModal;
 window.returnSaleItem = returnSaleItem;
 window.confirmReturnSaleWithStatus = confirmReturnSaleWithStatus;
 window.executeReturnSaleItem = confirmReturnSaleWithStatus;
