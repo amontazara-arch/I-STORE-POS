@@ -695,6 +695,9 @@
         <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 text-right border">
             <div class="flex justify-between items-center mb-4 border-b pb-2"><h3 class="text-lg font-bold text-blue-600">تعديل المادة</h3><button onclick="closeEditItemModal()" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold">العودة</button></div>
             <input type="hidden" id="editItemIndex">
+            <input type="hidden" id="editItemId">
+            <input type="hidden" id="editItemOriginalName">
+            <input type="hidden" id="editItemOriginalBarcode">
             <div class="space-y-3">
                 <div><label class="block text-xs font-bold mb-1">اسم المادة</label><input type="text" id="editItemName" class="w-full border p-2.5 rounded-xl outline-none"></div>
                 <div><label class="block text-xs font-bold mb-1">الباركود</label><input type="text" id="editItemBarcode" class="w-full border p-2.5 rounded-xl outline-none font-mono text-center tracking-widest font-bold bg-gray-50" placeholder="امسح أو اكتب الباركود..."></div>
@@ -3366,7 +3369,12 @@ function logoutApp() {
 function loadDataFromServerData(data) {
     if(data) {
         if(data.pass) currentStorePass = String(data.pass).trim();
-        inventory = ensureArray(data.inventory); 
+        inventory = ensureArray(data.inventory).map(item => {
+            if (!item.id) {
+                item.id = 'inv_' + (item.barcode ? String(item.barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + (item.name ? encodeURIComponent(item.name).slice(0, 15) + '_' : '') + Math.random().toString(36).substr(2, 6);
+            }
+            return item;
+        }); 
         categoriesList = ensureArray(data.categoriesList); 
         salesHistory = ensureArray(data.salesHistory); 
         returnsHistory = ensureArray(data.returnsHistory); 
@@ -3417,11 +3425,16 @@ function initRealtimeListener(user) {
     const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
     currentFirebaseListenerUnsubscribe = window.fbOnValue(storeRef, (snapshot) => {
         if (snapshot.exists()) {
-            if (isLocalSavingInProgress) {
-                // منع التكرار وإعادة التوليد أثناء إجراء عمليات البيع والإضافة من نفس الجهاز
+            let remoteData = snapshot.val() || {};
+            // إذا كان هذا التحديث صادراً من نفس الجهاز محلياً في آخر ثانيتين، نتجاهل إعادته لتفادي تكرار العمليات
+            if (remoteData._lastUpdatedBy === currentDeviceId && (Date.now() - (remoteData._lastUpdatedAt || 0)) < 3000) {
+                updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                 return;
             }
-            let remoteData = snapshot.val() || {};
+            if (isLocalSavingInProgress && remoteData._lastUpdatedBy === currentDeviceId) {
+                return;
+            }
+            // التحديث قادم من جهاز آخر أو من السيرفر - نطبقه فوراً وبسرعة دون أي حاجة لتحديث الصفحة
             loadDataFromServerData(remoteData);
             localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
             updateNetworkStatusIndicator(true, 'متزامن لحظياً');
@@ -3429,7 +3442,7 @@ function initRealtimeListener(user) {
     }, () => { updateNetworkStatusIndicator(false, 'يعمل محلياً'); });
 }
 
-function triggerDataChangeInstant(immediate = false) {
+function triggerDataChangeInstant(immediate = true) {
     if(!currentStoreUser) return;
     if (dataChangeDebounceTimer) {
         clearTimeout(dataChangeDebounceTimer);
@@ -3440,9 +3453,21 @@ function triggerDataChangeInstant(immediate = false) {
         try {
             isLocalSavingInProgress = true;
             let effectivePass = currentStorePass || ADMIN_SECRET_MASTER_PASSWORD;
+            
+            // التأكد من وجود معرّف فريد دائم لكل مادة في المخزن
+            let sanitizedInventory = ensureArray(inventory).map(item => {
+                if (!item.id) {
+                    item.id = 'inv_' + (item.barcode ? String(item.barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + (item.name ? encodeURIComponent(item.name).slice(0, 15) + '_' : '') + Math.random().toString(36).substr(2, 6);
+                }
+                return item;
+            });
+            inventory = sanitizedInventory;
+
             let appData = { 
                 pass: effectivePass, 
-                inventory: ensureArray(inventory), 
+                _lastUpdatedBy: currentDeviceId,
+                _lastUpdatedAt: Date.now(),
+                inventory: sanitizedInventory, 
                 categoriesList: ensureArray(categoriesList), 
                 salesHistory: ensureArray(salesHistory), 
                 returnsHistory: ensureArray(returnsHistory), 
@@ -3474,15 +3499,14 @@ function triggerDataChangeInstant(immediate = false) {
             localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
             if(window.fbDB && window.fbRef && window.fbSet) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
-                const rawPayload = JSON.parse(JSON.stringify(appData));
-                const safePayload = sanitizeFirebasePayload(rawPayload);
+                const safePayload = sanitizeFirebasePayload(appData);
                 window.fbSet(storeRef, safePayload).then(() => {
                     updateNetworkStatusIndicator(true, 'متصل بالسحابة');
                 }).catch((err) => {
                     console.error("Firebase sync error:", err);
                     updateNetworkStatusIndicator(false, 'يعمل محلياً');
                 }).finally(() => {
-                    setTimeout(() => { isLocalSavingInProgress = false; }, 350);
+                    isLocalSavingInProgress = false;
                 });
             } else {
                 isLocalSavingInProgress = false;
@@ -3496,7 +3520,7 @@ function triggerDataChangeInstant(immediate = false) {
     if (immediate) {
         performSync();
     } else {
-        dataChangeDebounceTimer = setTimeout(performSync, 200);
+        dataChangeDebounceTimer = setTimeout(performSync, 40);
     }
 }
 
@@ -6230,13 +6254,46 @@ function saveItem(event) {
     let price = Number(document.getElementById('itemPrice').value);
     let source = document.getElementById('itemSourceInput') ? (document.getElementById('itemSourceInput').value.trim() || 'من المحل') : 'من المحل';
 
+    // التحقق: إذا كانت المادة موجودة مسبقاً بنفس الاسم أو الباركود، تضل نفسها وتتغير فقط كميتها وأسعارها
+    let existingItem = inventory.find(i => 
+        (barcode && i.barcode && String(i.barcode).trim().toLowerCase() === barcode.toLowerCase()) || 
+        (name && i.name && i.name.trim().toLowerCase() === name.toLowerCase())
+    );
+
+    if (existingItem) {
+        let oldQty = Number(existingItem.quantity) || 0;
+        existingItem.quantity = quantity; // تحديث كمية نفس المادة في مكانها
+        if (buyPrice > 0) existingItem.buyPrice = buyPrice;
+        if (price > 0) existingItem.price = price;
+        if (category) existingItem.category = category;
+        if (description) existingItem.description = description;
+        if (image) existingItem.image = image;
+        if (minAlert) existingItem.minAlert = minAlert;
+        if (source) existingItem.source = source;
+
+        recordAudit('تحديث كمية مادة', `تحديث كمية المادة الحالية "${existingItem.name}" من (${oldQty}) إلى (${quantity})`);
+        ['itemName','itemBarcode','itemDescription','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice','itemSourceInput'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
+        triggerDataChangeInstant(true); 
+        updateInventoryTable();
+        updatePOSGrid();
+        setTimeout(() => {
+            try { updateCategoriesUI(); } catch(e){}
+            try { updateVariableTable(); } catch(e){}
+        }, 40);
+        sysAlert(`المادة "${existingItem.name}" موجودة مسبقاً، تم تحديث كميتها إلى (${quantity}) بنجاح!`, "تم التحديث", "success");
+        return;
+    }
+
+    let newItemId = 'inv_' + (barcode ? String(barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + encodeURIComponent(name).slice(0, 15) + '_' + Math.random().toString(36).substr(2, 6);
+
     inventory.unshift({ 
+        id: newItemId,
         name, barcode, category, description, image, quantity, minAlert, buyPrice, price, source
     });
 
     recordAudit('إضافة مادة', `إضافة مادة جديدة "${name}" عدد (${quantity}) بسعر شراء (${formatMoney(buyPrice)}) ومصدر (${source})`);
     ['itemName','itemBarcode','itemDescription','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice','itemSourceInput'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
-    triggerDataChangeInstant(false); 
+    triggerDataChangeInstant(true); 
     updateInventoryTable();
     updatePOSGrid();
     setTimeout(() => {
@@ -6246,20 +6303,58 @@ function saveItem(event) {
     sysAlert("تم حفظ المادة بنجاح", "نجاح", "success");
 }
 
-function deleteItem(index) { 
-    let item = inventory[index];
+function deleteItem(idOrIndex, fallbackIndex) { 
+    let itemIndex = -1;
+    if (typeof idOrIndex === 'string') {
+        itemIndex = inventory.findIndex(i => i.id === idOrIndex || i.name === idOrIndex || (i.barcode && i.barcode === idOrIndex));
+    } else if (typeof idOrIndex === 'number') {
+        itemIndex = idOrIndex;
+    }
+    if (itemIndex === -1 && fallbackIndex !== undefined) {
+        itemIndex = fallbackIndex;
+    }
+
+    if (itemIndex === -1 || !inventory[itemIndex]) return;
+    let item = inventory[itemIndex];
     sysConfirm("تأكيد", `حذف المادة "${item ? item.name : ''}"؟`, () => { 
-        let removed = inventory.splice(index, 1); 
+        let removed = inventory.splice(itemIndex, 1); 
         if(removed[0]) recordAudit('حذف مادة', `حذف المادة "${removed[0].name}" من المخزن`);
-        triggerDataChangeInstant(); 
+        triggerDataChangeInstant(true); 
         refreshAllUI(); 
     }); 
 }
 
-function editItem(index) {
-    const item = inventory[index]; 
-    document.getElementById('editItemIndex').value = index;
-    document.getElementById('editItemName').value = item.name; 
+function editItem(idOrIndex, fallbackIndex) {
+    let item = null;
+    let actualIndex = -1;
+
+    if (typeof idOrIndex === 'string') {
+        actualIndex = inventory.findIndex(i => i.id === idOrIndex || i.name === idOrIndex || (i.barcode && i.barcode === idOrIndex));
+        if (actualIndex !== -1) item = inventory[actualIndex];
+    } else if (typeof idOrIndex === 'number' && inventory[idOrIndex]) {
+        actualIndex = idOrIndex;
+        item = inventory[idOrIndex];
+    }
+
+    if (!item && fallbackIndex !== undefined && inventory[fallbackIndex]) {
+        actualIndex = fallbackIndex;
+        item = inventory[fallbackIndex];
+    }
+
+    if (!item) {
+        return sysAlert("لم يتم العثور على المادة المحددة في المخزن!", "تنبيه", "warning");
+    }
+
+    if (!item.id) {
+        item.id = 'inv_' + (item.barcode ? String(item.barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + encodeURIComponent(item.name).slice(0, 15) + '_' + Math.random().toString(36).substr(2, 6);
+    }
+
+    if (document.getElementById('editItemId')) document.getElementById('editItemId').value = item.id || '';
+    if (document.getElementById('editItemIndex')) document.getElementById('editItemIndex').value = actualIndex;
+    if (document.getElementById('editItemOriginalName')) document.getElementById('editItemOriginalName').value = item.name || '';
+    if (document.getElementById('editItemOriginalBarcode')) document.getElementById('editItemOriginalBarcode').value = item.barcode || '';
+
+    document.getElementById('editItemName').value = item.name || ''; 
     document.getElementById('editItemBarcode').value = item.barcode || '';
     const select = document.getElementById('editItemCategory'); 
     select.innerHTML = '<option value="">بدون</option>'; 
@@ -6279,39 +6374,75 @@ function closeEditItemModal() {
 }
 
 function saveEditedItem() {
-    let index = document.getElementById('editItemIndex').value; 
-    let item = inventory[index];
-    let oldBuy = item.buyPrice || 0; 
-    let newBuy = Number(document.getElementById('editItemBuyPrice').value);
-    let oldSell = item.price || 0; 
-    let newSell = Number(document.getElementById('editItemPrice').value);
+    let itemId = document.getElementById('editItemId')?.value;
+    let origName = document.getElementById('editItemOriginalName')?.value;
+    let origBarcode = document.getElementById('editItemOriginalBarcode')?.value;
+    let indexVal = document.getElementById('editItemIndex')?.value;
 
-    item.name = document.getElementById('editItemName').value.trim(); 
+    let item = null;
+    let itemIndex = -1;
+
+    if (itemId) {
+        itemIndex = inventory.findIndex(i => i.id === itemId);
+        if (itemIndex !== -1) item = inventory[itemIndex];
+    }
+    if (!item && origName) {
+        itemIndex = inventory.findIndex(i => i.name === origName);
+        if (itemIndex !== -1) item = inventory[itemIndex];
+    }
+    if (!item && origBarcode) {
+        itemIndex = inventory.findIndex(i => i.barcode === origBarcode);
+        if (itemIndex !== -1) item = inventory[itemIndex];
+    }
+    if (!item && indexVal !== undefined && indexVal !== '' && inventory[indexVal]) {
+        itemIndex = Number(indexVal);
+        item = inventory[itemIndex];
+    }
+
+    if (!item) {
+        return sysAlert("تعذر العثور على المادة المراد تعديلها!", "خطأ", "error");
+    }
+
+    let oldBuy = Number(item.buyPrice) || 0; 
+    let newBuy = Number(document.getElementById('editItemBuyPrice').value);
+    let oldSell = Number(item.price) || 0; 
+    let newSell = Number(document.getElementById('editItemPrice').value);
+    let oldQty = Number(item.quantity) || 0;
+    let newQty = Number(document.getElementById('editItemQuantity').value);
+    let oldName = item.name;
+    let newName = document.getElementById('editItemName').value.trim();
+
+    // الحفاظ التام على المادة نفسها وموقعها الدقيق في المخزن
+    item.name = newName || oldName; 
     item.barcode = document.getElementById('editItemBarcode').value.trim();
     item.category = document.getElementById('editItemCategory').value; 
     item.description = document.getElementById('editItemDesc').value.trim(); 
     item.image = document.getElementById('editItemImage').value.trim();
-    item.quantity = Number(document.getElementById('editItemQuantity').value); 
+    item.quantity = isNaN(newQty) ? oldQty : newQty; 
     item.minAlert = Number(document.getElementById('editItemMinAlert').value) || 1;
-    item.buyPrice = newBuy; 
-    item.price = newSell;
+    item.buyPrice = isNaN(newBuy) ? oldBuy : newBuy; 
+    item.price = isNaN(newSell) ? oldSell : newSell;
 
-    if (oldBuy !== newBuy || oldSell !== newSell) {
-        if(!item.priceHistory) item.priceHistory = [];
-        item.priceHistory.push({ date: new Date().toLocaleString('ar-IQ'), oldBuy, newBuy, oldSell, newSell });
-        recordAudit('تعديل سعر', `تعديل أسعار المادة "${item.name}": الشراء من ${formatMoney(oldBuy)} إلى ${formatMoney(newBuy)} | البيع من ${formatMoney(oldSell)} إلى ${formatMoney(newSell)}`);
-    } else {
-        recordAudit('تعديل مادة', `تعديل بيانات المادة "${item.name}"`);
+    let auditNotes = [];
+    if (oldQty !== item.quantity) auditNotes.push(`تغيير الكمية: من (${oldQty}) إلى (${item.quantity})`);
+    if (oldBuy !== item.buyPrice || oldSell !== item.price) {
+        if (!item.priceHistory) item.priceHistory = [];
+        item.priceHistory.push({ date: new Date().toLocaleString('ar-IQ'), oldBuy, newBuy: item.buyPrice, oldSell, newSell: item.price });
+        auditNotes.push(`تعديل السعر: شراء (${formatMoney(item.buyPrice)}) | بيع (${formatMoney(item.price)})`);
     }
+    if (oldName !== item.name) auditNotes.push(`تعديل الاسم من "${oldName}" إلى "${item.name}"`);
+
+    recordAudit('تعديل مادة', `تعديل المادة "${item.name}": ${auditNotes.join(' - ') || 'تحديث البيانات'}`);
 
     closeEditItemModal(); 
-    triggerDataChangeInstant(false); 
+    triggerDataChangeInstant(true); 
     updateInventoryTable();
     updatePOSGrid();
     setTimeout(() => {
         try { updateCategoriesUI(); } catch(e){}
+        try { updateVariableTable(); } catch(e){}
     }, 40);
-    sysAlert("تم تحديث المادة", "نجاح", "success");
+    sysAlert(`تم تحديث المادة "${item.name}" بنجاح!`, "تم الحفظ", "success");
 }
 
 function updateInventoryTable() {
@@ -6322,13 +6453,14 @@ function updateInventoryTable() {
     
     let filteredItems = inventory;
     if(query) {
-        filteredItems = inventory.filter(i => i.name.toLowerCase().includes(query) || (i.barcode && i.barcode.toLowerCase().includes(query)) || (i.category && i.category.toLowerCase().includes(query)) || (i.description && i.description.toLowerCase().includes(query)) || (i.source && i.source.toLowerCase().includes(query)));
+        filteredItems = inventory.filter(i => (i.name && i.name.toLowerCase().includes(query)) || (i.barcode && String(i.barcode).toLowerCase().includes(query)) || (i.category && i.category.toLowerCase().includes(query)) || (i.description && i.description.toLowerCase().includes(query)) || (i.source && i.source.toLowerCase().includes(query)));
     }
 
     tbody.innerHTML = filteredItems.length === 0 ? '<tr><td colspan="8" class="text-center p-4 text-gray-400">لا توجد مواد مطابقة للبحث</td></tr>' : '';
     
     filteredItems.forEach((item) => {
-        let index = inventory.findIndex(i => i === item);
+        let index = inventory.findIndex(i => (item.id && i.id === item.id) || i === item);
+        let itemId = item.id || ('inv_' + index);
         let img = item.image ? `<img src="${item.image}" class="w-12 h-12 object-cover rounded-xl mx-auto border" />` : 'لا توجد';
         let barcodeHtml = item.barcode ? `<span class="block font-mono text-xs text-purple-600 bg-purple-50 px-2 py-0.5 rounded mt-1">🏷️ ${item.barcode}</span>` : '<span class="text-[10px] text-gray-400">بدون باركود</span>';
         let descHtml = item.description ? `<span class="block text-xs text-gray-600 bg-gray-50 p-1 rounded mt-1 border">📝 الوصف: ${item.description}</span>` : '';
@@ -6346,7 +6478,9 @@ function updateInventoryTable() {
 
         let sourceBadge = `<span class="bg-blue-50 text-blue-800 px-2 py-0.5 rounded-md text-xs font-bold">${item.source || 'من المحل'}</span>`;
 
-        tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml} ${descHtml} ${priceHistoryNote}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border text-center">${sourceBadge}</td><td class="p-3 border"><span class="${qtyClass}">${formatMoney(item.quantity)}</span> ${statusBadge}</td><td class="p-3 border">${formatMoney(item.buyPrice||0)}</td><td class="p-3 border text-orange-600 font-bold">${formatMoney(item.price||0)}</td><td class="p-3 border text-center"><button onclick="editItem(${index})" class="bg-blue-50 text-blue-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">تعديل</button> <button onclick="deleteItem(${index})" class="bg-red-50 text-red-600 px-3 py-1 rounded text-xs font-bold cursor-pointer">حذف</button></td></tr>`;
+        let safeItemId = String(itemId).replace(/'/g, "\\'");
+
+        tbody.innerHTML += `<tr class="border-b bg-white"><td class="p-3 border text-center">${img}</td><td class="p-3 border font-bold">${item.name} ${barcodeHtml} ${descHtml} ${priceHistoryNote}</td><td class="p-3 border text-gray-600">${item.category||'عام'}</td><td class="p-3 border text-center">${sourceBadge}</td><td class="p-3 border"><span class="${qtyClass}">${formatMoney(item.quantity)}</span> ${statusBadge}</td><td class="p-3 border">${formatMoney(item.buyPrice||0)}</td><td class="p-3 border text-orange-600 font-bold">${formatMoney(item.price||0)}</td><td class="p-3 border text-center"><button type="button" onclick="editItem('${safeItemId}', ${index})" class="bg-blue-50 hover:bg-blue-100 text-blue-600 px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition">تعديل</button> <button type="button" onclick="deleteItem('${safeItemId}', ${index})" class="bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-lg text-xs font-bold cursor-pointer transition">حذف</button></td></tr>`;
     });
 }
 
