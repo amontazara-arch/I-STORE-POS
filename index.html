@@ -2181,6 +2181,47 @@ let currentStoreUser = (localStorage.getItem('iStoreLoggedIn') === 'true') ? (lo
 let currentDeviceId = localStorage.getItem('iStoreDeviceId') || ('Device_' + Math.floor(Math.random()*9000+1000));
 localStorage.setItem('iStoreDeviceId', currentDeviceId);
 
+// معرّف فريد خاص بهذه النافذة/التبويب لضمان المزامنة اللحظية الفورية دون أي تعارض بين النوافذ والأجهزة
+const currentTabId = 'tab_' + Math.random().toString(36).substring(2, 9) + '_' + Date.now();
+
+// قناة اتصال فائقة السرعة للمزامنة اللحظية بين علامات التبويب المفتوحة على نفس الجهاز (0 مللي ثانية)
+let syncBroadcastChannel = null;
+try {
+    if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+        syncBroadcastChannel = new BroadcastChannel('iStore_Sync_Channel');
+        syncBroadcastChannel.onmessage = (event) => {
+            if (!event || !event.data) return;
+            const { type, store, tabId, data } = event.data;
+            if (type === 'DATA_UPDATED' && store === currentStoreUser && tabId !== currentTabId && data) {
+                try {
+                    loadDataFromServerData(data);
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                } catch(err) {
+                    console.warn("BroadcastChannel sync apply error:", err);
+                }
+            }
+        };
+    }
+} catch (e) {
+    console.warn("BroadcastChannel init error:", e);
+}
+
+// مستمع تخزين محلي إضافي للمزامنة الفورية بين النوافذ عبر المتصفح
+window.addEventListener('storage', (e) => {
+    if (e.key === 'iStore_SyncTrigger' && currentStoreUser) {
+        try {
+            let localSaved = localStorage.getItem('iStore_LocalData_' + currentStoreUser);
+            if (localSaved) {
+                let parsed = JSON.parse(localSaved);
+                if (parsed && parsed._lastUpdatedByTab !== currentTabId) {
+                    loadDataFromServerData(parsed);
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                }
+            }
+        } catch(err){}
+    }
+});
+
 const ADMIN_SECRET_MASTER_PASSWORD = "07773774773";
 let adminMasterPassword = localStorage.getItem('iStoreAdminMasterPassword') || ADMIN_SECRET_MASTER_PASSWORD;
 let currentStorePass = currentStoreUser ? (localStorage.getItem('iStoreCurrentStorePass_' + currentStoreUser) || "Al12341234") : "Al12341234";
@@ -3416,30 +3457,38 @@ let dataChangeDebounceTimer = null;
 let isLocalSavingInProgress = false;
 let currentFirebaseListenerUnsubscribe = null;
 
+let currentListeningStore = null;
+
 function initRealtimeListener(user) {
     if(!user || !window.fbDB) return;
+    if (currentListeningStore === user && currentFirebaseListenerUnsubscribe) {
+        return; // الاستماع المباشر نشط بالفعل لهذا المحل
+    }
     if (typeof currentFirebaseListenerUnsubscribe === 'function') {
         try { currentFirebaseListenerUnsubscribe(); } catch(e){}
         currentFirebaseListenerUnsubscribe = null;
     }
+    currentListeningStore = user;
     const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
     currentFirebaseListenerUnsubscribe = window.fbOnValue(storeRef, (snapshot) => {
         if (snapshot.exists()) {
             let remoteData = snapshot.val() || {};
-            // إذا كان هذا التحديث صادراً من نفس الجهاز محلياً في آخر ثانيتين، نتجاهل إعادته لتفادي تكرار العمليات
-            if (remoteData._lastUpdatedBy === currentDeviceId && (Date.now() - (remoteData._lastUpdatedAt || 0)) < 3000) {
+            // إذا كان هذا التحديث صادراً من نفس النافذة الحالية وتم تطبيقه محلياً، نتجاهل تكرار التطبيق
+            if (remoteData._lastUpdatedByTab === currentTabId) {
                 updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                 return;
             }
-            if (isLocalSavingInProgress && remoteData._lastUpdatedBy === currentDeviceId) {
-                return;
-            }
-            // التحديث قادم من جهاز آخر أو من السيرفر - نطبقه فوراً وبسرعة دون أي حاجة لتحديث الصفحة
+            // التحديث قادم من نافذة أخرى أو هاتف آخر أو السيرفر -> نطبقه فوراً بلحظتها دون أي تأخير ودون الحاجة لتحديث الصفحة
             loadDataFromServerData(remoteData);
-            localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
+            try {
+                localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
+            } catch(e){}
             updateNetworkStatusIndicator(true, 'متزامن لحظياً');
         }
-    }, () => { updateNetworkStatusIndicator(false, 'يعمل محلياً'); });
+    }, (err) => { 
+        console.warn("Firebase listener error:", err);
+        updateNetworkStatusIndicator(false, 'يعمل محلياً'); 
+    });
 }
 
 function triggerDataChangeInstant(immediate = true) {
@@ -3466,6 +3515,7 @@ function triggerDataChangeInstant(immediate = true) {
             let appData = { 
                 pass: effectivePass, 
                 _lastUpdatedBy: currentDeviceId,
+                _lastUpdatedByTab: currentTabId,
                 _lastUpdatedAt: Date.now(),
                 inventory: sanitizedInventory, 
                 categoriesList: ensureArray(categoriesList), 
@@ -3496,7 +3546,26 @@ function triggerDataChangeInstant(immediate = true) {
                 waSettings 
             };
             notifiedStockItems = cleanNotifiedStockItems(notifiedStockItems);
-            localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
+
+            // 1. الحفظ في الذاكرة المحلية
+            try {
+                localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
+                localStorage.setItem('iStore_SyncTrigger', String(Date.now()));
+            } catch(e){}
+
+            // 2. البث المباشر الفوري إلى أي علامات تبويب أو نوافذ أخرى مفتوحة (0 مللي ثانية دون تحديث)
+            try {
+                if (syncBroadcastChannel) {
+                    syncBroadcastChannel.postMessage({
+                        type: 'DATA_UPDATED',
+                        store: currentStoreUser,
+                        tabId: currentTabId,
+                        data: appData
+                    });
+                }
+            } catch(e){}
+
+            // 3. الإرسال اللحظي المباشر إلى قاعدة بيانات Firebase Realtime
             if(window.fbDB && window.fbRef && window.fbSet) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
                 const safePayload = sanitizeFirebasePayload(appData);
@@ -3520,7 +3589,7 @@ function triggerDataChangeInstant(immediate = true) {
     if (immediate) {
         performSync();
     } else {
-        dataChangeDebounceTimer = setTimeout(performSync, 40);
+        dataChangeDebounceTimer = setTimeout(performSync, 20);
     }
 }
 
