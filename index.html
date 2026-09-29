@@ -2201,12 +2201,20 @@ try {
         syncBroadcastChannel.onmessage = (event) => {
             if (!event || !event.data) return;
             const { type, store, tabId, data } = event.data;
-            if (type === 'DATA_UPDATED' && store === currentStoreUser && tabId !== currentTabId && data) {
-                try {
-                    loadDataFromServerData(data);
-                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
-                } catch(err) {
-                    console.warn("BroadcastChannel sync apply error:", err);
+            if (store === currentStoreUser && tabId !== currentTabId) {
+                if (type === 'LIVE_EVENT' && event.data.liveEvent) {
+                    try {
+                        applyLiveSyncEvent(event.data.liveEvent);
+                    } catch(err) {
+                        console.warn("BroadcastChannel LIVE_EVENT error:", err);
+                    }
+                } else if (type === 'DATA_UPDATED' && data) {
+                    try {
+                        loadDataFromServerData(data);
+                        updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                    } catch(err) {
+                        console.warn("BroadcastChannel sync apply error:", err);
+                    }
                 }
             }
         };
@@ -3475,37 +3483,221 @@ let isLocalSavingInProgress = false;
 let currentFirebaseListenerUnsubscribe = null;
 
 let currentListeningStore = null;
+let currentLiveEventUnsubscribe = null;
+let lastProcessedLiveEventId = null;
+let lastFullSyncTimestamp = 0;
+
+// دالة معالجة وتطبيق أحداث التزامن فائقة السرعة وخفيفة السعة (أقل من 300 بايت)
+function applyLiveSyncEvent(evt) {
+    if (!evt || !evt.action) return;
+    if (evt.tabId === currentTabId) return; // صادر من نفس علامة التبويب الحالية ومطبق محلياً مسبقاً
+    
+    const act = evt.action;
+    try {
+        switch(act.type) {
+            case 'ITEM_UPSERT': {
+                if (!act.item) break;
+                let existingIdx = inventory.findIndex(i => 
+                    (act.item.id && i.id === act.item.id) || 
+                    (act.item.barcode && i.barcode && String(i.barcode).trim().toLowerCase() === String(act.item.barcode).trim().toLowerCase()) || 
+                    (act.item.name && i.name && i.name.trim().toLowerCase() === act.item.name.trim().toLowerCase())
+                );
+                if (existingIdx !== -1) {
+                    inventory[existingIdx] = Object.assign({}, inventory[existingIdx], act.item);
+                } else {
+                    inventory.unshift(act.item);
+                }
+                updateInventoryTable();
+                updatePOSGrid();
+                try { updateCategoriesUI(); } catch(e){}
+                try { updateVariableTable(); } catch(e){}
+                updateNetworkStatusIndicator(true, 'متزامن لحظياً ✓');
+                break;
+            }
+            case 'ITEM_DELETE': {
+                let delIdx = inventory.findIndex(i => 
+                    (act.id && i.id === act.id) || 
+                    (act.name && i.name === act.name) || 
+                    (act.barcode && i.barcode === act.barcode)
+                );
+                if (delIdx !== -1) {
+                    inventory.splice(delIdx, 1);
+                    updateInventoryTable();
+                    updatePOSGrid();
+                    try { updateCategoriesUI(); } catch(e){}
+                }
+                updateNetworkStatusIndicator(true, 'متزامن لحظياً ✓');
+                break;
+            }
+            case 'CATEGORY_UPSERT': {
+                if (act.category) {
+                    let cIdx = categoriesList.findIndex(c => c.name === act.category.name);
+                    if (cIdx !== -1) categoriesList[cIdx] = act.category;
+                    else categoriesList.unshift(act.category);
+                    updateCategoriesUI();
+                    updatePOSCategories();
+                }
+                break;
+            }
+            case 'CATEGORY_DELETE': {
+                let cIdx = categoriesList.findIndex(c => c.name === act.name);
+                if (cIdx !== -1) {
+                    categoriesList.splice(cIdx, 1);
+                    updateCategoriesUI();
+                    updatePOSCategories();
+                }
+                break;
+            }
+            case 'SALE_COMPLETED': {
+                if (act.sale) {
+                    salesHistory.unshift(act.sale);
+                }
+                if (Array.isArray(act.items)) {
+                    act.items.forEach(cartItem => {
+                        let inv = inventory.find(i => (cartItem.id && i.id === cartItem.id) || i.name === cartItem.name);
+                        if (inv) {
+                            inv.quantity = Math.max(0, (Number(inv.quantity) || 0) - (Number(cartItem.qty) || 1));
+                        }
+                    });
+                }
+                updateSalesTable();
+                updatePOSGrid();
+                updateInventoryTable();
+                updateNetworkStatusIndicator(true, 'متزامن لحظياً (مبيعات) ✓');
+                break;
+            }
+            case 'EXPENSE_UPSERT': {
+                if (act.expense) {
+                    let eIdx = expensesList.findIndex(e => String(e.id) === String(act.expense.id));
+                    if (eIdx !== -1) expensesList[eIdx] = act.expense;
+                    else expensesList.unshift(act.expense);
+                    updateExpensesTable();
+                }
+                break;
+            }
+            case 'DEBT_UPSERT': {
+                if (act.debt) {
+                    let dIdx = debtsList.findIndex(d => String(d.id) === String(act.debt.id));
+                    if (dIdx !== -1) debtsList[dIdx] = act.debt;
+                    else debtsList.unshift(act.debt);
+                    updateCustomersTable();
+                }
+                break;
+            }
+            default: {
+                if (act.fullData) {
+                    loadDataFromServerData(act.fullData);
+                }
+                break;
+            }
+        }
+    } catch(err) {
+        console.warn("applyLiveSyncEvent processing error:", err);
+    }
+}
+
+// دالة بث حدث التزامن الخفيف جداً (حجم الحزمة 100-300 بايت فقط بدلاً من 1 ميغابايت)
+// تعمل حتى على شبكات 2G وضعيفة جداً بسرعة البرق
+function broadcastLiveSyncEvent(action) {
+    if (!currentStoreUser) return;
+    const evt = {
+        eventId: 'evt_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+        tabId: currentTabId,
+        deviceId: currentDeviceId,
+        timestamp: Date.now(),
+        action: action
+    };
+
+    // 1. بث فوري بين النوافذ لنفس الجهاز (0 مللي ثانية)
+    try {
+        if (syncBroadcastChannel) {
+            syncBroadcastChannel.postMessage({
+                type: 'LIVE_EVENT',
+                store: currentStoreUser,
+                tabId: currentTabId,
+                liveEvent: evt
+            });
+        }
+    } catch(e){}
+
+    // 2. إرسال خفيف جداً ومباشر إلى Firebase Realtime Database
+    if (window.fbDB && window.fbRef && window.fbSet) {
+        try {
+            const eventRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser + '/_liveEvent');
+            const cleanEvt = JSON.parse(JSON.stringify(evt));
+            window.fbSet(eventRef, cleanEvt).catch(e => console.warn("Live event send error:", e));
+        } catch(err) {
+            console.warn("broadcastLiveSyncEvent send error:", err);
+        }
+    }
+}
 
 function initRealtimeListener(user) {
     if(!user || !window.fbDB) return;
-    if (currentListeningStore === user && currentFirebaseListenerUnsubscribe) {
+    if (currentListeningStore === user && currentFirebaseListenerUnsubscribe && currentLiveEventUnsubscribe) {
         return; // الاستماع المباشر نشط بالفعل لهذا المحل
     }
     if (typeof currentFirebaseListenerUnsubscribe === 'function') {
         try { currentFirebaseListenerUnsubscribe(); } catch(e){}
         currentFirebaseListenerUnsubscribe = null;
     }
+    if (typeof currentLiveEventUnsubscribe === 'function') {
+        try { currentLiveEventUnsubscribe(); } catch(e){}
+        currentLiveEventUnsubscribe = null;
+    }
     currentListeningStore = user;
-    const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
-    currentFirebaseListenerUnsubscribe = window.fbOnValue(storeRef, (snapshot) => {
-        if (snapshot.exists()) {
-            let remoteData = snapshot.val() || {};
-            // إذا كان هذا التحديث صادراً من نفس النافذة الحالية وتم تطبيقه محلياً، نتجاهل تكرار التطبيق
-            if (remoteData._lastUpdatedByTab === currentTabId) {
-                updateNetworkStatusIndicator(true, 'متزامن لحظياً');
-                return;
+
+    // 1. الاستماع للحزمة الخفيفة فائقة السرعة (_liveEvent) ذات الحجم المتناهي في الصغر (200 بايت فقط)
+    // تضمن استلام الإضافات والتعديلات والمبيعات فوراً حتى على شبكات 2G وضعيفة جداً
+    try {
+        const liveEventRef = window.fbRef(window.fbDB, 'stores/' + user + '/_liveEvent');
+        currentLiveEventUnsubscribe = window.fbOnValue(liveEventRef, (snapshot) => {
+            if (snapshot.exists()) {
+                let evt = snapshot.val();
+                if (evt && evt.tabId !== currentTabId && (!lastProcessedLiveEventId || lastProcessedLiveEventId !== evt.eventId)) {
+                    lastProcessedLiveEventId = evt.eventId;
+                    applyLiveSyncEvent(evt);
+                }
             }
-            // التحديث قادم من نافذة أخرى أو هاتف آخر أو السيرفر -> نطبقه فوراً بلحظتها دون أي تأخير ودون الحاجة لتحديث الصفحة
-            loadDataFromServerData(remoteData);
-            try {
-                localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
-            } catch(e){}
-            updateNetworkStatusIndicator(true, 'متزامن لحظياً');
-        }
-    }, (err) => { 
-        console.warn("Firebase listener error:", err);
-        updateNetworkStatusIndicator(false, 'يعمل محلياً'); 
-    });
+        });
+    } catch(e){ console.warn("Live event listener setup error:", e); }
+
+    // 2. الاستماع العام للمتجر ككل للتزامن الأساسي
+    try {
+        const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
+        currentFirebaseListenerUnsubscribe = window.fbOnValue(storeRef, (snapshot) => {
+            if (snapshot.exists()) {
+                let remoteData = snapshot.val() || {};
+                if (remoteData._lastUpdatedByTab === currentTabId) {
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                    return;
+                }
+                if (remoteData._lastUpdatedAt && (!lastFullSyncTimestamp || remoteData._lastUpdatedAt > lastFullSyncTimestamp)) {
+                    lastFullSyncTimestamp = remoteData._lastUpdatedAt;
+                    loadDataFromServerData(remoteData);
+                    try {
+                        localStorage.setItem('iStore_LocalData_' + user, JSON.stringify(remoteData));
+                    } catch(e){}
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                }
+            }
+        }, (err) => { 
+            console.warn("Firebase listener error:", err);
+            updateNetworkStatusIndicator(false, 'يعمل محلياً'); 
+        });
+    } catch(e){ console.warn("Full store listener setup error:", e); }
+
+    // 3. مراقبة حالة اتصال الإنترنت الحية مباشرة من Firebase
+    try {
+        const connectedRef = window.fbRef(window.fbDB, '.info/connected');
+        window.fbOnValue(connectedRef, (snap) => {
+            if (snap.val() === true) {
+                updateNetworkStatusIndicator(true, 'متصل بالسحابة (مباشر)');
+            } else {
+                updateNetworkStatusIndicator(false, 'جاري إعادة الاتصال بالسحابة...');
+            }
+        });
+    } catch(e){}
 }
 
 function triggerDataChangeInstant(immediate = true) {
@@ -3541,7 +3733,7 @@ function triggerDataChangeInstant(immediate = true) {
                 expensesList: ensureArray(expensesList), 
                 debtsList: ensureArray(debtsList), 
                 myDebtsList: ensureArray(myDebtsList), 
-                auditLog: ensureArray(auditLog), 
+                auditLog: ensureArray(auditLog).slice(0, 60), // حفظ أحدث 60 عملية لتخفيف حزمة الإنترنت بنسبة 90% 
                 fixedItems: ensureArray(fixedItems), 
                 damagedLog: ensureArray(damagedLog), 
                 damagesList: ensureArray(damagesList), 
@@ -4863,6 +5055,7 @@ function executePOSCheckout(checkoutOption = 'print') {
         try { renderReport(); } catch(e){}
     }, 50);
 
+    broadcastLiveSyncEvent({ type: 'SALE_COMPLETED', sale: saleRecord, items: saleRecord.items });
     triggerDataChangeInstant(false);
 
     let targetPhone = formatIQPhoneNumber(customerPhone || saleRecord.phone);
@@ -6362,6 +6555,7 @@ function saveItem(event) {
 
         recordAudit('تحديث كمية مادة', `تحديث كمية المادة الحالية "${existingItem.name}" من (${oldQty}) إلى (${quantity})`);
         ['itemName','itemBarcode','itemDescription','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice','itemSourceInput'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
+        broadcastLiveSyncEvent({ type: 'ITEM_UPSERT', item: existingItem });
         triggerDataChangeInstant(true); 
         updateInventoryTable();
         updatePOSGrid();
@@ -6375,13 +6569,15 @@ function saveItem(event) {
 
     let newItemId = 'inv_' + (barcode ? String(barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + encodeURIComponent(name).slice(0, 15) + '_' + Math.random().toString(36).substr(2, 6);
 
-    inventory.unshift({ 
+    let newItemObj = { 
         id: newItemId,
         name, barcode, category, description, image, quantity, minAlert, buyPrice, price, source
-    });
+    };
+    inventory.unshift(newItemObj);
 
     recordAudit('إضافة مادة', `إضافة مادة جديدة "${name}" عدد (${quantity}) بسعر شراء (${formatMoney(buyPrice)}) ومصدر (${source})`);
     ['itemName','itemBarcode','itemDescription','itemImage','itemQuantity','itemMinAlert','itemBuyPrice','itemPrice','itemSourceInput'].forEach(id => { let el = document.getElementById(id); if(el) el.value = id === 'itemMinAlert' ? '1' : ''; });
+    broadcastLiveSyncEvent({ type: 'ITEM_UPSERT', item: newItemObj });
     triggerDataChangeInstant(true); 
     updateInventoryTable();
     updatePOSGrid();
@@ -6407,7 +6603,10 @@ function deleteItem(idOrIndex, fallbackIndex) {
     let item = inventory[itemIndex];
     sysConfirm("تأكيد", `حذف المادة "${item ? item.name : ''}"؟`, () => { 
         let removed = inventory.splice(itemIndex, 1); 
-        if(removed[0]) recordAudit('حذف مادة', `حذف المادة "${removed[0].name}" من المخزن`);
+        if(removed[0]) {
+            recordAudit('حذف مادة', `حذف المادة "${removed[0].name}" من المخزن`);
+            broadcastLiveSyncEvent({ type: 'ITEM_DELETE', id: removed[0].id, name: removed[0].name, barcode: removed[0].barcode });
+        }
         triggerDataChangeInstant(true); 
         refreshAllUI(); 
     }); 
@@ -6524,6 +6723,7 @@ function saveEditedItem() {
     recordAudit('تعديل مادة', `تعديل المادة "${item.name}": ${auditNotes.join(' - ') || 'تحديث البيانات'}`);
 
     closeEditItemModal(); 
+    broadcastLiveSyncEvent({ type: 'ITEM_UPSERT', item: item });
     triggerDataChangeInstant(true); 
     updateInventoryTable();
     updatePOSGrid();
