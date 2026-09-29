@@ -67,6 +67,9 @@
 
         window.isFirebaseReady = true;
         window.dispatchEvent(new Event('firebase-ready'));
+        if (typeof window.onFirebaseInitialized === 'function') {
+            try { window.onFirebaseInitialized(); } catch(e){ console.error("Firebase init hook error:", e); }
+        }
     </script>
 
     <style>
@@ -2162,15 +2165,21 @@ function cleanNotifiedStockItems(dict) {
 }
 
 function sanitizeFirebasePayload(data) {
-    if (data === null || data === undefined) return data;
+    if (data === null || data === undefined) return null;
     if (Array.isArray(data)) {
-        return data.map(item => sanitizeFirebasePayload(item));
+        return data
+            .filter(item => item !== undefined)
+            .map(item => sanitizeFirebasePayload(item));
     }
     if (typeof data === 'object') {
         const result = {};
         for (const [k, v] of Object.entries(data)) {
+            if (v === undefined) continue;
             const cleanK = String(k).replace(/[.#$/\[\]]/g, '_') || 'unnamed';
-            result[cleanK] = sanitizeFirebasePayload(v);
+            let sanitizedVal = sanitizeFirebasePayload(v);
+            if (sanitizedVal !== undefined) {
+                result[cleanK] = sanitizedVal;
+            }
         }
         return result;
     }
@@ -2253,6 +2262,14 @@ let currentDamagedCategory = null;
 
 let globalNotificationMode = localStorage.getItem('iStore_NotifMode') || 'active';
 let waSettings = JSON.parse(localStorage.getItem('iStore_WASettings') || 'null') || { type: 'web', instanceId: '', token: '' };
+let picsartLayouts = {
+    sale: { thermal: [], a4: [] },
+    maintenance: { thermal: [], a4: [] },
+    purchase: { thermal: [], a4: [] }
+};
+let layoutSettings = {
+    thermal: { maxItemsCount: 30 }
+};
 
 let currentPrintContentHtml = '';
 let currentCompletedDoc = null;
@@ -3566,11 +3583,12 @@ function triggerDataChangeInstant(immediate = true) {
             } catch(e){}
 
             // 3. الإرسال اللحظي المباشر إلى قاعدة بيانات Firebase Realtime
-            if(window.fbDB && window.fbRef && window.fbSet) {
+            if (window.fbDB && window.fbRef && window.fbSet) {
                 const storeRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser);
-                const safePayload = sanitizeFirebasePayload(appData);
+                const cleanJson = JSON.parse(JSON.stringify(appData));
+                const safePayload = sanitizeFirebasePayload(cleanJson);
                 window.fbSet(storeRef, safePayload).then(() => {
-                    updateNetworkStatusIndicator(true, 'متصل بالسحابة');
+                    updateNetworkStatusIndicator(true, 'متزامن لحظياً بالسحابة');
                 }).catch((err) => {
                     console.error("Firebase sync error:", err);
                     updateNetworkStatusIndicator(false, 'يعمل محلياً');
@@ -3689,19 +3707,21 @@ function handleFirebaseStoreSync(targetUser) {
 // تشغيل استعادة الجلسة والدخول التلقائي فوراً للمحل المسجل
 restoreSessionOnStartup();
 
-window.addEventListener('firebase-ready', () => {
+function onFirebaseInitialized() {
     let loggedIn = localStorage.getItem('iStoreLoggedIn') === 'true';
-    let store = currentStoreUser || localStorage.getItem('iStoreCurrentStore');
+    let store = (currentStoreUser || localStorage.getItem('iStoreCurrentStore') || '').trim();
     if (loggedIn && store) {
+        initRealtimeListener(store);
         handleFirebaseStoreSync(store);
     }
+}
+window.onFirebaseInitialized = onFirebaseInitialized;
+
+window.addEventListener('firebase-ready', () => {
+    onFirebaseInitialized();
 });
 if (window.isFirebaseReady) {
-    let loggedIn = localStorage.getItem('iStoreLoggedIn') === 'true';
-    let store = currentStoreUser || localStorage.getItem('iStoreCurrentStore');
-    if (loggedIn && store) {
-        handleFirebaseStoreSync(store);
-    }
+    onFirebaseInitialized();
 }
 
 function renderCustomerDetailData(name) {
