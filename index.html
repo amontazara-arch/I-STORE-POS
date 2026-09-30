@@ -3435,7 +3435,14 @@ function logoutApp() {
 function loadDataFromServerData(data) {
     if(data) {
         if(data.pass) currentStorePass = String(data.pass).trim();
-        inventory = ensureArray(data.inventory).map(item => {
+        let remoteInv = ensureArray(data.inventory);
+        // دمج المواد الذكي: الحفاظ التام على أي مادة أضيفت محلياً ولم تُحفظ في النسخة السحابية القديمة بعد
+        let remoteKeySet = new Set(remoteInv.map(i => i.id || (i.name + '_' + (i.barcode || ''))));
+        let locallyAddedRecent = ensureArray(inventory).filter(loc => {
+            let key = loc.id || (loc.name + '_' + (loc.barcode || ''));
+            return !remoteKeySet.has(key);
+        });
+        inventory = [...locallyAddedRecent, ...remoteInv].map(item => {
             if (!item.id) {
                 item.id = 'inv_' + (item.barcode ? String(item.barcode).replace(/[^a-zA-Z0-9]/g, '_') + '_' : '') + (item.name ? encodeURIComponent(item.name).slice(0, 15) + '_' : '') + Math.random().toString(36).substr(2, 6);
             }
@@ -3486,6 +3493,7 @@ let currentListeningStore = null;
 let currentLiveEventUnsubscribe = null;
 let lastProcessedLiveEventId = null;
 let lastFullSyncTimestamp = 0;
+let lastLocalSaveTimestamp = 0;
 
 // دالة معالجة وتطبيق أحداث التزامن فائقة السرعة وخفيفة السعة (أقل من 300 بايت)
 function applyLiveSyncEvent(evt) {
@@ -3623,7 +3631,7 @@ function broadcastLiveSyncEvent(action) {
     // 2. إرسال خفيف جداً ومباشر إلى Firebase Realtime Database
     if (window.fbDB && window.fbRef && window.fbSet) {
         try {
-            const eventRef = window.fbRef(window.fbDB, 'stores/' + currentStoreUser + '/_liveEvent');
+            const eventRef = window.fbRef(window.fbDB, 'live_sync/' + currentStoreUser);
             const cleanEvt = JSON.parse(JSON.stringify(evt));
             window.fbSet(eventRef, cleanEvt).catch(e => console.warn("Live event send error:", e));
         } catch(err) {
@@ -3647,10 +3655,10 @@ function initRealtimeListener(user) {
     }
     currentListeningStore = user;
 
-    // 1. الاستماع للحزمة الخفيفة فائقة السرعة (_liveEvent) ذات الحجم المتناهي في الصغر (200 بايت فقط)
-    // تضمن استلام الإضافات والتعديلات والمبيعات فوراً حتى على شبكات 2G وضعيفة جداً
+    // 1. الاستماع للقناة الحية فائقة السرعة (live_sync/<user>) بحجم خفيف جداً (200 بايت)
+    // تضمن استلام الإضافات والتعديلات والمبيعات فوراً دون إطلاق تحديث المتجر العام
     try {
-        const liveEventRef = window.fbRef(window.fbDB, 'stores/' + user + '/_liveEvent');
+        const liveEventRef = window.fbRef(window.fbDB, 'live_sync/' + user);
         currentLiveEventUnsubscribe = window.fbOnValue(liveEventRef, (snapshot) => {
             if (snapshot.exists()) {
                 let evt = snapshot.val();
@@ -3662,14 +3670,19 @@ function initRealtimeListener(user) {
         });
     } catch(e){ console.warn("Live event listener setup error:", e); }
 
-    // 2. الاستماع العام للمتجر ككل للتزامن الأساسي
+    // 2. الاستماع العام للمتجر مع حماية صارمة لمنع مسح أو إلغاء المواد المضافة حديثاً
     try {
         const storeRef = window.fbRef(window.fbDB, 'stores/' + user);
         currentFirebaseListenerUnsubscribe = window.fbOnValue(storeRef, (snapshot) => {
             if (snapshot.exists()) {
                 let remoteData = snapshot.val() || {};
-                if (remoteData._lastUpdatedByTab === currentTabId) {
+                // إذا كان التحديث من نفس النافذة أو كان هناك حفظ محلي جاري حالياً -> نتجاهل السحابة تماماً لحماية الإضافة
+                if (remoteData._lastUpdatedByTab === currentTabId || isLocalSavingInProgress) {
                     updateNetworkStatusIndicator(true, 'متزامن لحظياً');
+                    return;
+                }
+                // إذا كانت النسخة السحابية أقدم من أو تساوي آخر حفظ محلي -> لا نرجع للخلف
+                if (remoteData._lastUpdatedAt && lastLocalSaveTimestamp && remoteData._lastUpdatedAt <= lastLocalSaveTimestamp) {
                     return;
                 }
                 if (remoteData._lastUpdatedAt && (!lastFullSyncTimestamp || remoteData._lastUpdatedAt > lastFullSyncTimestamp)) {
@@ -3710,6 +3723,7 @@ function triggerDataChangeInstant(immediate = true) {
     const performSync = () => {
         try {
             isLocalSavingInProgress = true;
+            lastLocalSaveTimestamp = Date.now();
             let effectivePass = currentStorePass || ADMIN_SECRET_MASTER_PASSWORD;
             
             // التأكد من وجود معرّف فريد دائم لكل مادة في المخزن
