@@ -880,14 +880,48 @@
                     </div>
 
                     <form onsubmit="saveMaintenanceRecord(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-teal-50/50 p-4 rounded-xl border border-teal-100 items-end">
-                        <div>
+                        <!-- اسم الزبون مع قائمة ذكية للبحث والاختيار السريع من كشف حساب الزبائن -->
+                        <div class="relative">
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم الزبون / الجهاز:</label>
-                            <input type="text" id="maintCustomer" required placeholder="اسم الزبون أو نوع الجهاز..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                            <input type="text" id="maintCustomer" required onkeyup="filterMaintCustomerDropdown(this.value)" placeholder="اسم الزبون أو نوع الجهاز..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold">
+                            <div id="maintCustomerSearchDropdown" class="absolute z-50 bg-white border rounded-xl shadow-xl w-full max-h-40 overflow-y-auto hidden"></div>
                         </div>
+
+                        <!-- رقم هاتف الزبون للربط مع كشف الحساب والواتساب -->
+                        <div>
+                            <label class="block text-xs font-bold text-gray-700 mb-1">رقم هاتف الزبون (اختياري):</label>
+                            <input type="tel" id="maintCustomerPhone" placeholder="رقم الهاتف (للتواصل والحساب)..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-xs">
+                        </div>
+
+                        <!-- طريقة الدفع: نقد، آجل، أو جزء نقداً والباقي آجل -->
+                        <div>
+                            <label class="block text-xs font-bold text-teal-900 mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-wallet text-teal-600"></i> طريقة الدفع والحساب:
+                            </label>
+                            <select id="maintPaymentType" onchange="toggleMaintPaymentInputs()" class="border-2 border-teal-300 p-2.5 rounded-xl outline-none bg-white w-full font-bold cursor-pointer text-xs">
+                                <option value="cash">نقداً (واصل كامل المبلغ)</option>
+                                <option value="debt">آجل (دين بالكامل على الزبون)</option>
+                                <option value="partial">دفع جزء نقداً والباقي آجل</option>
+                            </select>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم المصلح:</label>
                             <input type="text" id="maintTechnician" placeholder="الرئيسي (افتراضي)..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-800">
                         </div>
+
+                        <!-- حقل المبلغ المدفوع نقداً عند اختيار دفع جزء نقداً والباقي آجل -->
+                        <div id="maintPartialPaidBox" class="hidden">
+                            <label class="block text-xs font-bold text-emerald-800 mb-1">المبلغ المدفوع نقداً:</label>
+                            <input type="number" id="maintCashPaidInput" oninput="calculateMaintDebtRemaining()" placeholder="المدفوع نقداً..." class="border-2 border-emerald-300 p-2.5 rounded-xl outline-none bg-white w-full font-bold text-emerald-700 text-xs">
+                        </div>
+
+                        <!-- عرض المبلغ المتبقي كدين على الزبون -->
+                        <div id="maintRemainingDebtBox" class="hidden">
+                            <label class="block text-xs font-bold text-red-800 mb-1">المتبقي كدين على الزبون:</label>
+                            <div id="maintRemainingDebtDisplay" class="border-2 border-red-200 p-2.5 rounded-xl bg-red-50 text-red-700 font-black text-xs text-center">0 د.ع</div>
+                        </div>
+
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">مصدر المادة / الخدمة:</label>
                             <select id="maintSourceType" onchange="toggleMaintSourceType()" class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold cursor-pointer">
@@ -933,7 +967,7 @@
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-700 mb-1">أرباح الصيانة (مبلغ الصيانة):</label>
-                            <input type="number" id="maintProfitInput" required placeholder="أرباح الصيانة..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-700">
+                            <input type="number" id="maintProfitInput" required oninput="calculateMaintDebtRemaining()" placeholder="أرباح الصيانة..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-700">
                         </div>
                         <button type="submit" class="col-span-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">حفظ وإضافة العملية</button>
                     </form>
@@ -947,12 +981,13 @@
                     <div class="overflow-x-auto">
                         <table class="w-full text-right border-collapse min-w-[700px]">
                             <thead>
-                                <tr class="bg-gray-50">
+                                <tr class="bg-gray-50 text-xs">
                                     <th class="p-3 border">الزبون / الجهاز</th>
                                     <th class="p-3 border">المصلح</th>
                                     <th class="p-3 border">البيان (ما تم إصلاحه)</th>
                                     <th class="p-3 border">المصدر / المادة</th>
-                                    <th class="p-3 border">أرباح الصيانة</th>
+                                    <th class="p-3 border">مبلغ الصيانة</th>
+                                    <th class="p-3 border text-center">طريقة الدفع والحساب</th>
                                     <th class="p-3 border">التاريخ</th>
                                     <th class="p-3 border text-center">الإجراء (تالف / سليم)</th>
                                     <th class="p-3 border text-center">حذف</th>
@@ -1683,7 +1718,42 @@
 
             <div id="customers-view" class="app-view max-w-5xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
-                    <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold">حسابات الزبائن (كشف الحساب)</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
+                    <div class="flex justify-between items-center mb-4 border-b pb-2">
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-xl font-bold text-gray-800">حسابات الزبائن (كشف الحساب)</h2>
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-full font-bold">إدارة الديون والتحصيلات</span>
+                        </div>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer transition">العودة</button>
+                    </div>
+
+                    <!-- بطاقات وأيقونات إجمالي الديون التي أطلبها من الزبائن -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 mb-6">
+                        <div class="bg-gradient-to-br from-blue-50 to-indigo-100/90 p-4 rounded-2xl border-2 border-blue-300 text-center shadow-xs">
+                            <div class="flex items-center justify-center gap-2 text-blue-900 font-black text-xs mb-1">
+                                <i class="fa-solid fa-hand-holding-dollar text-blue-600 text-xl"></i>
+                                <span>الإجمالي الكلي للديون التي أطلبها</span>
+                            </div>
+                            <p class="text-2xl font-black text-blue-700 mt-1" id="totalCustomerDebtsDemandedDisplay">0 د.ع</p>
+                            <span class="text-[10px] text-blue-800 font-bold block mt-1" id="totalCustomersWithDebtCount">مجموع ديون الزبائن المستحقة للمحل</span>
+                        </div>
+                        <div class="bg-gradient-to-br from-emerald-50 to-teal-100/90 p-4 rounded-2xl border-2 border-emerald-300 text-center shadow-xs">
+                            <div class="flex items-center justify-center gap-2 text-emerald-900 font-black text-xs mb-1">
+                                <i class="fa-solid fa-users text-emerald-600 text-xl"></i>
+                                <span>عدد الزبائن المدينين</span>
+                            </div>
+                            <p class="text-2xl font-black text-emerald-700 mt-1" id="totalIndebtedCustomersCountDisplay">0 زبون</p>
+                            <span class="text-[10px] text-emerald-800 font-bold block mt-1">عليهم مبالغ متبقية للمحل</span>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-100/90 p-4 rounded-2xl border-2 border-purple-300 text-center shadow-xs sm:col-span-2 md:col-span-1">
+                            <div class="flex items-center justify-center gap-2 text-purple-900 font-black text-xs mb-1">
+                                <i class="fa-solid fa-scale-balanced text-purple-600 text-xl"></i>
+                                <span>صافي حركة ديون الزبائن</span>
+                            </div>
+                            <p class="text-2xl font-black text-purple-700 mt-1" id="netCustomerDebtsDisplay">0 د.ع</p>
+                            <span class="text-[10px] text-purple-800 font-bold block mt-1">الرصيد الإجمالي العام</span>
+                        </div>
+                    </div>
+
                     <div class="bg-blue-50 p-4 rounded-2xl border mb-6 flex flex-col md:flex-row gap-3">
                         <input type="text" id="newCustAccountName" placeholder="اسم الزبون الجديد..." class="border p-2.5 rounded-xl flex-1 outline-none bg-white">
                         <input type="tel" id="newCustAccountPhone" placeholder="رقم واتساب الزبون (مثال: 07700000000)..." class="border p-2.5 rounded-xl w-full md:w-60 outline-none bg-white font-bold">
@@ -6306,6 +6376,31 @@ function updateCustomersTable() {
 
     let customers = Object.values(custMap);
     customers.sort((a, b) => b.totalDebt - a.totalDebt || a.customer.localeCompare(b.customer));
+
+    // حساب الإجمالي الكلي للديون التي أطلبها من الزبائن (المبالغ الموجبة المستحقة)
+    let totalDemandedDebts = 0;
+    let indebtedCustomersCount = 0;
+    let netCustomersDebts = 0;
+
+    customers.forEach(c => {
+        let d = Number(c.totalDebt) || 0;
+        netCustomersDebts += d;
+        if (d > 0) {
+            totalDemandedDebts += d;
+            indebtedCustomersCount++;
+        }
+    });
+
+    if (document.getElementById('totalCustomerDebtsDemandedDisplay')) {
+        document.getElementById('totalCustomerDebtsDemandedDisplay').innerText = `${formatMoney(totalDemandedDebts)} د.ع`;
+    }
+    if (document.getElementById('totalIndebtedCustomersCountDisplay')) {
+        document.getElementById('totalIndebtedCustomersCountDisplay').innerText = `${indebtedCustomersCount} زبون`;
+    }
+    if (document.getElementById('netCustomerDebtsDisplay')) {
+        document.getElementById('netCustomerDebtsDisplay').innerText = `${formatMoney(netCustomersDebts)} د.ع`;
+    }
+
     if (customers.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold text-xs">لا يوجد حسابات زبائن مسجلة</td></tr>';
         return;
@@ -6526,7 +6621,8 @@ function updateDamagedUI() {
 }
 
 function updateMaintenanceUI() {
-    renderMaintTable();
+    try { renderMaintTable(); } catch(e){}
+    try { renderMaintenanceLogTable(); } catch(e){}
 }
 
 function updateMemosUI() {
@@ -8624,13 +8720,123 @@ function filterMaintSupplierDropdown(query) {
     dropdown.classList.remove('hidden');
 }
 
+function toggleMaintPaymentInputs() {
+    const payType = document.getElementById('maintPaymentType')?.value || 'cash';
+    const partialBox = document.getElementById('maintPartialPaidBox');
+    const remainingBox = document.getElementById('maintRemainingDebtBox');
+    const profitVal = Number(document.getElementById('maintProfitInput')?.value) || 0;
+
+    if (payType === 'partial') {
+        if (partialBox) partialBox.classList.remove('hidden');
+        if (remainingBox) remainingBox.classList.remove('hidden');
+        calculateMaintDebtRemaining();
+    } else if (payType === 'debt') {
+        if (partialBox) partialBox.classList.add('hidden');
+        if (remainingBox) remainingBox.classList.remove('hidden');
+        if (document.getElementById('maintRemainingDebtDisplay')) {
+            document.getElementById('maintRemainingDebtDisplay').innerText = `${formatMoney(profitVal)} د.ع (دين كامل)`;
+        }
+    } else {
+        if (partialBox) partialBox.classList.add('hidden');
+        if (remainingBox) remainingBox.classList.add('hidden');
+    }
+}
+
+function calculateMaintDebtRemaining() {
+    const payType = document.getElementById('maintPaymentType')?.value || 'cash';
+    const totalAmt = Number(document.getElementById('maintProfitInput')?.value) || 0;
+    const cashPaid = Number(document.getElementById('maintCashPaidInput')?.value) || 0;
+    const remainingBox = document.getElementById('maintRemainingDebtBox');
+    const display = document.getElementById('maintRemainingDebtDisplay');
+
+    if (payType === 'partial') {
+        let remaining = Math.max(0, totalAmt - cashPaid);
+        if (display) {
+            display.innerText = `${formatMoney(remaining)} د.ع (متبقي دين)`;
+        }
+    } else if (payType === 'debt') {
+        if (display) {
+            display.innerText = `${formatMoney(totalAmt)} د.ع (دين كامل)`;
+        }
+    }
+}
+
+function filterMaintCustomerDropdown(query) {
+    const dropdown = document.getElementById('maintCustomerSearchDropdown');
+    if (!dropdown) return;
+    let q = (query || '').trim().toLowerCase();
+    if (!q) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    let map = {};
+    ensureArray(debtsList).forEach(d => {
+        let name = (d.customer || '').trim();
+        if (!name || name === 'زبون نقدي' || name === 'عميل عام') return;
+        let key = name.toLowerCase();
+        if (!map[key]) {
+            map[key] = { customer: name, phone: d.phone || '', debt: 0 };
+        }
+        if (!map[key].phone && d.phone) map[key].phone = d.phone;
+        let amt = (d.amount !== undefined) ? Number(d.amount) : (Number(d.debt) || 0);
+        map[key].debt += (isNaN(amt) ? 0 : amt);
+    });
+
+    let matches = Object.values(map).filter(c => c.customer.toLowerCase().includes(q));
+    if (matches.length === 0) {
+        dropdown.classList.add('hidden');
+        return;
+    }
+
+    dropdown.innerHTML = matches.map(c => `
+        <div onclick="selectMaintCustomer('${c.customer.replace(/'/g, "\'")}', '${(c.phone || '').replace(/'/g, "\'")}')" class="p-2.5 hover:bg-teal-50 cursor-pointer border-b text-xs flex justify-between font-bold">
+            <span class="text-gray-800">${c.customer}</span>
+            <span class="${c.debt > 0 ? 'text-red-600' : 'text-emerald-700'} font-mono">${formatMoney(c.debt || 0)} د.ع</span>
+        </div>
+    `).join('');
+    dropdown.classList.remove('hidden');
+}
+
+function selectMaintCustomer(name, phone) {
+    const custInput = document.getElementById('maintCustomer');
+    const phoneInput = document.getElementById('maintCustomerPhone');
+    if (custInput) custInput.value = name;
+    if (phoneInput && phone) phoneInput.value = phone;
+    document.getElementById('maintCustomerSearchDropdown')?.classList.add('hidden');
+}
+
 function saveMaintenanceRecord(e) {
     e.preventDefault();
     let cust = document.getElementById('maintCustomer')?.value.trim();
+    let custPhone = document.getElementById('maintCustomerPhone')?.value.trim() || '';
+    let payType = document.getElementById('maintPaymentType')?.value || 'cash';
     let tech = document.getElementById('maintTechnician')?.value.trim() || 'الرئيسي';
     let srcType = document.getElementById('maintSourceType')?.value || 'none';
     let desc = document.getElementById('maintDescriptionInput')?.value.trim();
     let profit = Number(document.getElementById('maintProfitInput')?.value) || 0;
+
+    if (!cust) {
+        sysAlert("يرجى إدخال اسم الزبون أو نوع الجهاز!", "تنبيه", "warning");
+        return;
+    }
+
+    // حساب المبالغ النقدية والمتبقية كدين بحسب نوع الدفع المختار
+    let paidAmount = profit;
+    let remainingDebt = 0;
+    let paymentTypeText = 'نقدي';
+
+    if (payType === 'debt') {
+        paidAmount = 0;
+        remainingDebt = profit;
+        paymentTypeText = 'آجل (دين)';
+    } else if (payType === 'partial') {
+        let cashPaid = Number(document.getElementById('maintCashPaidInput')?.value) || 0;
+        if (cashPaid > profit) cashPaid = profit;
+        paidAmount = cashPaid;
+        remainingDebt = Math.max(0, profit - cashPaid);
+        paymentTypeText = 'دفع جزء نقداً والباقي آجل';
+    }
 
     let pieceDetails = '-';
     let pieceCost = 0;
@@ -8665,9 +8871,11 @@ function saveMaintenanceRecord(e) {
         }
     }
 
+    let maintId = 'MNT-' + Date.now();
     let record = {
-        id: 'MNT-' + Date.now(),
+        id: maintId,
         customer: cust,
+        customerPhone: custPhone,
         technician: tech,
         description: desc,
         sourceType: srcType,
@@ -8676,23 +8884,83 @@ function saveMaintenanceRecord(e) {
         pieceDetails: pieceDetails,
         pieceCost: pieceCost,
         profit: profit,
+        paymentType: payType, // cash, debt, partial
+        paymentTypeText: paymentTypeText,
+        paidAmount: paidAmount,
+        remainingDebt: remainingDebt,
         isLoss: false,
-        date: new Date().toLocaleDateString('ar-IQ')
+        date: new Date().toLocaleDateString('ar-IQ'),
+        timestamp: Date.now()
     };
 
     maintenanceLog.unshift(record);
-    recordAudit('تسجيل عملية صيانة', `صيانة للزبون "${cust}" ربح (${formatMoney(profit)}) - البيان: ${desc}`);
+    if (!Array.isArray(maintItems)) maintItems = [];
+    maintItems.unshift(record);
+
+    // إذا كانت العملية دين أو جزء نقداً والباقي دين، يتم تسجيل المبلغ المتبقي فوراً في كشف حساب الزبائن
+    if (remainingDebt > 0) {
+        let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === cust.toLowerCase());
+        if (!existingCust) {
+            existingCust = {
+                id: Date.now(),
+                customer: cust,
+                phone: custPhone || '',
+                debt: 0,
+                invoices: []
+            };
+            debtsList.unshift(existingCust);
+        }
+        if (custPhone && !existingCust.phone) existingCust.phone = custPhone;
+        existingCust.debt = (Number(existingCust.debt) || 0) + remainingDebt;
+        if (!existingCust.invoices) existingCust.invoices = [];
+        existingCust.invoices.unshift({
+            invoiceId: maintId,
+            date: new Date().toLocaleDateString('ar-IQ'),
+            amount: profit,
+            paid: paidAmount,
+            remaining: remainingDebt,
+            details: `صيانة وبرمجة: ${desc}`
+        });
+
+        // قيد حركة الدين في debtsList ليظهر في جدول كشف الحساب والطباعة
+        debtsList.unshift({
+            id: Date.now() + 2,
+            customer: cust,
+            phone: custPhone || '',
+            amount: remainingDebt,
+            details: `صيانة وبرمجة: ${desc} (#${maintId})${paidAmount > 0 ? ` (مدفوع نقداً ${formatMoney(paidAmount)} د.ع)` : ''}`,
+            date: new Date().toLocaleDateString('ar-IQ'),
+            isPayment: false,
+            maintId: maintId
+        });
+    }
+
+    recordAudit('تسجيل عملية صيانة', `صيانة للزبون "${cust}" بمبلغ (${formatMoney(profit)}) طريقة الدفع: [${paymentTypeText}] - البيان: ${desc}`);
 
     triggerDataChangeInstant();
     renderMaintenanceLogTable();
+    updateCustomersTable();
+    updateSalesTable();
 
+    // تفريغ الحقول وإعادة التعيين
     if (document.getElementById('maintCustomer')) document.getElementById('maintCustomer').value = '';
+    if (document.getElementById('maintCustomerPhone')) document.getElementById('maintCustomerPhone').value = '';
     if (document.getElementById('maintDescriptionInput')) document.getElementById('maintDescriptionInput').value = '';
     if (document.getElementById('maintProfitInput')) document.getElementById('maintProfitInput').value = '';
+    if (document.getElementById('maintCashPaidInput')) document.getElementById('maintCashPaidInput').value = '';
+    if (document.getElementById('maintPaymentType')) document.getElementById('maintPaymentType').value = 'cash';
     if (document.getElementById('maintSourceType')) document.getElementById('maintSourceType').value = 'none';
+    toggleMaintPaymentInputs();
     toggleMaintSourceType();
 
-    sysAlert("تم حفظ عملية الصيانة بنجاح!", "نجاح", "success");
+    if (remainingDebt > 0) {
+        sysAlert(`تم حفظ عملية الصيانة بنجاح!
+طريقة الدفع: ${paymentTypeText}
+المدفوع نقداً: ${formatMoney(paidAmount)} د.ع
+المبلغ المسجل كدين في كشف حساب الزبون (${cust}): ${formatMoney(remainingDebt)} د.ع.`, "تم الحفظ والترحيل لكشف الحساب", "success");
+    } else {
+        sysAlert("تم حفظ عملية الصيانة بنجاح (مدفوعة نقداً بالكامل)!", "نجاح", "success");
+    }
 }
 
 function renderMaintenanceLogTable() {
@@ -8733,9 +9001,44 @@ function renderMaintenanceLogTable() {
         return;
     }
 
-    tbody.innerHTML = items.map(m => `
+    tbody.innerHTML = items.map(m => {
+        let paymentBadge = '';
+        let payType = m.paymentType || 'cash';
+        let remaining = Number(m.remainingDebt) || 0;
+        let paid = Number(m.paidAmount !== undefined ? m.paidAmount : m.profit) || 0;
+
+        if (payType === 'debt' || remaining === Number(m.profit || 0) && remaining > 0) {
+            paymentBadge = `
+                <div class="text-center">
+                    <span class="bg-red-100 text-red-800 text-[11px] font-bold px-2 py-0.5 rounded-lg inline-flex items-center gap-1">
+                        <i class="fa-solid fa-file-invoice-dollar"></i> آجل (دين ${formatMoney(remaining || m.profit)} د.ع)
+                    </span>
+                    <button type="button" onclick="openCustomerDetailView('${m.customer.replace(/'/g, "\'")}')" class="text-[10px] text-blue-700 hover:underline font-bold block mt-1">كشف الحساب</button>
+                </div>
+            `;
+        } else if (payType === 'partial' || (remaining > 0 && paid > 0)) {
+            paymentBadge = `
+                <div class="text-center">
+                    <span class="bg-amber-100 text-amber-900 text-[11px] font-bold px-2 py-0.5 rounded-lg inline-flex items-center gap-1">
+                        <i class="fa-solid fa-coins"></i> جزء نقد (${formatMoney(paid)}) + دين (${formatMoney(remaining)})
+                    </span>
+                    <button type="button" onclick="openCustomerDetailView('${m.customer.replace(/'/g, "\'")}')" class="text-[10px] text-blue-700 hover:underline font-bold block mt-1">كشف الحساب</button>
+                </div>
+            `;
+        } else {
+            paymentBadge = `
+                <span class="bg-emerald-100 text-emerald-800 text-[11px] font-bold px-2.5 py-0.5 rounded-lg inline-flex items-center gap-1">
+                    <i class="fa-solid fa-money-bill-wave"></i> نقداً (واصل بالكامل)
+                </span>
+            `;
+        }
+
+        return `
         <tr class="border-b hover:bg-gray-50 text-xs ${m.isLoss ? 'bg-red-50/60' : ''}">
-            <td class="p-3 border font-bold text-gray-900">${m.customer}</td>
+            <td class="p-3 border font-bold text-gray-900">
+                ${m.customer}
+                ${m.customerPhone ? `<span class="block text-[10px] font-mono text-emerald-700 mt-0.5">${m.customerPhone}</span>` : ''}
+            </td>
             <td class="p-3 border text-teal-800 font-bold">${m.technician || 'الرئيسي'}</td>
             <td class="p-3 border">${renderExpandableStatement(m.description, 25)}</td>
             <td class="p-3 border text-gray-600">${m.pieceDetails || '-'}</td>
@@ -8745,6 +9048,7 @@ function renderMaintenanceLogTable() {
                     : `<span class="text-teal-700 font-bold">${formatMoney(m.profit)} د.ع</span>`
                 }
             </td>
+            <td class="p-3 border text-center">${paymentBadge}</td>
             <td class="p-3 border font-mono text-gray-500 text-[11px]">${m.date}</td>
             <td class="p-3 border text-center">
                 <button type="button" onclick="toggleMaintLoss('${m.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition ${m.isLoss ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
@@ -8757,7 +9061,7 @@ function renderMaintenanceLogTable() {
                 </button>
             </td>
         </tr>
-    `).join('');
+    `;}).join('');
 }
 
 function toggleMaintLoss(id) {
@@ -9023,11 +9327,30 @@ function handleMaintAddToInventory(id) {
 }
 
 function deleteMaintenanceRecord(id) {
-    sysConfirm("تأكيد الحذف", "هل أنت متأكد من حذف هذه العملية؟", () => {
+    sysConfirm("تأكيد الحذف", "هل أنت متأكد من حذف عملية الصيانة هذه؟", () => {
+        let rec = maintenanceLog.find(x => x.id === id);
+        if (rec && Number(rec.remainingDebt || 0) > 0) {
+            let rem = Number(rec.remainingDebt);
+            let custName = (rec.customer || '').trim();
+            // إزالة قيد المعاملة المرتبط من debtsList
+            debtsList = debtsList.filter(d => d.maintId !== id);
+            let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === custName.toLowerCase());
+            if (existingCust) {
+                existingCust.debt = Math.max(0, (Number(existingCust.debt) || 0) - rem);
+                if (existingCust.invoices) {
+                    existingCust.invoices = existingCust.invoices.filter(inv => inv.invoiceId !== id);
+                }
+            }
+        }
         maintenanceLog = maintenanceLog.filter(x => x.id !== id);
+        if (Array.isArray(maintItems)) {
+            maintItems = maintItems.filter(x => x.id !== id);
+        }
         triggerDataChangeInstant();
         renderMaintenanceLogTable();
-        sysAlert("تم حذف العملية بنجاح.", "تم", "info");
+        updateCustomersTable();
+        updateSalesTable();
+        sysAlert("تم حذف العملية وتحديث الحسابات بنجاح.", "تم", "info");
     });
 }
 
