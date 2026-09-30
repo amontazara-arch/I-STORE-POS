@@ -461,14 +461,17 @@
             </div>
 
             <div class="flex flex-col gap-2">
-                <button type="button" onclick="executeVoucherAction('print')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                    <i class="fa-solid fa-print"></i> 1. طباعة ورقية فقط (طابعة حرارية)
+                <button type="button" id="cvBtnPrint" onclick="executeVoucherAction('print')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-print"></i> 1. قبض وطباعة ورقية (طابعة حرارية)
                 </button>
-                <button type="button" onclick="executeVoucherAction('whatsapp')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                    <i class="fa-brands fa-whatsapp text-base"></i> 2. إرسال الوصل عبر واتساب الأعمال
+                <button type="button" id="cvBtnSaveOnly" onclick="executeVoucherAction('save_only')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-circle-check"></i> 2. تسجيل القبض فقط بالحساب (بدون طباعة)
                 </button>
-                <button type="button" onclick="executeVoucherAction('both')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                    <i class="fa-solid fa-layer-group"></i> 3. كلاهما (طباعة ورقية + إرسال واتساب)
+                <button type="button" id="cvBtnWhatsapp" onclick="executeVoucherAction('whatsapp')" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-brands fa-whatsapp text-base"></i> 3. قبض وإرسال الوصل عبر واتساب الأعمال
+                </button>
+                <button type="button" id="cvBtnBoth" onclick="executeVoucherAction('both')" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-layer-group"></i> 4. كلاهما (قبض + طباعة ورقية + إرسال واتساب)
                 </button>
                 <button type="button" onclick="closeCustomerVoucherPopupModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2 rounded-xl text-xs cursor-pointer transition mt-0.5">
                     إلغاء
@@ -6366,6 +6369,17 @@ function openCustomerVoucherPopupModal(voucherType = 'قبض') {
     const notesInput = document.getElementById('cvModalNotes');
     if (notesInput) notesInput.value = isReceipt ? 'تسديد دفعة نقدية من الحساب' : 'شراء بضاعة ومواد';
 
+    // تحديث عناوين أزرار النافذة بناءً على نوع الوصل (قبض أو شراء)
+    const btnPrint = document.getElementById('cvBtnPrint');
+    const btnSaveOnly = document.getElementById('cvBtnSaveOnly');
+    const btnWa = document.getElementById('cvBtnWhatsapp');
+    const btnBoth = document.getElementById('cvBtnBoth');
+
+    if (btnPrint) btnPrint.innerHTML = `<i class="fa-solid fa-print"></i> 1. ${isReceipt ? 'قبض وطباعة ورقية (طابعة حرارية)' : 'تسجيل وطباعة ورقية'}`;
+    if (btnSaveOnly) btnSaveOnly.innerHTML = `<i class="fa-solid fa-circle-check"></i> 2. ${isReceipt ? 'تسجيل القبض فقط بالحساب (بدون طباعة)' : 'تسجيل الشراء فقط بالحساب (بدون طباعة)'}`;
+    if (btnWa) btnWa.innerHTML = `<i class="fa-brands fa-whatsapp text-base"></i> 3. ${isReceipt ? 'قبض وإرسال الوصل عبر واتساب' : 'إرسال الوصل عبر واتساب'}`;
+    if (btnBoth) btnBoth.innerHTML = `<i class="fa-solid fa-layer-group"></i> 4. كلاهما (${isReceipt ? 'قبض + ' : ''}طباعة ورقية + إرسال واتساب)`;
+
     updateVoucherLivePreview();
     modal.classList.remove('hidden');
     if (amountInput) setTimeout(() => amountInput.focus(), 150);
@@ -6489,20 +6503,74 @@ async function executeVoucherAction(choice) {
                 d.phone = phone;
             }
         });
-        triggerDataChangeInstant();
     }
+
+    // ==========================================
+    // 💰 التنفيذ التلقائي للقبض / الشراء في حساب الزبون
+    // ==========================================
+    let nowStr = new Date().toLocaleDateString('ar-IQ');
+    if (isReceipt) {
+        // عند إصدار وصل القبض: يتم القبض تلقائياً بخصم المبلغ من حساب الزبون
+        debtsList.unshift({
+            id: Date.now(),
+            customer: targetCustomer,
+            details: notes || 'تسديد دفعة نقدية (وصل قبض)',
+            amount: -amount,
+            date: nowStr,
+            isPayment: true,
+            voucherId: voucherId
+        });
+
+        let custDebtObj = debtsList.find(d => d.customer === targetCustomer && d.debt !== undefined);
+        if (custDebtObj) {
+            custDebtObj.debt = Math.max(0, (Number(custDebtObj.debt) || 0) - amount);
+        }
+
+        recordAudit('قبض دفعة نقدية', `تسجيل استلام وصل قبض بقيمة ${formatMoney(amount)} د.ع من (${targetCustomer})`);
+    } else {
+        // وصل شراء: إضافة دين على حساب الزبون
+        debtsList.unshift({
+            id: Date.now(),
+            customer: targetCustomer,
+            details: notes || 'شراء بضاعة ومواد (وصل شراء)',
+            amount: amount,
+            date: nowStr,
+            voucherId: voucherId
+        });
+
+        let custDebtObj = debtsList.find(d => d.customer === targetCustomer && d.debt !== undefined);
+        if (custDebtObj) {
+            custDebtObj.debt = (Number(custDebtObj.debt) || 0) + amount;
+        }
+
+        recordAudit('وصل شراء', `تسجيل وصل شراء بقيمة ${formatMoney(amount)} د.ع على (${targetCustomer})`);
+    }
+
+    triggerDataChangeInstant();
+    if (typeof renderCustomerDetailData === 'function') renderCustomerDetailData(targetCustomer);
+    if (typeof updateCustomersTable === 'function') updateCustomersTable();
+    if (typeof updateSalesTable === 'function') updateSalesTable();
 
     let msgText = `أهلاً بك *${targetCustomer}* 🌸\nتم إصدآر ${title} رقم *#${voucherId}*\nالمبلغ: ${formatMoney(amount)} د.ع\nالبيان: ${notes}\n─────────────────────\n📊 *تفاصيل الحساب:*\n• الرصيد السابق: ${formatMoney(prevBalance)} د.ع\n• ${isReceipt ? 'المسدد الآن:' : 'المضاف للحساب:'} ${formatMoney(amount)} د.ع\n• *الرصيد المتبقي (الدين):* ${formatMoney(remainingBalance)} د.ع\n─────────────────────\nشكراً لتعاملكم معنا - متجر iStore 🛍️\nهاتف: 07723355600`;
 
-    if (choice === 'print') {
+    if (choice === 'save_only') {
+        // تسجيل القبض فقط بالحساب دون طباعة الوصل
+        sysAlert(
+            `تم تسجيل القبض وخصم مبلغ ${formatMoney(amount)} د.ع من حساب الزبون (${targetCustomer}) بنجاح دون طباعة الوصل! الرصيد المتبقي: ${formatMoney(remainingBalance)} د.ع.`,
+            "تم القبض بنجاح",
+            "success"
+        );
+    } else if (choice === 'print') {
         triggerUniversalPrint('thermal', voucherHtml);
         recordAudit('طباعة وصل', `طباعة ${title} للعميل (${targetCustomer}) بمبلغ ${formatMoney(amount)}`);
+        sysToast(`تم تسجيل القبض وخصم ${formatMoney(amount)} د.ع وإرسال الوصل للطباعة ✓`, "success");
     } else if (choice === 'whatsapp') {
         if (!phone) {
-            sysAlert("يرجى إدخال رقم الهاتف لإرسال الوصل عبر واتساب!", "تنبيه", "info");
+            sysAlert("يرجى إدخال رقم الهاتف لإرسال الوصل عبر واتساب! (تم تسجيل العملية في الحساب بنجاح)", "تنبيه", "info");
         } else {
             openWhatsAppWebDirect(phone, msgText);
             recordAudit('إرسال واتساب', `إرسال ${title} للرقم (${phone})`);
+            sysToast(`تم تسجيل القبض وخصم ${formatMoney(amount)} د.ع والتحويل للواتساب ✓`, "success");
         }
     } else if (choice === 'both') {
         if (phone) {
@@ -6513,6 +6581,7 @@ async function executeVoucherAction(choice) {
             triggerUniversalPrint('thermal', voucherHtml);
             recordAudit('طباعة وصل', `طباعة ${title} للعميل (${targetCustomer}) بمبلغ ${formatMoney(amount)}`);
         }, 300);
+        sysToast(`تم تسجيل القبض وخصم ${formatMoney(amount)} د.ع وإرسال الوصل للطباعة والواتساب ✓`, "success");
     }
 }
 
