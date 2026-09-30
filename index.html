@@ -754,6 +754,7 @@
             <button onclick="switchView('returns-view'); toggleMobileSidebar(true);" class="p-3 bg-red-900/60 hover:bg-red-800 rounded-xl text-red-200 flex items-center gap-2"><i class="fa-solid fa-rotate-left text-red-400"></i> سجل المرتجعات</button>
             <button onclick="switchView('customers-view'); toggleMobileSidebar(true);" class="p-3 bg-[#1d71b8]/70 hover:bg-[#1d71b8] rounded-xl text-white flex items-center gap-2"><i class="fa-solid fa-address-book text-sky-300"></i> حساب الزبائن</button>
             <button onclick="switchView('my-debts-view'); toggleMobileSidebar(true);" class="p-3 bg-red-800/70 hover:bg-red-800 rounded-xl text-white flex items-center gap-2"><i class="fa-solid fa-file-invoice-dollar text-red-300"></i> المجهّزون والديون</button>
+            <button onclick="switchView('saved-items-view'); toggleMobileSidebar(true);" class="p-3 bg-purple-900/70 hover:bg-purple-800 rounded-xl text-purple-200 flex items-center gap-2"><i class="fa-solid fa-bookmark text-purple-400"></i> المحفوظات</button>
             <button onclick="switchView('vouchers-view'); toggleMobileSidebar(true);" class="p-3 bg-cyan-900/60 hover:bg-cyan-800 rounded-xl text-cyan-200 flex items-center gap-2"><i class="fa-solid fa-gear text-cyan-400"></i> الإعدادات والنسخ</button>
             <button onclick="switchView('expenses-view'); toggleMobileSidebar(true);" class="p-3 bg-[#8cc63f]/50 hover:bg-[#8cc63f] rounded-xl text-white flex items-center gap-2"><i class="fa-solid fa-hand-holding-dollar text-lime-300"></i> المصروفات</button>
             <button onclick="switchView('audit-view'); toggleMobileSidebar(true);" class="p-3 bg-amber-800/60 hover:bg-amber-800 rounded-xl text-amber-200 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-amber-400"></i> سجل الرقابة</button>
@@ -793,6 +794,9 @@
             <button onclick="switchView('returns-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-red-300 font-bold flex items-center"><i class="fa-solid fa-rotate-left pl-3 text-red-500"></i> سجل المرتجعات</button>
             <button onclick="switchView('customers-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-address-book pl-3 text-gray-400"></i> كشف حساب الزبائن</button>
             <button onclick="switchView('my-debts-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-gray-300 flex items-center"><i class="fa-solid fa-file-invoice-dollar pl-3 text-red-400"></i> المجهّزون والديون</button>
+            <button onclick="switchView('saved-items-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-purple-300 font-bold flex items-center">
+                <i class="fa-solid fa-bookmark pl-3 text-purple-400 text-lg"></i> المحفوظات
+            </button>
             <button onclick="switchView('vouchers-view')" class="w-full text-right px-4 py-2.5 hover:bg-gray-800 rounded-lg text-cyan-300 font-bold flex items-center justify-between">
                 <span class="flex items-center"><i class="fa-solid fa-gear pl-3 text-cyan-400 text-lg"></i> الإعدادات والنسخ الاحتياطي</span>
             </button>
@@ -845,6 +849,7 @@
 
                     <!-- السطر الأخير: القيم والجرد، الإعدادات، سجل الرقابة، المراسلة -->
                     <button onclick="switchView('values-dashboard-view')" class="flex flex-col items-center justify-center p-4 bg-yellow-600 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-coins text-3xl mb-2"></i><span class="font-bold">القيم والجرد</span></button>
+                    <button onclick="switchView('saved-items-view')" class="flex flex-col items-center justify-center p-4 bg-purple-800 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-bookmark text-3xl mb-2"></i><span class="font-bold">المحفوظات</span></button>
                     <button onclick="switchView('vouchers-view')" class="flex flex-col items-center justify-center p-4 bg-cyan-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-gear text-3xl mb-2"></i><span class="font-bold">الإعدادات والنسخ</span></button>
                     <button onclick="switchView('audit-view')" class="flex flex-col items-center justify-center p-4 bg-amber-700 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-shield-halved text-3xl mb-2"></i><span class="font-bold">سجل الرقابة</span></button>
                     <button onclick="switchView('chat-view')" class="flex flex-col items-center justify-center p-4 bg-teal-800 rounded-2xl shadow-sm text-white h-32 cursor-pointer hover:scale-105 transition"><i class="fa-solid fa-comments text-3xl mb-2"></i><span class="font-bold">المراسلة</span></button>
@@ -2081,6 +2086,99 @@
                 <div class="bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2"><h2 class="text-xl font-bold text-red-600">سجل الرقابة</h2><button onclick="switchView('dashboard-view')" class="bg-gray-100 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer">العودة</button></div>
                     <div class="overflow-x-auto"><table class="w-full text-right border-collapse"><thead><tr class="bg-gray-50"><th class="p-3 border">النوع</th><th class="p-3 border">التفاصيل</th><th class="p-3 border">الوقت</th></tr></thead><tbody id="auditTableBody"></tbody></table></div>
+                </div>
+            </div>
+
+            
+            <!-- واجهة المحفوظات (حفظ الرسائل والصور) -->
+            <div id="saved-items-view" class="app-view max-w-5xl mx-auto">
+                <div class="bg-white rounded-3xl shadow-sm p-6 mb-6 border">
+                    <!-- الرأس -->
+                    <div class="flex justify-between items-center mb-6 border-b pb-4 flex-wrap gap-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-11 h-11 rounded-2xl bg-purple-100 text-purple-700 flex items-center justify-center text-2xl shadow-xs">
+                                <i class="fa-solid fa-bookmark"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-gray-800">المحفوظات (الرسائل والصور)</h2>
+                                <p class="text-xs text-gray-500 font-bold">احفظ الملاحظات، الرسائل، الصور، واللقطات المهمة للرجوع إليها في أي وقت</p>
+                            </div>
+                        </div>
+                        <button onclick="switchView('dashboard-view')" class="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-xl text-sm font-bold cursor-pointer transition">العودة للرئيسية</button>
+                    </div>
+
+                    <!-- صندوق إضافة حفظ جديد -->
+                    <div class="bg-gradient-to-br from-purple-50 via-indigo-50/40 to-pink-50/40 p-5 rounded-2xl border-2 border-purple-200 mb-6 shadow-xs">
+                        <h3 class="font-bold text-sm text-purple-900 mb-3 flex items-center gap-2">
+                            <i class="fa-solid fa-plus-circle text-purple-600"></i> إضافة رسالة أو صورة جديدة إلى المحفوظات
+                        </h3>
+
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div class="md:col-span-1">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">عنوان أو تصنيف (اختياري):</label>
+                                    <input type="text" id="savedItemTitle" placeholder="مثال: حساب مهم، ملاحظة صيانة، صورة..." class="w-full border-2 border-purple-200 p-2.5 rounded-xl bg-white font-bold text-xs outline-none focus:border-purple-500">
+                                </div>
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-700 mb-1">إرفاق صورة (اختياري):</label>
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <input type="file" id="savedItemFileInput" accept="image/*" class="hidden" onchange="handleSavedItemImageSelect(event)">
+                                        <button type="button" onclick="document.getElementById('savedItemFileInput').click()" class="bg-white hover:bg-purple-50 border-2 border-purple-300 text-purple-700 px-4 py-2 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
+                                            <i class="fa-solid fa-image"></i> اختر صورة من الجهاز / الكاميرا
+                                        </button>
+                                        <span id="savedItemFileName" class="text-xs text-gray-600 truncate flex-1 font-bold"></span>
+                                        <button type="button" id="savedItemRemoveImageBtn" onclick="removePendingSavedItemImage()" class="hidden bg-rose-50 text-rose-600 border border-rose-200 hover:bg-rose-100 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer flex items-center gap-1">
+                                            <i class="fa-solid fa-xmark"></i> إلغاء الصورة
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- معاينة الصورة المرفقة قبل الحفظ -->
+                            <div id="savedItemImagePreviewContainer" class="hidden relative inline-block border-2 border-purple-300 rounded-2xl overflow-hidden shadow-sm mt-1 bg-white">
+                                <img id="savedItemImagePreview" src="" alt="معاينة" class="max-h-48 rounded-xl object-contain">
+                                <button type="button" onclick="removePendingSavedItemImage()" class="absolute top-2 right-2 bg-black/75 hover:bg-black text-white w-7 h-7 rounded-full flex items-center justify-center text-xs cursor-pointer shadow">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-700 mb-1">نص الرسالة أو الملاحظة:</label>
+                                <textarea id="savedItemText" rows="3" placeholder="اكتب أو الصق نص الرسالة هنا، أو الصق لقطة شاشة مباشرة (Ctrl+V)..." class="w-full border-2 border-purple-200 p-3 rounded-xl bg-white font-bold text-xs outline-none focus:border-purple-500"></textarea>
+                            </div>
+
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-[11px] text-gray-400 font-bold hidden sm:inline-block"><i class="fa-solid fa-circle-info"></i> يمكنك لصق الصور المنسوخة مباشرة بالضغط على Ctrl+V</span>
+                                <button type="button" onclick="addNewSavedItem()" class="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-2.5 rounded-xl text-xs font-bold cursor-pointer shadow transition flex items-center gap-2">
+                                    <i class="fa-solid fa-bookmark"></i> حفظ في المحفوظات
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- شريط البحث والفلترة -->
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-3 mb-6">
+                        <div class="relative flex-1 w-full">
+                            <input type="text" id="searchSavedItemsInput" onkeyup="filterSavedItemsList()" placeholder="🔍 بحث في الرسائل والصور المحفوظة..." class="w-full border-2 p-2.5 rounded-xl bg-gray-50 font-bold text-xs outline-none focus:border-purple-400">
+                        </div>
+                        <div class="flex gap-1.5 bg-gray-100 p-1 rounded-xl text-xs font-bold w-full sm:w-auto justify-center">
+                            <button type="button" onclick="setSavedItemsFilter('all')" id="filterTabAll" class="px-3 py-1.5 rounded-lg bg-white shadow-xs text-purple-700 font-bold cursor-pointer transition">الكل (<span id="savedCountAll">0</span>)</button>
+                            <button type="button" onclick="setSavedItemsFilter('text')" id="filterTabText" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 cursor-pointer transition">رسائل فقط (<span id="savedCountText">0</span>)</button>
+                            <button type="button" onclick="setSavedItemsFilter('image')" id="filterTabImage" class="px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 cursor-pointer transition">صور فقط (<span id="savedCountImage">0</span>)</button>
+                        </div>
+                    </div>
+
+                    <!-- شبكة عرض المحفوظات -->
+                    <div id="savedItemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- يتم تعبئتها ديناميكياً -->
+                    </div>
+
+                    <!-- حالة لا توجد محفوظات -->
+                    <div id="savedItemsEmptyState" class="hidden text-center py-12 px-4 border-2 border-dashed border-gray-200 rounded-2xl">
+                        <i class="fa-solid fa-box-open text-gray-300 text-5xl mb-3"></i>
+                        <h4 class="text-sm font-bold text-gray-600 mb-1">لا توجد عناصر محفوظة حالياً</h4>
+                        <p class="text-xs text-gray-400 font-bold">يمكنك إضافة وحفظ الرسائل النصية والصور الهامة هنا في أي وقت</p>
+                    </div>
                 </div>
             </div>
 
@@ -3411,6 +3509,7 @@ function logoutApp() {
     localStorage.setItem('iStoreLoggedIn', 'false');
 
     salesSummaryOverrides = {};
+    savedItems = [];
     isAdminAuthenticatedSession = false;
     localStorage.removeItem('iStoreIsAdminSession');
     inventory = []; 
@@ -3497,6 +3596,7 @@ function loadDataFromServerData(data) {
         if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
         if(data.layoutSettings) layoutSettings = data.layoutSettings;
         if(data.salesSummaryOverrides) salesSummaryOverrides = data.salesSummaryOverrides;
+        if(data.savedItems) savedItems = ensureArray(data.savedItems);
         if(document.getElementById('logoUrlInput')) document.getElementById('logoUrlInput').value = customLogoUrl; 
         if(document.getElementById('receiptBgUrlInput')) document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
         updateFavicon(customLogoUrl);
@@ -3514,6 +3614,9 @@ let lastProcessedLiveEventId = null;
 let lastFullSyncTimestamp = 0;
 let lastLocalSaveTimestamp = 0;
 let salesSummaryOverrides = {};
+let savedItems = [];
+let currentPendingSavedImageBase64 = null;
+let currentSavedItemsFilter = 'all';
 
 function isCurrentUserAdmin() {
     return isAdminAuthenticatedSession === true ||
@@ -3794,6 +3897,7 @@ function triggerDataChangeInstant(immediate = true) {
                 systemNotifications: ensureArray(systemNotifications), 
                 notifiedStockItems: cleanNotifiedStockItems(notifiedStockItems), 
                 salesSummaryOverrides: (typeof salesSummaryOverrides === 'object' && salesSummaryOverrides !== null) ? salesSummaryOverrides : {},
+                savedItems: ensureArray(savedItems),
                 waSettings 
             };
             notifiedStockItems = cleanNotifiedStockItems(notifiedStockItems);
@@ -4100,6 +4204,7 @@ function switchView(viewId) {
     if(viewId === 'my-debts-view') { updateMyDebtsTable(); }
     if(viewId === 'pos-view') { updatePOSGrid(); updatePOSCategories(); }
     if(viewId === 'vouchers-view') { updateWASettingsInputsUI(); updateSettingsPasswordUI(); }
+    if(viewId === 'saved-items-view') { renderSavedItems(); }
     if(viewId === 'chat-view') {
         document.getElementById('sidebar-chat-bell')?.classList.add('hidden');
         document.getElementById('mobile-chat-bell')?.classList.add('hidden');
@@ -9329,6 +9434,340 @@ function resetAdminSalesSummaryOverrides() {
     closeSysModal();
     sysAlert("تمت استعادة الأرقام الحقيقية التلقائية بنجاح!", "استعادة التلقائي", "info");
 }
+
+
+// ==========================================
+// 📑 نظام المحفوظات (حفظ الرسائل والصور)
+// ==========================================
+function compressSavedImage(file, maxDimension = 1200, quality = 0.75) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const img = new Image();
+            img.onload = () => {
+                let w = img.width;
+                let h = img.height;
+                if (w > maxDimension || h > maxDimension) {
+                    if (w > h) {
+                        h = Math.round((h * maxDimension) / w);
+                        w = maxDimension;
+                    } else {
+                        w = Math.round((w * maxDimension) / h);
+                        h = maxDimension;
+                    }
+                }
+                const canvas = document.createElement('canvas');
+                canvas.width = w;
+                canvas.height = h;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, w, h);
+                resolve(canvas.toDataURL('image/jpeg', quality));
+            };
+            img.onerror = () => resolve(e.target.result);
+            img.src = e.target.result;
+        };
+        reader.onerror = () => resolve(null);
+        reader.readAsDataURL(file);
+    });
+}
+
+async function handleSavedItemImageSelect(event) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+        return sysAlert("يرجى اختيار ملف صورة صالح!", "تنبيه", "warning");
+    }
+
+    try {
+        const base64 = await compressSavedImage(file, 1200, 0.75);
+        if (base64) {
+            currentPendingSavedImageBase64 = base64;
+            showPendingSavedImagePreview(base64, file.name);
+        }
+    } catch(err) {
+        console.error("خطأ ضغط الصورة:", err);
+    }
+}
+
+function showPendingSavedImagePreview(base64, fileName = '') {
+    const previewContainer = document.getElementById('savedItemImagePreviewContainer');
+    const previewImg = document.getElementById('savedItemImagePreview');
+    const nameSpan = document.getElementById('savedItemFileName');
+    const removeBtn = document.getElementById('savedItemRemoveImageBtn');
+
+    if (previewImg) previewImg.src = base64;
+    if (previewContainer) previewContainer.classList.remove('hidden');
+    if (nameSpan) nameSpan.innerText = fileName ? `تم اختيار: ${fileName}` : 'تم إرفاق صورة';
+    if (removeBtn) removeBtn.classList.remove('hidden');
+}
+
+function removePendingSavedItemImage() {
+    currentPendingSavedImageBase64 = null;
+    const fileInput = document.getElementById('savedItemFileInput');
+    if (fileInput) fileInput.value = '';
+    const previewContainer = document.getElementById('savedItemImagePreviewContainer');
+    if (previewContainer) previewContainer.classList.add('hidden');
+    const previewImg = document.getElementById('savedItemImagePreview');
+    if (previewImg) previewImg.src = '';
+    const nameSpan = document.getElementById('savedItemFileName');
+    if (nameSpan) nameSpan.innerText = '';
+    const removeBtn = document.getElementById('savedItemRemoveImageBtn');
+    if (removeBtn) removeBtn.classList.add('hidden');
+}
+
+function addNewSavedItem() {
+    const title = document.getElementById('savedItemTitle')?.value.trim() || '';
+    const text = document.getElementById('savedItemText')?.value.trim() || '';
+    const image = currentPendingSavedImageBase64;
+
+    if (!text && !image) {
+        return sysAlert("يرجى كتابة نص أو إرفاق صورة لحفظها!", "تنبيه", "warning");
+    }
+
+    if (!Array.isArray(savedItems)) savedItems = [];
+
+    const item = {
+        id: 'save_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        title: title,
+        text: text,
+        image: image || null,
+        date: new Date().toLocaleString('ar-IQ'),
+        timestamp: Date.now()
+    };
+
+    savedItems.unshift(item);
+    recordAudit('إضافة للمحفوظات', `حفظ عنصر جديد: ${title || text.substring(0, 30) || 'صورة'}`);
+    triggerDataChangeInstant();
+
+    // تفريغ الحقول
+    if (document.getElementById('savedItemTitle')) document.getElementById('savedItemTitle').value = '';
+    if (document.getElementById('savedItemText')) document.getElementById('savedItemText').value = '';
+    removePendingSavedItemImage();
+
+    renderSavedItems();
+    sysToast("تم الحفظ في المحفوظات بنجاح ✓", "success");
+}
+
+function setSavedItemsFilter(filterType) {
+    currentSavedItemsFilter = filterType;
+    const tabAll = document.getElementById('filterTabAll');
+    const tabText = document.getElementById('filterTabText');
+    const tabImage = document.getElementById('filterTabImage');
+
+    [tabAll, tabText, tabImage].forEach(tab => {
+        if (!tab) return;
+        tab.className = 'px-3 py-1.5 rounded-lg text-gray-600 hover:text-gray-900 cursor-pointer transition';
+    });
+
+    if (filterType === 'all' && tabAll) {
+        tabAll.className = 'px-3 py-1.5 rounded-lg bg-white shadow-xs text-purple-700 font-bold cursor-pointer transition';
+    } else if (filterType === 'text' && tabText) {
+        tabText.className = 'px-3 py-1.5 rounded-lg bg-white shadow-xs text-purple-700 font-bold cursor-pointer transition';
+    } else if (filterType === 'image' && tabImage) {
+        tabImage.className = 'px-3 py-1.5 rounded-lg bg-white shadow-xs text-purple-700 font-bold cursor-pointer transition';
+    }
+
+    renderSavedItems();
+}
+
+function filterSavedItemsList() {
+    renderSavedItems();
+}
+
+function renderSavedItems() {
+    const grid = document.getElementById('savedItemsGrid');
+    const emptyState = document.getElementById('savedItemsEmptyState');
+    if (!grid) return;
+
+    if (!Array.isArray(savedItems)) savedItems = ensureArray(savedItems);
+
+    const countAll = savedItems.length;
+    const countText = savedItems.filter(i => i.text && !i.image).length;
+    const countImage = savedItems.filter(i => i.image).length;
+
+    if (document.getElementById('savedCountAll')) document.getElementById('savedCountAll').innerText = countAll;
+    if (document.getElementById('savedCountText')) document.getElementById('savedCountText').innerText = countText;
+    if (document.getElementById('savedCountImage')) document.getElementById('savedCountImage').innerText = countImage;
+
+    const query = document.getElementById('searchSavedItemsInput')?.value.trim().toLowerCase() || '';
+
+    let filtered = savedItems.filter(item => {
+        if (currentSavedItemsFilter === 'text' && (!item.text || item.image)) return false;
+        if (currentSavedItemsFilter === 'image' && !item.image) return false;
+        if (query) {
+            const matchTitle = (item.title || '').toLowerCase().includes(query);
+            const matchText = (item.text || '').toLowerCase().includes(query);
+            const matchDate = (item.date || '').toLowerCase().includes(query);
+            return matchTitle || matchText || matchDate;
+        }
+        return true;
+    });
+
+    if (filtered.length === 0) {
+        grid.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    grid.innerHTML = filtered.map(item => {
+        const hasImage = !!item.image;
+        const hasText = !!item.text;
+
+        let imageHtml = '';
+        if (hasImage) {
+            imageHtml = `
+                <div class="relative bg-gray-100 rounded-xl overflow-hidden mb-3 border border-gray-200 group cursor-pointer" onclick="openFullImageViewer('${item.image}', '${(item.title || 'صورة محفوظة').replace(/'/g, "\'")}')">
+                    <img src="${item.image}" alt="صورة محفوظة" class="w-full h-44 object-cover group-hover:scale-105 transition duration-300">
+                    <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-white gap-2 font-bold text-xs">
+                        <i class="fa-solid fa-magnifying-glass-plus text-lg"></i> عرض بالحجم الكامل
+                    </div>
+                </div>
+            `;
+        }
+
+        let textHtml = '';
+        if (hasText) {
+            textHtml = `
+                <div class="bg-gray-50/90 p-3 rounded-xl border border-gray-200 text-xs text-gray-800 leading-relaxed font-bold break-words whitespace-pre-wrap select-text mb-3">
+                    ${escapeHtmlForSaved(item.text)}
+                </div>
+            `;
+        }
+
+        let titleBadge = item.title ? `<span class="bg-purple-100 text-purple-800 text-[11px] font-bold px-2 py-0.5 rounded-md truncate max-w-[170px]">${escapeHtmlForSaved(item.title)}</span>` : '<span class="text-[11px] text-gray-400 font-bold">محفوظة</span>';
+
+        return `
+            <div class="bg-white rounded-2xl border-2 border-purple-100 hover:border-purple-300 p-4 shadow-xs hover:shadow-md transition flex flex-col justify-between">
+                <div>
+                    <div class="flex justify-between items-center mb-2.5 gap-2">
+                        ${titleBadge}
+                        <span class="text-[10px] text-gray-500 font-mono">${item.date || ''}</span>
+                    </div>
+
+                    ${imageHtml}
+                    ${textHtml}
+                </div>
+
+                <div class="flex items-center justify-between pt-2 border-t border-gray-100 mt-2 gap-2">
+                    ${hasText ? `
+                    <button type="button" onclick="copySavedItemText('${encodeURIComponent(item.text)}')" class="bg-purple-50 hover:bg-purple-100 text-purple-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition cursor-pointer" title="نسخ النص">
+                        <i class="fa-solid fa-copy"></i> نسخ النص
+                    </button>
+                    ` : '<div></div>'}
+
+                    <div class="flex items-center gap-1">
+                        ${hasImage ? `
+                        <button type="button" onclick="openFullImageViewer('${item.image}', '${(item.title || 'صورة محفوظة').replace(/'/g, "\'")}')" class="bg-gray-100 hover:bg-gray-200 text-gray-700 w-8 h-8 rounded-lg flex items-center justify-center text-xs transition cursor-pointer" title="تكبير الصورة">
+                            <i class="fa-solid fa-expand"></i>
+                        </button>
+                        ` : ''}
+                        <button type="button" onclick="deleteSavedItem('${item.id}')" class="bg-rose-50 hover:bg-rose-100 text-rose-600 w-8 h-8 rounded-lg flex items-center justify-center text-xs transition cursor-pointer" title="حذف">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function escapeHtmlForSaved(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+function copySavedItemText(encodedText) {
+    try {
+        const text = decodeURIComponent(encodedText);
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(() => {
+                sysToast("تم نسخ النص إلى الحافظة بنجاح ✓", "success");
+            }).catch(() => fallbackCopyText(text));
+        } else {
+            fallbackCopyText(text);
+        }
+    } catch(e) {
+        console.error("خطأ النسخ:", e);
+    }
+}
+
+function fallbackCopyText(text) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try {
+        document.execCommand('copy');
+        sysToast("تم نسخ النص إلى الحافظة بنجاح ✓", "success");
+    } catch(e) {
+        sysAlert("تعذر النسخ التلقائي، يرجى تحديده ونسخه يدوياً.", "تنبيه", "info");
+    }
+    document.body.removeChild(ta);
+}
+
+function deleteSavedItem(itemId) {
+    sysConfirm("حذف من المحفوظات", "هل أنت متأكد من حذف هذا العنصر من المحفوظات؟", () => {
+        if (!Array.isArray(savedItems)) return;
+        savedItems = savedItems.filter(i => String(i.id) !== String(itemId));
+        recordAudit('حذف من المحفوظات', `حذف عنصر محفوظ برقم #${itemId}`);
+        triggerDataChangeInstant();
+        renderSavedItems();
+        sysToast("تم حذف العنصر من المحفوظات بنجاح ✓", "info");
+    });
+}
+
+function openFullImageViewer(imgSrc, title = 'عرض الصورة') {
+    openSysModal({
+        type: 'custom',
+        title: title,
+        message: `<div class="max-h-[70vh] flex items-center justify-center p-2"><img src="${imgSrc}" class="max-h-[65vh] w-auto max-w-full rounded-2xl object-contain shadow-lg border"></div>`,
+        icon: '<i class="fa-solid fa-image text-purple-600 text-3xl"></i>',
+        customHtmlButtons: `
+            <div class="flex gap-2 w-full mt-3">
+                <a href="${imgSrc}" download="saved_image_${Date.now()}.jpg" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition shadow">
+                    <i class="fa-solid fa-download"></i> تحميل الصورة
+                </a>
+                <button type="button" onclick="closeSysModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs transition">
+                    إغلاق
+                </button>
+            </div>
+        `
+    });
+}
+
+// دعم لصق الصور مباشرة (Ctrl+V) عند التواجد في واجهة المحفوظات
+document.addEventListener('paste', function(e) {
+    const savedView = document.getElementById('saved-items-view');
+    if (!savedView || !savedView.classList.contains('active')) return;
+    if (e.clipboardData && e.clipboardData.items) {
+        for (let i = 0; i < e.clipboardData.items.length; i++) {
+            const item = e.clipboardData.items[i];
+            if (item.type.indexOf('image') !== -1) {
+                const file = item.getAsFile();
+                if (file) {
+                    compressSavedImage(file, 1200, 0.75).then(base64 => {
+                        if (base64) {
+                            currentPendingSavedImageBase64 = base64;
+                            showPendingSavedImagePreview(base64, 'صورة ملصوقة من الحافظة');
+                            sysToast("تم لصق الصورة من الحافظة بنجاح ✓", "info");
+                        }
+                    });
+                }
+                break;
+            }
+        }
+    }
+});
 
 function renderReport() {
     const totalSales = salesHistory.reduce((acc, s) => acc + (s.total || 0), 0);
