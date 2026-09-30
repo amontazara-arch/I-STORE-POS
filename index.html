@@ -4196,19 +4196,29 @@ async function downloadCurrentVoucherImage() {
 }
 
 function getSaleReceiptFullHtml(sale, cust, cashierName) {
-    let prev = 0; let targetCustomer = cust || sale.customer;
-    if(targetCustomer && targetCustomer !== 'زبون نقدي') {
-        debtsList.filter(d => d.customer === targetCustomer && d.id !== sale.id).forEach(d => prev += Number(d.amount)||0);
+    let targetCustomer = cust || sale.customer;
+    let prev = 0;
+
+    if (sale.prevDebt !== undefined && sale.prevDebt !== null) {
+        prev = Number(sale.prevDebt) || 0;
+    } else if (targetCustomer && targetCustomer !== 'زبون نقدي' && targetCustomer !== 'عميل عام') {
+        let custDebtObj = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === targetCustomer.toLowerCase());
+        let currentTotalDebt = Number(custDebtObj?.debt) || 0;
+        let saleDebtAmt = (sale.debtAmount !== undefined) ? Number(sale.debtAmount) : (sale.type === 'آجل' || sale.type === 'debt' || sale.type === 'آجل (دين)' ? Number(sale.total) : 0);
+        prev = Math.max(0, currentTotalDebt - saleDebtAmt);
     }
+    if (prev < 0) prev = 0;
+
     let maxCount = (layoutSettings && layoutSettings.thermal && layoutSettings.thermal.maxItemsCount) ? layoutSettings.thermal.maxItemsCount : 8;
     let chunks = []; 
     for (let i = 0; i < sale.items.length; i += maxCount) chunks.push(sale.items.slice(i, i + maxCount));
     if(chunks.length === 0) chunks.push([]);
     let isCashWithDebt = (sale.type === 'نقدي' && targetCustomer && targetCustomer !== 'زبون نقدي');
-    let isDebt = sale.type === 'آجل'; let isPartial = sale.type === 'آجل (دفع جزء نقداً)';
-    let paidAmount = isDebt ? 0 : (isPartial ? (sale.cashPaid || 0) : sale.total);
-    let grandTotal = sale.total + prev;
-    let remainingAmount = isDebt ? (sale.total + prev) : (isPartial ? ((sale.total - sale.cashPaid) + prev) : (isCashWithDebt ? prev : 0));
+    let isDebt = (sale.type === 'آجل' || sale.type === 'debt' || sale.type === 'آجل (دين)'); 
+    let isPartial = (sale.type === 'آجل (دفع جزء نقداً)' || sale.type === 'آجل مع تسديد نقدي' || sale.type === 'debt_cash_payment');
+    let paidAmount = isDebt ? 0 : (isPartial ? (Number(sale.cashPaid) || 0) : Number(sale.total));
+    let grandTotal = Number(sale.total) + prev;
+    let remainingAmount = isDebt ? (Number(sale.total) + prev) : (isPartial ? ((Number(sale.total) - paidAmount) + prev) : (isCashWithDebt ? prev : 0));
     let fullHtml = '';
     chunks.forEach((chunk) => {
         let itemsHtml = chunk.map(item => `<tr><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:right;">${item.name}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${item.qty || 1}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center;">${formatMoney(item.price)}</td><td style="border:1px solid #333; padding:4px; font-size:11px; text-align:center; font-weight:bold;">${formatMoney(item.price * (item.qty || 1))}</td></tr>`).join('');
@@ -5033,6 +5043,14 @@ function executePOSCheckout(checkoutOption = 'print') {
     let invoiceId = 'INV-' + Date.now();
     let nowStr = new Date().toLocaleString('ar-IQ');
 
+    let currentCustomerPrevDebt = 0;
+    if (customerName && customerName !== 'زبون نقدي' && customerName !== 'عميل عام') {
+        let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === customerName.toLowerCase());
+        if (existingCust) {
+            currentCustomerPrevDebt = Number(existingCust.debt) || 0;
+        }
+    }
+
     let saleRecord = {
         id: invoiceId,
         items: JSON.parse(JSON.stringify(currentInvoiceItems)),
@@ -5044,6 +5062,7 @@ function executePOSCheckout(checkoutOption = 'print') {
         cashier: cashierName,
         customer: customerName || 'زبون نقدي',
         phone: customerPhone || '',
+        prevDebt: currentCustomerPrevDebt,
         cashPaid: (saleType === 'debt_cash_payment') ? cashPaid : (saleType === 'cash' ? subTotal : 0),
         debtAmount: (saleType === 'debt') ? subTotal : (saleType === 'debt_cash_payment' ? Math.max(0, subTotal - cashPaid) : 0)
     };
@@ -5188,16 +5207,18 @@ function generateSaleWhatsAppText(sale) {
     lines.push(`إجمالي الفاتورة: ${formatMoney(subTotal)} د.ع`);
     lines.push(`─────────────────────`);
 
-    // حساب الديون السابقة
+    // حساب الديون السابقة بدقة تامة
     let cust = (sale.customer || '').trim();
     let prevDebt = 0;
-    if (cust && cust !== 'زبون نقدي' && cust !== 'عميل عام') {
-        let custRecords = (debtsList || []).filter(d => d.customer === cust && String(d.id) !== String(sale.id));
-        custRecords.forEach(d => {
-            prevDebt += (Number(d.amount) || Number(d.debt) || 0);
-        });
-        if (prevDebt < 0) prevDebt = 0;
+    if (sale.prevDebt !== undefined && sale.prevDebt !== null) {
+        prevDebt = Number(sale.prevDebt) || 0;
+    } else if (cust && cust !== 'زبون نقدي' && cust !== 'عميل عام') {
+        let custDebtObj = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === cust.toLowerCase());
+        let currentTotalDebt = Number(custDebtObj?.debt) || 0;
+        let saleDebtAmt = (sale.debtAmount !== undefined) ? Number(sale.debtAmount) : (sale.type === 'آجل' || sale.type === 'debt' || sale.type === 'آجل (دين)' ? subTotal : 0);
+        prevDebt = Math.max(0, currentTotalDebt - saleDebtAmt);
     }
+    if (prevDebt < 0) prevDebt = 0;
 
     let grandTotal = subTotal + prevDebt;
 
@@ -5207,13 +5228,13 @@ function generateSaleWhatsAppText(sale) {
     let paidAmount = isDebt ? 0 : (isPartial ? (Number(sale.cashPaid) || 0) : subTotal);
     let remainingDebt = isDebt ? grandTotal : (isPartial ? Math.max(0, grandTotal - paidAmount) : prevDebt);
 
-    let prevDebtText = prevDebt > 0 ? `${formatMoney(prevDebt)} د.ع` : '0';
-    let remainingText = remainingDebt > 0 ? `${formatMoney(remainingDebt)} د.ع` : '0';
+    let prevDebtText = prevDebt > 0 ? `${formatMoney(prevDebt)} د.ع` : '0 د.ع';
+    let remainingText = remainingDebt > 0 ? `${formatMoney(remainingDebt)} د.ع` : '0 د.ع';
 
-    lines.push(`الديون السابقة ${prevDebtText}`);
-    lines.push(`المدفوع ${formatMoney(paidAmount)} د.ع`);
-    lines.push(`الإجمالي الكامل ${formatMoney(grandTotal)}د.ع`);
-    lines.push(`الباقي ${remainingText}`);
+    lines.push(`الديون السابقة: ${prevDebtText}`);
+    lines.push(`المدفوع: ${formatMoney(paidAmount)} د.ع`);
+    lines.push(`المجموع النهائي (الإجمالي الكامل): ${formatMoney(grandTotal)} د.ع`);
+    lines.push(`الباقي في الذمة: ${remainingText}`);
 
     lines.push(`─────────────────────`);
     lines.push(`شكراً لتسوقكم من متجر iStore`);
