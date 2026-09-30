@@ -2565,7 +2565,11 @@ function closeSysModal() {
 
 function openSysModal({ title, message, icon, inputDefault, type, btnText, btnClass, cancelBtnText, onConfirm, onCancel, customHtmlButtons }) {
     document.getElementById('sys-modal-title').innerText = title; 
-    document.getElementById('sys-modal-message').innerText = message; 
+    if (type === 'custom' && typeof message === 'string' && message.includes('<')) {
+        document.getElementById('sys-modal-message').innerHTML = message;
+    } else {
+        document.getElementById('sys-modal-message').innerText = message;
+    } 
     document.getElementById('sys-modal-icon').innerHTML = icon || '<i class="fa-solid fa-circle-info text-blue-500"></i>';
     const inputField = document.getElementById('sys-modal-input');
     if (type === 'prompt') { 
@@ -4060,9 +4064,12 @@ window.onload = function() {
 };
 
 function switchView(viewId) { 
+    if (viewId === 'inventory-view') viewId = 'add-item-view';
     document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active')); 
     let target = document.getElementById(viewId);
-    if(target) target.classList.add('active'); 
+    if (!target) target = document.getElementById('dashboard-view');
+    if (target) target.classList.add('active'); 
+    if(viewId === 'expenses-view') { updateExpensesTable(); }
     if(viewId === 'sales-view') { updateSalesTable(); }
     if(viewId === 'returns-view') { updateReturnsTable(); }
     if(viewId === 'customers-view') { updateCustomersTable(); }
@@ -8138,6 +8145,8 @@ function saveMaintenanceRecord(e) {
         technician: tech,
         description: desc,
         sourceType: srcType,
+        supplierName: (srcType === 'supplier' ? (document.getElementById('maintSupplierName')?.value.trim() || '') : ''),
+        supplierItem: (srcType === 'supplier' ? (document.getElementById('maintSupplierItem')?.value.trim() || '') : ''),
         pieceDetails: pieceDetails,
         pieceCost: pieceCost,
         profit: profit,
@@ -8181,7 +8190,7 @@ function renderMaintenanceLogTable() {
 
     maintenanceLog.forEach(m => {
         if (m.isLoss) {
-            totalLoss += (Number(m.pieceCost || 0) + Number(m.profit || 0));
+            totalLoss += Number(m.pieceCost || 0); // الخسارة هي فقط سعر المادة المشتراة
         } else {
             totalProfit += Number(m.profit || 0);
         }
@@ -8204,7 +8213,12 @@ function renderMaintenanceLogTable() {
             <td class="p-3 border text-teal-800 font-bold">${m.technician || 'الرئيسي'}</td>
             <td class="p-3 border">${renderExpandableStatement(m.description, 25)}</td>
             <td class="p-3 border text-gray-600">${m.pieceDetails || '-'}</td>
-            <td class="p-3 border font-black ${m.isLoss ? 'text-red-600 line-through' : 'text-teal-700'}">${formatMoney(m.profit)} د.ع</td>
+            <td class="p-3 border font-black">
+                ${m.isLoss 
+                    ? `<div class="flex flex-col"><span class="text-red-600 font-bold">خسارة شراء: ${formatMoney(m.pieceCost || 0)} د.ع</span><span class="text-[10px] text-gray-400 line-through">أجور: ${formatMoney(m.profit || 0)} د.ع</span></div>` 
+                    : `<span class="text-teal-700 font-bold">${formatMoney(m.profit)} د.ع</span>`
+                }
+            </td>
             <td class="p-3 border font-mono text-gray-500 text-[11px]">${m.date}</td>
             <td class="p-3 border text-center">
                 <button type="button" onclick="toggleMaintLoss('${m.id}')" class="px-2.5 py-1 rounded-lg text-[11px] font-bold cursor-pointer transition ${m.isLoss ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
@@ -8223,9 +8237,263 @@ function renderMaintenanceLogTable() {
 function toggleMaintLoss(id) {
     let rec = maintenanceLog.find(x => x.id === id);
     if (!rec) return;
-    rec.isLoss = !rec.isLoss;
+
+    if (!rec.isLoss) {
+        // التحويل لتالف: الخسارة تكون فقط سعر المادة المشتراة
+        let cost = Number(rec.pieceCost) || 0;
+        sysConfirm(
+            "تحويل لتالف", 
+            `هل تريد تحويل هذه العملية إلى تالف؟\nستكون الخسارة المحسوبة فقط سعر المادة المشتراة (${formatMoney(cost)} د.ع).`, 
+            () => {
+                rec.isLoss = true;
+                recordAudit('تحويل صيانة لتالف', `تحويل صيانة (${rec.customer}) إلى تالف بخسارة شراء (${formatMoney(cost)} د.ع)`);
+                triggerDataChangeInstant();
+                renderMaintenanceLogTable();
+                sysToast("تم التحويل لتالف بنجاح ✓", "warning");
+            }
+        );
+        return;
+    }
+
+    // التحويل إلى سليم: يظهر خيارين (هل تم حل المشكلة أم لم يتم حلها)
+    openMaintConvertToSoundModal(id);
+}
+
+// نافذة خيارات التحويل إلى سليم
+function openMaintConvertToSoundModal(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+
+    let modalButtonsHtml = `
+        <div class="flex flex-col gap-2.5 w-full mt-2">
+            <button onclick="handleMaintProblemResolved('${id}')" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                <i class="fa-solid fa-circle-check text-lg"></i> 1. نعم، تم حل المشكلة
+            </button>
+            <button onclick="handleMaintProblemNotResolved('${id}')" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                <i class="fa-solid fa-circle-xmark text-lg"></i> 2. لم يتم حل المشكلة
+            </button>
+            <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer transition">
+                إلغاء
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "التحويل إلى سليم",
+        message: `العميل: ${rec.customer || 'غير محدد'} - ${rec.description || 'صيانة'}\nهل تم حل مشكلة الجهاز بنجاح؟`,
+        icon: '<i class="fa-solid fa-screwdriver-wrench text-teal-600 text-5xl"></i>',
+        customHtmlButtons: modalButtonsHtml
+    });
+}
+
+// 1. إذا تم حل المشكلة: يظهر خيار لتغيير سعر الصيانة إذا كان سيأخذ أكثر
+function handleMaintProblemResolved(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+    closeSysModal();
+
+    sysPrompt(
+        "تغيير سعر الصيانة",
+        `سعر الصيانة المسجل حالياً: (${formatMoney(rec.profit || 0)} د.ع).\nإذا كنت ستأخذ أكثر، يرجى كتابة السعر الجديد هنا:`,
+        rec.profit || 0,
+        (val) => {
+            let newProfit = Number(val);
+            if (isNaN(newProfit) || newProfit < 0) {
+                newProfit = Number(rec.profit) || 0;
+            }
+            rec.isLoss = false;
+            rec.profit = newProfit;
+            recordAudit('صيانة - تم حل المشكلة', `تحويل صيانة العميل (${rec.customer}) إلى سليم بسعر صيانة (${formatMoney(newProfit)} د.ع)`);
+            triggerDataChangeInstant();
+            renderMaintenanceLogTable();
+            sysAlert(`تم تحويل الصيانة إلى سليم وتحديد سعر الصيانة (${formatMoney(newProfit)} د.ع) بنجاح!`, "تم بنجاح", "success");
+        }
+    );
+}
+
+// 2. إذا لم يتم حل المشكلة: فحص هل هي بدون مادة أم مع مادة
+function handleMaintProblemNotResolved(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+    closeSysModal();
+
+    // فحص ما إذا كانت العملية مسجلة (إصلاح بدون مادة)
+    let isNoPiece = (rec.sourceType === 'none' || Number(rec.pieceCost || 0) <= 0 || rec.pieceDetails === '-' || !rec.pieceDetails);
+
+    if (isNoPiece) {
+        // إصلاح بدون مادة: يجب ألا يظهر خيار إعادة للمجهز ولا إضافة للمخزن لعدم وجود مادة أصلاً
+        sysConfirm(
+            "تأكيد عدم حل المشكلة",
+            `هذه العملية مسجلة (إصلاح بدون مادة).\nبما أنه لم يتم حل المشكلة، سيتم خصم وإلغاء أجور التصليح الخاصة بك (${formatMoney(rec.profit || 0)} د.ع) وإرجاع العملية إلى سليم بدون أرباح.`,
+            () => {
+                rec.isLoss = false;
+                rec.profit = 0; // يخصم سعر التصليح الذي اخذه انا
+                recordAudit('صيانة - لم تحل (بدون مادة)', `إلغاء أجور صيانة العميل (${rec.customer}) لعدم حل المشكلة (بدون مادة)`);
+                triggerDataChangeInstant();
+                renderMaintenanceLogTable();
+                sysAlert("تم تحويل الصيانة إلى سليم وإلغاء أجور التصليح بنجاح!", "تم بنجاح", "success");
+            }
+        );
+        return;
+    }
+
+    // إذا كانت العملية مع مادة (من المخزن أو مجهز): تظهر خيارات (إعادة للمجهز أو إضافة للمخزن)
+    let modalButtonsHtml = `
+        <div class="flex flex-col gap-2.5 w-full mt-2">
+            <button onclick="handleMaintReturnToSupplier('${id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                <i class="fa-solid fa-truck-ramp-box text-lg"></i> 1. إعادة للمجهز (خصم من حسابه)
+            </button>
+            <button onclick="handleMaintAddToInventory('${id}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                <i class="fa-solid fa-boxes-stacked text-lg"></i> 2. إضافة للمخزن (واجهة الإضافة)
+            </button>
+            <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer transition">
+                العودة
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "لم يتم حل المشكلة",
+        message: `اختر الإجراء المناسب لمادة الصيانة:\n(ملاحظة: في كلا الخيارين سيتم خصم وإلغاء أجور التصليح الخاصة بك)`,
+        icon: '<i class="fa-solid fa-circle-question text-amber-500 text-5xl"></i>',
+        customHtmlButtons: modalButtonsHtml
+    });
+}
+
+// الخيار الأول: إعادة للمجهز وخصم من حسابه + خصم أجور التصليح
+function handleMaintReturnToSupplier(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+    closeSysModal();
+
+    let cost = Number(rec.pieceCost) || 0;
+    let defSupp = rec.supplierName || '';
+
+    let uniqueSuppliers = [...new Set(myDebtsList.map(d => (d.supplier || '').trim()).filter(Boolean))];
+    let suppOptionsHtml = uniqueSuppliers.map(s => `<option value="${s}" ${s === defSupp ? 'selected' : ''}>${s}</option>`).join('');
+
+    let promptHtml = `
+        <div class="flex flex-col gap-3 text-right w-full mt-2">
+            <div>
+                <label class="text-xs font-bold text-gray-700 block mb-1">اسم المجهز:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="maintReturnSuppInput" value="${defSupp}" placeholder="اكتب اسم المجهز..." class="flex-1 border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
+                    ${uniqueSuppliers.length > 0 ? `
+                    <select onchange="document.getElementById('maintReturnSuppInput').value = this.value" class="border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold bg-white">
+                        <option value="">اختر من القائمة...</option>
+                        ${suppOptionsHtml}
+                    </select>
+                    ` : ''}
+                </div>
+            </div>
+            <div>
+                <label class="text-xs font-bold text-gray-700 block mb-1">المبلغ المخصوم من حساب المجهز (سعر المادة):</label>
+                <input type="number" id="maintReturnCostInput" value="${cost}" placeholder="المبلغ..." class="w-full border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none text-red-600 font-mono">
+            </div>
+            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-800 font-bold">
+                <i class="fa-solid fa-circle-info"></i> سيتم تسجيل خصم هذا المبلغ في حساب المجهز فوراً، وخصم (إلغاء) أجور التصليح الخاصة بك.
+            </div>
+        </div>
+    `;
+
+    let confirmButtonsHtml = `
+        <div class="flex gap-2 w-full mt-3">
+            <button onclick="closeSysModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold cursor-pointer transition">
+                إلغاء
+            </button>
+            <button onclick="confirmMaintReturnToSupplier('${id}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold cursor-pointer transition shadow">
+                تأكيد الخصم والإرجاع
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "خصم من حساب المجهز وإرجاع المادة",
+        message: promptHtml,
+        icon: '<i class="fa-solid fa-truck-ramp-box text-blue-600 text-5xl"></i>',
+        customHtmlButtons: confirmButtonsHtml
+    });
+}
+
+function confirmMaintReturnToSupplier(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+
+    let suppName = (document.getElementById('maintReturnSuppInput')?.value || '').trim();
+    let deductAmt = Number(document.getElementById('maintReturnCostInput')?.value);
+
+    if (!suppName) {
+        return sysAlert("يرجى كتابة أو اختيار اسم المجهز!", "تنبيه", "warning");
+    }
+    if (isNaN(deductAmt) || deductAmt < 0) {
+        deductAmt = Number(rec.pieceCost) || 0;
+    }
+
+    let returnRecord = {
+        id: Date.now(),
+        supplier: suppName,
+        itemName: `إرجاع مادة صيانة لم تُحل: ${rec.description || 'قطعة مسترجعة'}`,
+        price: -deductAmt,
+        qty: 1,
+        amount: -deductAmt,
+        isPayment: true,
+        date: new Date().toLocaleDateString('ar-IQ'),
+        time: new Date().toLocaleTimeString('ar-IQ')
+    };
+    myDebtsList.unshift(returnRecord);
+    syncSupplierNegativeBalancesToCustomers();
+
+    rec.isLoss = false;
+    rec.profit = 0; // يخصم سعر التصليح الذي أخذه الفني
+
+    recordAudit('إعادة صيانة للمجهز', `إعادة مادة صيانة للعميل (${rec.customer}) إلى المجهز (${suppName}) وخصم (${formatMoney(deductAmt)} د.ع) وإلغاء أجور التصليح`);
     triggerDataChangeInstant();
     renderMaintenanceLogTable();
+    updateMyDebtsTable();
+    closeSysModal();
+
+    sysAlert(`تم خصم مبلغ (${formatMoney(deductAmt)} د.ع) من حساب المجهز (${suppName}) وإلغاء أجور التصليح بنجاح!`, "تم بنجاح", "success");
+}
+
+// الخيار الثاني: إضافة للمخزن مع إظهار واجهة الإضافة + خصم أجور التصليح
+function handleMaintAddToInventory(id) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+
+    rec.isLoss = false;
+    rec.profit = 0; // يخصم سعر التصليح الذي أخذه الفني
+
+    recordAudit('صيانة - تحويل للمخزن', `تحويل مادة الصيانة للعميل (${rec.customer}) إلى المخزن وإلغاء أجور التصليح`);
+    triggerDataChangeInstant();
+    renderMaintenanceLogTable();
+    closeSysModal();
+
+    // فتح واجهة المخزن وتعبئة بيانات المادة في نموذج الإضافة
+    switchView('add-item-view');
+
+    let nameInput = document.getElementById('itemName');
+    let buyPriceInput = document.getElementById('itemBuyPrice');
+    let sellPriceInput = document.getElementById('itemPrice');
+    let qtyInput = document.getElementById('itemQuantity');
+    let descInput = document.getElementById('itemDescription');
+    let sourceInput = document.getElementById('itemSourceInput');
+
+    if (nameInput) nameInput.value = rec.description ? `مادة صيانة: ${rec.description}` : 'مادة صيانة مسترجعة';
+    if (buyPriceInput) buyPriceInput.value = rec.pieceCost || 0;
+    if (sellPriceInput) sellPriceInput.value = rec.pieceCost || 0;
+    if (qtyInput) qtyInput.value = 1;
+    if (descInput) descInput.value = `مادة صيانة مسترجعة لعدم حل المشكلة للزبون (${rec.customer})`;
+    if (sourceInput) sourceInput.value = rec.customer ? `صيانة - ${rec.customer}` : 'صيانة';
+
+    if (nameInput) {
+        nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => nameInput.focus(), 350);
+    }
+
+    sysToast("تم إلغاء أجور التصليح بنجاح! تم فتح نموذج الإضافة للمخزن وتعبئة البيانات ✓", "info");
 }
 
 function deleteMaintenanceRecord(id) {
@@ -8536,32 +8804,46 @@ function renderDamagesTable() {
 }
 
 function saveExpense(e) {
-    e.preventDefault();
-    const title = document.getElementById('expenseTitle').value.trim();
-    const amount = Number(document.getElementById('expenseAmount').value) || 0;
-    const cat = document.getElementById('expenseCat').value || 'عام';
-    const notes = document.getElementById('expenseNotes')?.value.trim() || '';
+    if (e && e.preventDefault) e.preventDefault();
+    const titleInput = document.getElementById('expenseTitle') || document.getElementById('expDesc');
+    const amountInput = document.getElementById('expenseAmount') || document.getElementById('expAmount');
+    const catInput = document.getElementById('expenseCat');
+    const notesInput = document.getElementById('expenseNotes');
+
+    const title = (titleInput ? titleInput.value : '').trim();
+    const amount = Number(amountInput ? amountInput.value : 0) || 0;
+    const cat = (catInput ? catInput.value : '') || 'عام';
+    const notes = (notesInput ? notesInput.value : '').trim();
 
     if (!title || amount <= 0) {
-        sysAlert("يرجى كتابة عنوان المصروف والمبلغ بشكل صحيح!", "تنبيه", "warning");
+        sysAlert("يرجى كتابة وصف المصروف والمبلغ بشكل صحيح!", "تنبيه", "warning");
         return;
     }
 
-    expensesList.unshift({
+    let newExp = {
         id: 'EXP-' + Date.now(),
         title: title,
+        desc: title,
         amount: amount,
         category: cat,
         notes: notes,
         date: new Date().toLocaleDateString('ar-IQ'),
         createdAt: new Date().toISOString()
-    });
+    };
 
-    logAudit('تسجيل مصروف', `${title} - ${formatMoney(amount)} د.ع`);
+    expensesList.unshift(newExp);
+    broadcastLiveSyncEvent({ type: 'EXPENSE_UPSERT', expense: newExp });
+    recordAudit('تسجيل مصروف', `مصروف (${title}) بقيمة (${formatMoney(amount)} د.ع)`);
     triggerDataChangeInstant();
     renderExpensesTable();
-    document.getElementById('expensesForm')?.reset();
-    sysAlert("تم حفظ المصروف بنجاح!", "نجاح", "success");
+
+    if (titleInput) titleInput.value = '';
+    if (amountInput) amountInput.value = '';
+    if (notesInput) notesInput.value = '';
+    let form = document.getElementById('expensesForm');
+    if (form) form.reset();
+
+    sysToast("تم حفظ المصروف بنجاح ✓", "success");
 }
 
 function deleteExpense(expId) {
@@ -8582,12 +8864,12 @@ function renderExpensesTable() {
     }
     tbody.innerHTML = expensesList.map(x => `
         <tr class="border-b hover:bg-gray-50 text-xs">
-            <td class="p-3 font-bold text-gray-800">${x.title}</td>
+            <td class="p-3 font-bold text-gray-800">${x.title || x.desc || '-'}</td>
             <td class="p-3 font-bold text-rose-600">${formatMoney(x.amount)} د.ع</td>
-            <td class="p-3"><span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[11px]">${x.category}</span></td>
-            <td class="p-3 text-gray-400 font-mono">${x.date}</td>
-            <td class="p-3">
-                <button onclick="deleteExpense('${x.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+            <td class="p-3"><span class="bg-gray-100 text-gray-700 px-2 py-0.5 rounded text-[11px]">${x.category || 'عام'}</span></td>
+            <td class="p-3 text-gray-400 font-mono">${x.date || '-'}</td>
+            <td class="p-3 text-center">
+                <button type="button" onclick="deleteExpense('${x.id}')" class="p-1 text-rose-600 hover:bg-rose-50 rounded cursor-pointer"><i class="fa-solid fa-trash"></i></button>
             </td>
         </tr>
     `).join('');
