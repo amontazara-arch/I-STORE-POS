@@ -1536,18 +1536,81 @@
                         </div>
                         <button type="button" onclick="switchView('dashboard-view')" class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer transition">العودة</button>
                     </div>
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
-                        <div class="bg-blue-50 p-3.5 rounded-2xl border border-blue-200"><h4 class="text-xs font-bold text-blue-800">إجمالي المبيعات</h4><p class="text-xl font-black text-blue-700 mt-1" id="totalSalesDisplay">0 د.ع</p></div>
-                        <div class="bg-green-50 p-3.5 rounded-2xl border border-green-200"><h4 class="text-xs font-bold text-green-800">إجمالي الأرباح</h4><p class="text-xl font-black text-green-700 mt-1" id="grossProfitDisplay">0 د.ع</p></div>
-                        <div class="bg-teal-50 p-3.5 rounded-2xl border border-teal-200"><h4 class="text-xs font-bold text-teal-800">أرباح الصيانة</h4><p class="text-xl font-black text-teal-700 mt-1" id="salesMaintProfitDisplay">0 د.ع</p></div>
-                        <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200"><h4 class="text-xs font-bold text-amber-900">الإجمالي الكلي للأرباح مع الصيانة</h4><p class="text-xl font-black text-amber-700 mt-1" id="totalProfitWithMaintDisplay">0 د.ع</p></div>
-                        <div class="bg-fuchsia-50 p-3.5 rounded-2xl border border-fuchsia-200"><h4 class="text-xs font-bold text-fuchsia-800">الصافي النهائي</h4><p class="text-xl font-black text-fuchsia-700 mt-1" id="netProfitDisplay">0 د.ع</p></div>
-                        <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-3.5 rounded-2xl border-2 border-indigo-300 text-center shadow-xs cursor-pointer hover:shadow-md transition active:scale-[0.98]" onclick="showComprehensiveTotalBreakdownModal()" title="اضغط لعرض تفاصيل الحسبة الشاملة">
-                            <h4 class="text-xs font-black text-indigo-900 flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-scale-balanced text-indigo-600"></i> الإجمالي الكلي النهائي
-                            </h4>
-                            <p class="text-xl font-black text-indigo-700 mt-1" id="finalComprehensiveTotalDisplay">0 د.ع</p>
-                            <span class="text-[9px] text-indigo-800 font-bold block mt-0.5" id="finalComprehensiveSubtitle">شامل الحسابات والسيولة</span>
+                    <!-- 1. إجمالي اليوم (مبيعات وأرباح وسيولة اليوم الحالي) -->
+                    <div class="mb-4 bg-amber-50/30 p-3 rounded-2xl border border-amber-100">
+                        <div class="flex items-center justify-between mb-2.5 flex-wrap gap-2">
+                            <span class="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-sun text-yellow-200"></i> إجمالي اليوم
+                            </span>
+                            <span class="text-xs text-gray-500 font-bold" id="todaySalesDateLabel"></span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+                            <div class="bg-blue-50/90 p-3 rounded-2xl border border-blue-200">
+                                <h4 class="text-xs font-bold text-blue-800">مبيعات اليوم</h4>
+                                <p class="text-xl font-black text-blue-700 mt-1" id="todaySalesDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-green-50/90 p-3 rounded-2xl border border-green-200">
+                                <h4 class="text-xs font-bold text-green-800">أرباح اليوم</h4>
+                                <p class="text-xl font-black text-green-700 mt-1" id="todayGrossProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-teal-50/90 p-3 rounded-2xl border border-teal-200">
+                                <h4 class="text-xs font-bold text-teal-800">صيانة اليوم</h4>
+                                <p class="text-xl font-black text-teal-700 mt-1" id="todaySalesMaintProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-amber-50/90 p-3 rounded-2xl border border-amber-200">
+                                <h4 class="text-xs font-bold text-amber-900">أرباح اليوم مع الصيانة</h4>
+                                <p class="text-xl font-black text-amber-700 mt-1" id="todayTotalProfitWithMaintDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-fuchsia-50/90 p-3 rounded-2xl border border-fuchsia-200">
+                                <h4 class="text-xs font-bold text-fuchsia-800">صافي اليوم</h4>
+                                <p class="text-xl font-black text-fuchsia-700 mt-1" id="todayNetProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-3 rounded-2xl border-2 border-amber-300 text-center shadow-xs cursor-pointer hover:shadow-md transition active:scale-[0.98]" onclick="showComprehensiveTotalBreakdownModal('today')" title="اضغط لعرض تفاصيل إجمالي اليوم">
+                                <h4 class="text-xs font-black text-amber-900 flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-scale-balanced text-amber-600"></i> الإجمالي الكلي لليوم
+                                </h4>
+                                <p class="text-xl font-black text-amber-800 mt-1" id="todayFinalComprehensiveTotalDisplay">0 د.ع</p>
+                                <span class="text-[9px] text-amber-800 font-bold block mt-0.5" id="todayFinalComprehensiveSubtitle">شامل سيولة اليوم</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. إجمالي جميع الأيام (المبيعات والأرباح التراكمية العامة) -->
+                    <div class="bg-blue-50/20 p-3 rounded-2xl border border-blue-100">
+                        <div class="flex items-center justify-between mb-2.5 flex-wrap gap-2">
+                            <span class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs px-3.5 py-1 rounded-full font-black flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-calendar-days text-sky-200"></i> إجمالي جميع الأيام
+                            </span>
+                            <span class="text-xs text-gray-500 font-bold">المجموع التراكمي الشامل لكافة الأيام المسجلة</span>
+                        </div>
+                        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
+                            <div class="bg-blue-50 p-3.5 rounded-2xl border border-blue-200">
+                                <h4 class="text-xs font-bold text-blue-800">إجمالي المبيعات</h4>
+                                <p class="text-xl font-black text-blue-700 mt-1" id="totalSalesDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-green-50 p-3.5 rounded-2xl border border-green-200">
+                                <h4 class="text-xs font-bold text-green-800">إجمالي الأرباح</h4>
+                                <p class="text-xl font-black text-green-700 mt-1" id="grossProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-teal-50 p-3.5 rounded-2xl border border-teal-200">
+                                <h4 class="text-xs font-bold text-teal-800">أرباح الصيانة</h4>
+                                <p class="text-xl font-black text-teal-700 mt-1" id="salesMaintProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-amber-50 p-3.5 rounded-2xl border border-amber-200">
+                                <h4 class="text-xs font-bold text-amber-900">الإجمالي الكلي للأرباح مع الصيانة</h4>
+                                <p class="text-xl font-black text-amber-700 mt-1" id="totalProfitWithMaintDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-fuchsia-50 p-3.5 rounded-2xl border border-fuchsia-200">
+                                <h4 class="text-xs font-bold text-fuchsia-800">الصافي النهائي</h4>
+                                <p class="text-xl font-black text-fuchsia-700 mt-1" id="netProfitDisplay">0 د.ع</p>
+                            </div>
+                            <div class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 p-3.5 rounded-2xl border-2 border-indigo-300 text-center shadow-xs cursor-pointer hover:shadow-md transition active:scale-[0.98]" onclick="showComprehensiveTotalBreakdownModal('all')" title="اضغط لعرض تفاصيل الحسبة الشاملة">
+                                <h4 class="text-xs font-black text-indigo-900 flex items-center justify-center gap-1">
+                                    <i class="fa-solid fa-scale-balanced text-indigo-600"></i> الإجمالي الكلي النهائي
+                                </h4>
+                                <p class="text-xl font-black text-indigo-700 mt-1" id="finalComprehensiveTotalDisplay">0 د.ع</p>
+                                <span class="text-[9px] text-indigo-800 font-bold block mt-0.5" id="finalComprehensiveSubtitle">شامل الحسابات والسيولة</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2438,6 +2501,17 @@ if (currentStoreUser) {
                 systemNotifications = ensureArray(parsed.systemNotifications);
                 notifiedStockItems = cleanNotifiedStockItems(parsed.notifiedStockItems);
                 if (parsed.waSettings) waSettings = parsed.waSettings;
+                if (parsed.salesSummaryOverrides) {
+                    salesSummaryOverrides = parsed.salesSummaryOverrides;
+                    if (!salesSummaryOverrides.isSalesLocked) {
+                        salesSummaryOverrides.totalSales = null;
+                        salesSummaryOverrides.grossProfit = null;
+                    }
+                    if (!salesSummaryOverrides.isSupplierPaymentsLocked) {
+                        salesSummaryOverrides.supplierPayments = null;
+                    }
+                }
+                if (parsed.savedItems) savedItems = ensureArray(parsed.savedItems);
             }
         }
     } catch(e) {
@@ -3595,7 +3669,16 @@ function loadDataFromServerData(data) {
         if(data.waSettings) waSettings = data.waSettings;
         if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
         if(data.layoutSettings) layoutSettings = data.layoutSettings;
-        if(data.salesSummaryOverrides) salesSummaryOverrides = data.salesSummaryOverrides;
+        if(data.salesSummaryOverrides) {
+            salesSummaryOverrides = data.salesSummaryOverrides;
+            if (!salesSummaryOverrides.isSalesLocked) {
+                salesSummaryOverrides.totalSales = null;
+                salesSummaryOverrides.grossProfit = null;
+            }
+            if (!salesSummaryOverrides.isSupplierPaymentsLocked) {
+                salesSummaryOverrides.supplierPayments = null;
+            }
+        }
         if(data.savedItems) savedItems = ensureArray(data.savedItems);
         if(document.getElementById('logoUrlInput')) document.getElementById('logoUrlInput').value = customLogoUrl; 
         if(document.getElementById('receiptBgUrlInput')) document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
@@ -5392,34 +5475,103 @@ function toggleNoPrintMode() {
 // ==========================================
 // 📊 جداول المبيعات والمرتجعات والحسابات والرقابة
 // ==========================================
-function showComprehensiveTotalBreakdownModal() {
+
+// دالة مساعدة دقيقة للتحقق مما إذا كان السجل يخص اليوم الحالي
+function isRecordFromToday(item) {
+    if (!item) return false;
+    let now = new Date();
+    let todayY = now.getFullYear();
+    let todayM = now.getMonth();
+    let todayD = now.getDate();
+
+    if (item.timestamp && !isNaN(Number(item.timestamp))) {
+        let d = new Date(Number(item.timestamp));
+        if (!isNaN(d.getTime())) {
+            return d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD;
+        }
+    }
+    if (item.id) {
+        let match = String(item.id).match(/\d{12,14}/);
+        if (match) {
+            let ts = Number(match[0]);
+            if (ts > 1500000000000 && ts < 2500000000000) {
+                let d = new Date(ts);
+                if (!isNaN(d.getTime()) && d.getFullYear() === todayY && d.getMonth() === todayM && d.getDate() === todayD) {
+                    return true;
+                }
+            }
+        }
+    }
+
+    if (item.date) {
+        let cleanDStr = String(item.date).replace(/[\u200e\u200f\u202a-\u202e]/g, '').trim();
+        let todayAr = now.toLocaleDateString('ar-IQ').replace(/[\u200e\u200f\u202a-\u202e]/g, '').trim();
+        let todayEn = now.toLocaleDateString('en-US');
+        let todayEnGB = now.toLocaleDateString('en-GB');
+        let todayIso = now.toISOString().split('T')[0];
+
+        if (cleanDStr.includes(todayAr) || cleanDStr.includes(todayIso) || cleanDStr.includes(todayEn) || cleanDStr.includes(todayEnGB)) {
+            return true;
+        }
+
+        let parsed = new Date(cleanDStr);
+        if (!isNaN(parsed.getTime())) {
+            if (parsed.getFullYear() === todayY && parsed.getMonth() === todayM && parsed.getDate() === todayD) {
+                return true;
+            }
+        }
+
+        let nums = cleanDStr.match(/\d+/g);
+        if (nums && nums.length >= 3) {
+            let n1 = Number(nums[0]), n2 = Number(nums[1]), n3 = Number(nums[2]);
+            if (n3 === todayY && ((n1 === todayD && n2 === (todayM + 1)) || (n2 === todayD && n1 === (todayM + 1)))) return true;
+            if (n1 === todayY && ((n3 === todayD && n2 === (todayM + 1)) || (n2 === todayD && n3 === (todayM + 1)))) return true;
+        }
+    }
+
+    return false;
+}
+
+function showComprehensiveTotalBreakdownModal(scope = 'all') {
+    const isTodayScope = (scope === 'today');
+    const filterFn = isTodayScope ? isRecordFromToday : (() => true);
+    // حساب إجمالي المبيعات والأرباح الحقيقية دائماً بدقة من سجل المبيعات
     let totalSales = 0;
     let grossProfit = 0;
-    ensureArray(salesHistory).forEach(s => {
-        totalSales += (Number(s.total) || 0);
-        grossProfit += (Number(s.profit) || 0);
+    ensureArray(salesHistory).filter(filterFn).forEach(s => {
+        let st = Number(s.total) || 0;
+        let sp = Number(s.profit);
+        if (isNaN(sp)) {
+            let itArr = ensureArray(s.items);
+            let c = itArr.reduce((acc, it) => acc + (Number(it.buyPrice || 0) * Number(it.qty || 1)), 0);
+            sp = Math.max(0, st - c);
+        }
+        totalSales += st;
+        grossProfit += (sp || 0);
     });
 
-    let maintProfit = ensureArray(maintItems).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
-    let totalExpenses = ensureArray(expensesList).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+    let maintProfit = ensureArray(maintItems).filter(filterFn).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let totalExpenses = ensureArray(expensesList).filter(filterFn).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
     let totalDamagedLoss = 0;
     let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
-    damList.forEach(d => {
+    damList.filter(filterFn).forEach(d => {
         let q = Number(d.qty || d.quantity) || 1;
         let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
         totalDamagedLoss += c;
     });
 
+    // حساب تسديدات المجهزين: لا يُخصم إلا عند الضغط الفعلي على تسديد الحساب (isPayment === true)
     let totalSupplierPayments = 0;
-    ensureArray(myDebtsList).forEach(d => {
-        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
-            totalSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+    ensureArray(myDebtsList).filter(filterFn).forEach(d => {
+        if (d.isPayment === true) {
+            let payVal = (d.amount !== undefined) ? Math.abs(Number(d.amount)) : (Number(d.price || 0) * Number(d.qty || 1));
+            totalSupplierPayments += Math.abs(payVal || 0);
         }
     });
 
     let totalCustomerDebtCollections = 0;
-    ensureArray(debtsList).forEach(d => {
+    ensureArray(debtsList).filter(filterFn).forEach(d => {
         let amt = Number(d.amount);
         if (d.isPayment || (amt < 0 && !d.isDiscount)) {
             let details = String(d.details || '');
@@ -5442,7 +5594,7 @@ function showComprehensiveTotalBreakdownModal() {
         ? Number(salesSummaryOverrides.expenses) : totalExpenses;
     let dispDam = (salesSummaryOverrides && salesSummaryOverrides.damagedLoss !== undefined && salesSummaryOverrides.damagedLoss !== null) 
         ? Number(salesSummaryOverrides.damagedLoss) : totalDamagedLoss;
-    let dispSupp = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null) 
+    let dispSupp = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null && salesSummaryOverrides.isSupplierPaymentsLocked === true) 
         ? Number(salesSummaryOverrides.supplierPayments) : totalSupplierPayments;
 
     let calcFinalSales = (dispSales + dispMaint + dispCustDebt) - (dispExp + dispDam + dispSupp);
@@ -5460,9 +5612,9 @@ function showComprehensiveTotalBreakdownModal() {
 
     openSysModal({
         type: 'custom',
-        title: 'تفاصيل الإجمالي الكلي النهائي',
-        icon: '<i class="fa-solid fa-scale-balanced text-indigo-600 text-3xl"></i>',
-        message: 'كشف تفصيلي لحساب الإجمالي الكلي النهائي وبنوده:',
+        title: isTodayScope ? 'تفاصيل الإجمالي الكلي لليوم' : 'تفاصيل الإجمالي الكلي لجميع الأيام',
+        icon: isTodayScope ? '<i class="fa-solid fa-sun text-amber-500 text-3xl"></i>' : '<i class="fa-solid fa-scale-balanced text-indigo-600 text-3xl"></i>',
+        message: isTodayScope ? `كشف تفصيلي لحساب إجمالي اليوم (${new Date().toLocaleDateString('ar-IQ')}):` : 'كشف تفصيلي لحساب الإجمالي الكلي النهائي التراكمي لجميع الأيام وبنوده:',
         customHtmlButtons: `
             <div class="w-full text-right text-xs space-y-2.5 my-2">
                 <div class="bg-gray-50 p-3 rounded-xl border space-y-1.5 font-bold">
@@ -5516,40 +5668,49 @@ function updateSalesTable() {
         salesHistory = ensureArray(salesHistory);
     }
 
+    // حساب إجمالي المبيعات والأرباح الحقيقية دائماً وتلقائياً من سجل المبيعات
     let totalSales = 0;
     let grossProfit = 0;
 
-    salesHistory.forEach(s => {
-        totalSales += (Number(s.total) || 0);
-        grossProfit += (Number(s.profit) || 0);
+    ensureArray(salesHistory).forEach(s => {
+        let st = Number(s.total) || 0;
+        let sp = Number(s.profit);
+        if (isNaN(sp)) {
+            let itArr = ensureArray(s.items);
+            let c = itArr.reduce((acc, it) => acc + (Number(it.buyPrice || 0) * Number(it.qty || 1)), 0);
+            sp = Math.max(0, st - c);
+        }
+        totalSales += st;
+        grossProfit += (sp || 0);
     });
 
     let maintList = ensureArray(maintItems);
     let expList = ensureArray(expensesList);
+    let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
+
+    // ==========================================
+    // أ. حساب إحصائيات جميع الأيام (All Days)
+    // ==========================================
     let maintProfit = maintList.reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
     let totalExpenses = expList.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
-
     let totalProfitWithMaint = grossProfit + maintProfit;
     let netFinal = totalProfitWithMaint - totalExpenses;
 
-    // 1. حساب خسائر التالف
     let totalDamagedLoss = 0;
-    let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
     damList.forEach(d => {
         let q = Number(d.qty || d.quantity) || 1;
         let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
         totalDamagedLoss += c;
     });
 
-    // 2. حساب تسديد المجهّزين
     let totalSupplierPayments = 0;
     ensureArray(myDebtsList).forEach(d => {
-        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
-            totalSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+        if (d.isPayment === true) {
+            let payVal = (d.amount !== undefined) ? Math.abs(Number(d.amount)) : (Number(d.price || 0) * Number(d.qty || 1));
+            totalSupplierPayments += Math.abs(payVal || 0);
         }
     });
 
-    // 3. حساب قبض ديون المأخوذين بالآجل (دفعات تسديد الديون من الزبائن)
     let totalCustomerDebtCollections = 0;
     ensureArray(debtsList).forEach(d => {
         let amt = Number(d.amount);
@@ -5561,16 +5722,65 @@ function updateSalesTable() {
         }
     });
 
-    // 4. حساب الإجمالي الكلي النهائي بعد حساب المصروفات والتالف والصيانة والمبيعات وتسديد المجهزين وقبض ديون الآجل
-    // المعادلة: (المبيعات + الصيانة + قبض ديون الآجل) - (المصروفات + التالف + تسديد المجهزين)
     let finalComprehensiveSalesTotal = (totalSales + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
     let finalComprehensiveProfitTotal = (grossProfit + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
 
-    // تطبيق تعديلات الأدمن لأرقام المبيعات والمجموع الكلي وبنود الإجمالي الكلي النهائي (مثل المجهزين)
-    let displayTotalSales = (salesSummaryOverrides && salesSummaryOverrides.totalSales !== undefined && salesSummaryOverrides.totalSales !== null) 
+    // ==========================================
+    // ب. حساب إحصائيات اليوم الحالي فقط (Today)
+    // ==========================================
+    let todaySales = 0;
+    let todayGrossProfit = 0;
+    ensureArray(salesHistory).filter(isRecordFromToday).forEach(s => {
+        let st = Number(s.total) || 0;
+        let sp = Number(s.profit);
+        if (isNaN(sp)) {
+            let itArr = ensureArray(s.items);
+            let c = itArr.reduce((acc, it) => acc + (Number(it.buyPrice || 0) * Number(it.qty || 1)), 0);
+            sp = Math.max(0, st - c);
+        }
+        todaySales += st;
+        todayGrossProfit += (sp || 0);
+    });
+
+    let todayMaintProfit = maintList.filter(isRecordFromToday).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let todayExpenses = expList.filter(isRecordFromToday).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+    let todayTotalProfitWithMaint = todayGrossProfit + todayMaintProfit;
+    let todayNetProfit = todayTotalProfitWithMaint - todayExpenses;
+
+    let todayDamagedLoss = 0;
+    damList.filter(isRecordFromToday).forEach(d => {
+        let q = Number(d.qty || d.quantity) || 1;
+        let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
+        todayDamagedLoss += c;
+    });
+
+    let todaySupplierPayments = 0;
+    ensureArray(myDebtsList).filter(isRecordFromToday).forEach(d => {
+        if (d.isPayment === true) {
+            let payVal = (d.amount !== undefined) ? Math.abs(Number(d.amount)) : (Number(d.price || 0) * Number(d.qty || 1));
+            todaySupplierPayments += Math.abs(payVal || 0);
+        }
+    });
+
+    let todayCustomerDebtCollections = 0;
+    ensureArray(debtsList).filter(isRecordFromToday).forEach(d => {
+        let amt = Number(d.amount);
+        if (d.isPayment || (amt < 0 && !d.isDiscount)) {
+            let details = String(d.details || '');
+            if (!details.includes('استرجاع') && !details.includes('إرجاع') && !details.includes('خصم') && !details.includes('إعفاء')) {
+                todayCustomerDebtCollections += Math.abs(amt || 0);
+            }
+        }
+    });
+
+    let todayFinalComprehensiveSales = (todaySales + todayMaintProfit + todayCustomerDebtCollections) - (todayExpenses + todayDamagedLoss + todaySupplierPayments);
+    let todayFinalComprehensiveProfit = (todayGrossProfit + todayMaintProfit + todayCustomerDebtCollections) - (todayExpenses + todayDamagedLoss + todaySupplierPayments);
+
+    // تطبيق الحساب التلقائي الحي للمبيعات والأرباح، وعدم تجميدها
+    let displayTotalSales = (salesSummaryOverrides && salesSummaryOverrides.totalSales !== undefined && salesSummaryOverrides.totalSales !== null && salesSummaryOverrides.isSalesLocked === true) 
         ? Number(salesSummaryOverrides.totalSales) : totalSales;
         
-    let displayGrossProfit = (salesSummaryOverrides && salesSummaryOverrides.grossProfit !== undefined && salesSummaryOverrides.grossProfit !== null) 
+    let displayGrossProfit = (salesSummaryOverrides && salesSummaryOverrides.grossProfit !== undefined && salesSummaryOverrides.grossProfit !== null && salesSummaryOverrides.isSalesLocked === true) 
         ? Number(salesSummaryOverrides.grossProfit) : grossProfit;
         
     let displayMaintProfit = (salesSummaryOverrides && salesSummaryOverrides.maintProfit !== undefined && salesSummaryOverrides.maintProfit !== null) 
@@ -5582,7 +5792,8 @@ function updateSalesTable() {
     let displayNetFinal = (salesSummaryOverrides && salesSummaryOverrides.netFinal !== undefined && salesSummaryOverrides.netFinal !== null) 
         ? Number(salesSummaryOverrides.netFinal) : netFinal;
 
-    let displaySupplierPayments = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null) 
+    // تسديد المجهزين: لا يُخصم من الإجمالي النهائي إلا عند الضغط الفعلي على تسديد الحساب
+    let displaySupplierPayments = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null && salesSummaryOverrides.isSupplierPaymentsLocked === true) 
         ? Number(salesSummaryOverrides.supplierPayments) : totalSupplierPayments;
 
     let displayCustomerDebtCollections = (salesSummaryOverrides && salesSummaryOverrides.customerDebtCollections !== undefined && salesSummaryOverrides.customerDebtCollections !== null) 
@@ -5610,6 +5821,33 @@ function updateSalesTable() {
         }
     }
 
+    // تحديث أيقونات إجمالي اليوم
+    if (document.getElementById('todaySalesDateLabel')) {
+        document.getElementById('todaySalesDateLabel').innerText = new Date().toLocaleDateString('ar-IQ');
+    }
+    if (document.getElementById('todaySalesDisplay')) {
+        document.getElementById('todaySalesDisplay').innerText = `${formatMoney(todaySales)} د.ع`;
+    }
+    if (document.getElementById('todayGrossProfitDisplay')) {
+        document.getElementById('todayGrossProfitDisplay').innerText = `${formatMoney(todayGrossProfit)} د.ع`;
+    }
+    if (document.getElementById('todaySalesMaintProfitDisplay')) {
+        document.getElementById('todaySalesMaintProfitDisplay').innerText = `${formatMoney(todayMaintProfit)} د.ع`;
+    }
+    if (document.getElementById('todayTotalProfitWithMaintDisplay')) {
+        document.getElementById('todayTotalProfitWithMaintDisplay').innerText = `${formatMoney(todayTotalProfitWithMaint)} د.ع`;
+    }
+    if (document.getElementById('todayNetProfitDisplay')) {
+        document.getElementById('todayNetProfitDisplay').innerText = `${formatMoney(todayNetProfit)} د.ع`;
+    }
+    if (document.getElementById('todayFinalComprehensiveTotalDisplay')) {
+        document.getElementById('todayFinalComprehensiveTotalDisplay').innerText = `${formatMoney(todayFinalComprehensiveSales)} د.ع`;
+    }
+    if (document.getElementById('todayFinalComprehensiveSubtitle')) {
+        document.getElementById('todayFinalComprehensiveSubtitle').innerHTML = `صافي أرباح اليوم: ${formatMoney(todayFinalComprehensiveProfit)} د.ع`;
+    }
+
+    // تحديث أيقونات إجمالي جميع الأيام
     if (document.getElementById('totalSalesDisplay')) {
         document.getElementById('totalSalesDisplay').innerText = `${formatMoney(displayTotalSales)} د.ع`;
     }
@@ -9208,8 +9446,9 @@ function openAdminSalesSummaryEditModal() {
 
     let realSupplierPayments = 0;
     ensureArray(myDebtsList).forEach(d => {
-        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
-            realSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+        if (d.isPayment === true) {
+            let payVal = (d.amount !== undefined) ? Math.abs(Number(d.amount)) : (Number(d.price || 0) * Number(d.qty || 1));
+            realSupplierPayments += Math.abs(payVal || 0);
         }
     });
 
@@ -9407,6 +9646,8 @@ function saveAdminSalesSummaryOverrides() {
     let fComp = document.getElementById('editOverrideFinalComprehensiveTotal')?.value;
 
     salesSummaryOverrides = {
+        isSalesLocked: (tSales !== '' && !isNaN(Number(tSales))),
+        isSupplierPaymentsLocked: (supp !== '' && !isNaN(Number(supp))),
         totalSales: (tSales !== '' && !isNaN(Number(tSales))) ? Number(tSales) : null,
         grossProfit: (gProfit !== '' && !isNaN(Number(gProfit))) ? Number(gProfit) : null,
         maintProfit: (mProfit !== '' && !isNaN(Number(mProfit))) ? Number(mProfit) : null,
