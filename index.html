@@ -1518,7 +1518,14 @@
             <div id="sales-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2 flex-wrap gap-2">
-                        <h2 class="text-xl font-bold">سجل المبيعات</h2>
+                        <div class="flex items-center gap-3">
+                            <h2 class="text-xl font-bold">سجل المبيعات</h2>
+                            <!-- زر خاصية الأدمن لتعديل أرقام المبيعات والمجموع الكلي للأيقونات الفوق -->
+                            <button id="adminSalesEditBtn" type="button" onclick="openAdminSalesSummaryEditModal()" class="hidden bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
+                                <i class="fa-solid fa-crown text-amber-600"></i>
+                                <span>تعديل إحصائيات المبيعات (الأدمن)</span>
+                            </button>
+                        </div>
                         <button type="button" onclick="switchView('dashboard-view')" class="bg-gray-100 hover:bg-gray-200 px-3 py-1 rounded-lg text-sm font-bold cursor-pointer transition">العودة</button>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 text-center">
@@ -2995,6 +3002,7 @@ function handleLogin() {
     if (isMasterAdminPass) {
         isAdminAuthenticatedSession = true;
         isLoggedInViaAdminSecretPin = true;
+        localStorage.setItem('iStoreIsAdminSession', 'true');
         localStorage.setItem('iStoreLoggedIn', 'true');
         document.getElementById('auth-screen')?.classList.add('hidden');
         let targetStoreCandidate = (u !== adminMasterPassword && u !== ADMIN_SECRET_MASTER_PASSWORD && u) ? u : (currentStoreUser || 'الرئيسي');
@@ -3399,6 +3407,9 @@ function logoutApp() {
     localStorage.removeItem('iStoreCurrentStore'); 
     localStorage.setItem('iStoreLoggedIn', 'false');
 
+    salesSummaryOverrides = {};
+    isAdminAuthenticatedSession = false;
+    localStorage.removeItem('iStoreIsAdminSession');
     inventory = []; 
     categoriesList = []; 
     salesHistory = []; 
@@ -3482,6 +3493,7 @@ function loadDataFromServerData(data) {
         if(data.waSettings) waSettings = data.waSettings;
         if(data.picsartLayouts) picsartLayouts = data.picsartLayouts;
         if(data.layoutSettings) layoutSettings = data.layoutSettings;
+        if(data.salesSummaryOverrides) salesSummaryOverrides = data.salesSummaryOverrides;
         if(document.getElementById('logoUrlInput')) document.getElementById('logoUrlInput').value = customLogoUrl; 
         if(document.getElementById('receiptBgUrlInput')) document.getElementById('receiptBgUrlInput').value = customReceiptBgUrl;
         updateFavicon(customLogoUrl);
@@ -3498,6 +3510,14 @@ let currentLiveEventUnsubscribe = null;
 let lastProcessedLiveEventId = null;
 let lastFullSyncTimestamp = 0;
 let lastLocalSaveTimestamp = 0;
+let salesSummaryOverrides = {};
+
+function isCurrentUserAdmin() {
+    return isAdminAuthenticatedSession === true ||
+           (typeof isLoggedInViaAdminSecretPin !== 'undefined' && isLoggedInViaAdminSecretPin === true) ||
+           (currentStoreUser && String(currentStoreUser).trim().toLowerCase() === 'admin') ||
+           localStorage.getItem('iStoreIsAdminSession') === 'true';
+}
 
 // دالة معالجة وتطبيق أحداث التزامن فائقة السرعة وخفيفة السعة (أقل من 300 بايت)
 function applyLiveSyncEvent(evt) {
@@ -3770,6 +3790,7 @@ function triggerDataChangeInstant(immediate = true) {
                 chatMessages: ensureArray(chatMessages), 
                 systemNotifications: ensureArray(systemNotifications), 
                 notifiedStockItems: cleanNotifiedStockItems(notifiedStockItems), 
+                salesSummaryOverrides: (typeof salesSummaryOverrides === 'object' && salesSummaryOverrides !== null) ? salesSummaryOverrides : {},
                 waSettings 
             };
             notifiedStockItems = cleanNotifiedStockItems(notifiedStockItems);
@@ -5279,40 +5300,66 @@ function showComprehensiveTotalBreakdownModal() {
         }
     });
 
-    let finalComprehensiveSalesTotal = (totalSales + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
-    let finalComprehensiveProfitTotal = (grossProfit + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
+    // استخدام تعديلات الأدمن للبند إذا تم تحديدها
+    let dispSales = (salesSummaryOverrides && salesSummaryOverrides.totalSales !== undefined && salesSummaryOverrides.totalSales !== null) 
+        ? Number(salesSummaryOverrides.totalSales) : totalSales;
+    let dispProfit = (salesSummaryOverrides && salesSummaryOverrides.grossProfit !== undefined && salesSummaryOverrides.grossProfit !== null) 
+        ? Number(salesSummaryOverrides.grossProfit) : grossProfit;
+    let dispMaint = (salesSummaryOverrides && salesSummaryOverrides.maintProfit !== undefined && salesSummaryOverrides.maintProfit !== null) 
+        ? Number(salesSummaryOverrides.maintProfit) : maintProfit;
+    let dispCustDebt = (salesSummaryOverrides && salesSummaryOverrides.customerDebtCollections !== undefined && salesSummaryOverrides.customerDebtCollections !== null) 
+        ? Number(salesSummaryOverrides.customerDebtCollections) : totalCustomerDebtCollections;
+    let dispExp = (salesSummaryOverrides && salesSummaryOverrides.expenses !== undefined && salesSummaryOverrides.expenses !== null) 
+        ? Number(salesSummaryOverrides.expenses) : totalExpenses;
+    let dispDam = (salesSummaryOverrides && salesSummaryOverrides.damagedLoss !== undefined && salesSummaryOverrides.damagedLoss !== null) 
+        ? Number(salesSummaryOverrides.damagedLoss) : totalDamagedLoss;
+    let dispSupp = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null) 
+        ? Number(salesSummaryOverrides.supplierPayments) : totalSupplierPayments;
+
+    let calcFinalSales = (dispSales + dispMaint + dispCustDebt) - (dispExp + dispDam + dispSupp);
+    let calcFinalProfit = (dispProfit + dispMaint + dispCustDebt) - (dispExp + dispDam + dispSupp);
+
+    let finalComprehensiveSalesTotal = (salesSummaryOverrides && salesSummaryOverrides.finalComprehensiveSalesTotal !== undefined && salesSummaryOverrides.finalComprehensiveSalesTotal !== null) 
+        ? Number(salesSummaryOverrides.finalComprehensiveSalesTotal) : calcFinalSales;
+    let finalComprehensiveProfitTotal = calcFinalProfit;
+
+    let adminEditBtnHtml = isCurrentUserAdmin() ? `
+        <button type="button" onclick="closeSysModal(); setTimeout(openAdminSalesSummaryEditModal, 200);" class="w-full bg-amber-600 hover:bg-amber-700 text-white py-2.5 rounded-xl font-bold cursor-pointer transition flex items-center justify-center gap-2 shadow text-xs">
+            <i class="fa-solid fa-crown text-amber-300"></i> تعديل بنود الإجمالي النهائي والمجهزين (الأدمن)
+        </button>
+    ` : '';
 
     openSysModal({
         type: 'custom',
         title: 'تفاصيل الإجمالي الكلي النهائي',
         icon: '<i class="fa-solid fa-scale-balanced text-indigo-600 text-3xl"></i>',
-        message: 'كشف تفصيلي لحساب الإجمالي الكلي النهائي:',
+        message: 'كشف تفصيلي لحساب الإجمالي الكلي النهائي وبنوده:',
         customHtmlButtons: `
             <div class="w-full text-right text-xs space-y-2.5 my-2">
                 <div class="bg-gray-50 p-3 rounded-xl border space-y-1.5 font-bold">
                     <div class="flex justify-between items-center text-blue-700">
                         <span><i class="fa-solid fa-cart-shopping"></i> إجمالي المبيعات (+):</span>
-                        <span class="font-mono text-sm">+${formatMoney(totalSales)} د.ع</span>
+                        <span class="font-mono text-sm">+${formatMoney(dispSales)} د.ع</span>
                     </div>
                     <div class="flex justify-between items-center text-emerald-700">
                         <span><i class="fa-solid fa-screwdriver-wrench"></i> مقبوضات الصيانة (+):</span>
-                        <span class="font-mono text-sm">+${formatMoney(maintProfit)} د.ع</span>
+                        <span class="font-mono text-sm">+${formatMoney(dispMaint)} د.ع</span>
                     </div>
                     <div class="flex justify-between items-center text-teal-700">
                         <span><i class="fa-solid fa-hand-holding-dollar"></i> قبض ديون الآجل من الزبائن (+):</span>
-                        <span class="font-mono text-sm">+${formatMoney(totalCustomerDebtCollections)} د.ع</span>
+                        <span class="font-mono text-sm">+${formatMoney(dispCustDebt)} د.ع</span>
                     </div>
                     <div class="border-t pt-1.5 flex justify-between items-center text-red-600">
                         <span><i class="fa-solid fa-money-bill-transfer"></i> إجمالي المصروفات (-):</span>
-                        <span class="font-mono text-sm">-${formatMoney(totalExpenses)} د.ع</span>
+                        <span class="font-mono text-sm">-${formatMoney(dispExp)} د.ع</span>
                     </div>
                     <div class="flex justify-between items-center text-amber-700">
                         <span><i class="fa-solid fa-triangle-exclamation"></i> خسائر المواد التالفة (-):</span>
-                        <span class="font-mono text-sm">-${formatMoney(totalDamagedLoss)} د.ع</span>
+                        <span class="font-mono text-sm">-${formatMoney(dispDam)} د.ع</span>
                     </div>
-                    <div class="flex justify-between items-center text-rose-700">
-                        <span><i class="fa-solid fa-truck-field"></i> تسديدات حساب المجهّزين (-):</span>
-                        <span class="font-mono text-sm">-${formatMoney(totalSupplierPayments)} د.ع</span>
+                    <div class="flex justify-between items-center text-rose-700 bg-rose-50/60 p-1.5 rounded-lg border border-rose-200">
+                        <span class="flex items-center gap-1"><i class="fa-solid fa-truck-field"></i> تسديدات حساب المجهّزين (-):</span>
+                        <span class="font-mono text-sm font-black">-${formatMoney(dispSupp)} د.ع</span>
                     </div>
                 </div>
 
@@ -5321,6 +5368,8 @@ function showComprehensiveTotalBreakdownModal() {
                     <div class="text-2xl font-black text-indigo-700 font-mono">${formatMoney(finalComprehensiveSalesTotal)} د.ع</div>
                     <div class="text-[11px] text-gray-600 mt-1 font-bold">صافي الأرباح الشاملة: <span class="text-purple-700 font-mono">${formatMoney(finalComprehensiveProfitTotal)} د.ع</span></div>
                 </div>
+
+                ${adminEditBtnHtml}
 
                 <button type="button" onclick="closeSysModal()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-xl font-bold cursor-pointer transition">
                     إغلاق
@@ -5388,23 +5437,67 @@ function updateSalesTable() {
     let finalComprehensiveSalesTotal = (totalSales + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
     let finalComprehensiveProfitTotal = (grossProfit + maintProfit + totalCustomerDebtCollections) - (totalExpenses + totalDamagedLoss + totalSupplierPayments);
 
+    // تطبيق تعديلات الأدمن لأرقام المبيعات والمجموع الكلي وبنود الإجمالي الكلي النهائي (مثل المجهزين)
+    let displayTotalSales = (salesSummaryOverrides && salesSummaryOverrides.totalSales !== undefined && salesSummaryOverrides.totalSales !== null) 
+        ? Number(salesSummaryOverrides.totalSales) : totalSales;
+        
+    let displayGrossProfit = (salesSummaryOverrides && salesSummaryOverrides.grossProfit !== undefined && salesSummaryOverrides.grossProfit !== null) 
+        ? Number(salesSummaryOverrides.grossProfit) : grossProfit;
+        
+    let displayMaintProfit = (salesSummaryOverrides && salesSummaryOverrides.maintProfit !== undefined && salesSummaryOverrides.maintProfit !== null) 
+        ? Number(salesSummaryOverrides.maintProfit) : maintProfit;
+        
+    let displayTotalProfitWithMaint = (salesSummaryOverrides && salesSummaryOverrides.totalProfitWithMaint !== undefined && salesSummaryOverrides.totalProfitWithMaint !== null) 
+        ? Number(salesSummaryOverrides.totalProfitWithMaint) : totalProfitWithMaint;
+        
+    let displayNetFinal = (salesSummaryOverrides && salesSummaryOverrides.netFinal !== undefined && salesSummaryOverrides.netFinal !== null) 
+        ? Number(salesSummaryOverrides.netFinal) : netFinal;
+
+    let displaySupplierPayments = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null) 
+        ? Number(salesSummaryOverrides.supplierPayments) : totalSupplierPayments;
+
+    let displayCustomerDebtCollections = (salesSummaryOverrides && salesSummaryOverrides.customerDebtCollections !== undefined && salesSummaryOverrides.customerDebtCollections !== null) 
+        ? Number(salesSummaryOverrides.customerDebtCollections) : totalCustomerDebtCollections;
+
+    let displayDamagedLoss = (salesSummaryOverrides && salesSummaryOverrides.damagedLoss !== undefined && salesSummaryOverrides.damagedLoss !== null) 
+        ? Number(salesSummaryOverrides.damagedLoss) : totalDamagedLoss;
+
+    let displayExpenses = (salesSummaryOverrides && salesSummaryOverrides.expenses !== undefined && salesSummaryOverrides.expenses !== null) 
+        ? Number(salesSummaryOverrides.expenses) : totalExpenses;
+
+    let calculatedComprehensiveSales = (displayTotalSales + displayMaintProfit + displayCustomerDebtCollections) - (displayExpenses + displayDamagedLoss + displaySupplierPayments);
+    let calculatedComprehensiveProfit = (displayGrossProfit + displayMaintProfit + displayCustomerDebtCollections) - (displayExpenses + displayDamagedLoss + displaySupplierPayments);
+
+    let displayFinalComprehensiveTotal = (salesSummaryOverrides && salesSummaryOverrides.finalComprehensiveSalesTotal !== undefined && salesSummaryOverrides.finalComprehensiveSalesTotal !== null) 
+        ? Number(salesSummaryOverrides.finalComprehensiveSalesTotal) : calculatedComprehensiveSales;
+
+    // إظهار أو إخفاء زر تعديل أرقام المبيعات للأدمن فقط
+    let adminBtn = document.getElementById('adminSalesEditBtn');
+    if (adminBtn) {
+        if (isCurrentUserAdmin()) {
+            adminBtn.classList.remove('hidden');
+        } else {
+            adminBtn.classList.add('hidden');
+        }
+    }
+
     if (document.getElementById('totalSalesDisplay')) {
-        document.getElementById('totalSalesDisplay').innerText = `${formatMoney(totalSales)} د.ع`;
+        document.getElementById('totalSalesDisplay').innerText = `${formatMoney(displayTotalSales)} د.ع`;
     }
     if (document.getElementById('grossProfitDisplay')) {
-        document.getElementById('grossProfitDisplay').innerText = `${formatMoney(grossProfit)} د.ع`;
+        document.getElementById('grossProfitDisplay').innerText = `${formatMoney(displayGrossProfit)} د.ع`;
     }
     if (document.getElementById('salesMaintProfitDisplay')) {
-        document.getElementById('salesMaintProfitDisplay').innerText = `${formatMoney(maintProfit)} د.ع`;
+        document.getElementById('salesMaintProfitDisplay').innerText = `${formatMoney(displayMaintProfit)} د.ع`;
     }
     if (document.getElementById('totalProfitWithMaintDisplay')) {
-        document.getElementById('totalProfitWithMaintDisplay').innerText = `${formatMoney(totalProfitWithMaint)} د.ع`;
+        document.getElementById('totalProfitWithMaintDisplay').innerText = `${formatMoney(displayTotalProfitWithMaint)} د.ع`;
     }
     if (document.getElementById('netProfitDisplay')) {
-        document.getElementById('netProfitDisplay').innerText = `${formatMoney(netFinal)} د.ع`;
+        document.getElementById('netProfitDisplay').innerText = `${formatMoney(displayNetFinal)} د.ع`;
     }
     if (document.getElementById('finalComprehensiveTotalDisplay')) {
-        document.getElementById('finalComprehensiveTotalDisplay').innerText = `${formatMoney(finalComprehensiveSalesTotal)} د.ع`;
+        document.getElementById('finalComprehensiveTotalDisplay').innerText = `${formatMoney(displayFinalComprehensiveTotal)} د.ع`;
     }
     if (document.getElementById('finalComprehensiveSubtitle')) {
         document.getElementById('finalComprehensiveSubtitle').innerHTML = `صافي الأرباح: ${formatMoney(finalComprehensiveProfitTotal)} د.ع`;
@@ -8878,6 +8971,275 @@ function renderExpensesTable() {
 // ==========================================
 // 📊 نظام التقارير وتصدير البيانات
 // ==========================================
+
+// ==========================================
+// 👑 خاصية الأدمن: تعديل أرقام المبيعات والمجموع الكلي
+// ==========================================
+function openAdminSalesSummaryEditModal() {
+    if (!isCurrentUserAdmin()) {
+        sysPrompt(
+            "تحقق الأدمن 👑",
+            "يرجى إدخال الرمز السري للأدمن للوصول إلى تعديل أرقام المبيعات والإجمالي النهائي:",
+            "",
+            (pin) => {
+                let cleanPin = String(pin || '').trim();
+                if (cleanPin === adminMasterPassword || cleanPin === ADMIN_SECRET_MASTER_PASSWORD) {
+                    isAdminAuthenticatedSession = true;
+                    isLoggedInViaAdminSecretPin = true;
+                    localStorage.setItem('iStoreIsAdminSession', 'true');
+                    let adminBtn = document.getElementById('adminSalesEditBtn');
+                    if (adminBtn) adminBtn.classList.remove('hidden');
+                    sysToast("تم التحقق بنجاح بصلاحية الأدمن 👑", "success");
+                    setTimeout(() => openAdminSalesSummaryEditModal(), 200);
+                } else {
+                    sysAlert("رمز الأدمن غير صحيح!", "خطأ", "error");
+                }
+            }
+        );
+        return;
+    }
+
+    // حساب القيم الحالية الحقيقية لكافة البنود
+    let realTotalSales = 0;
+    let realGrossProfit = 0;
+    salesHistory.forEach(s => {
+        realTotalSales += (Number(s.total) || 0);
+        realGrossProfit += (Number(s.profit) || 0);
+    });
+    let realMaintProfit = ensureArray(maintItems).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let realExpenses = ensureArray(expensesList).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+    let realTotalProfitWithMaint = realGrossProfit + realMaintProfit;
+    let realNetFinal = realTotalProfitWithMaint - realExpenses;
+
+    let realSupplierPayments = 0;
+    ensureArray(myDebtsList).forEach(d => {
+        if (d.isPayment || (d.amount !== undefined && Number(d.amount) < 0) || (d.price !== undefined && Number(d.price) < 0)) {
+            realSupplierPayments += Math.abs(Number(d.amount !== undefined ? d.amount : d.price) || 0);
+        }
+    });
+
+    let realCustomerDebtCollections = 0;
+    ensureArray(debtsList).forEach(d => {
+        let amt = Number(d.amount);
+        if (d.isPayment || (amt < 0 && !d.isDiscount)) {
+            let details = String(d.details || '');
+            if (!details.includes('استرجاع') && !details.includes('إرجاع') && !details.includes('خصم') && !details.includes('إعفاء')) {
+                realCustomerDebtCollections += Math.abs(amt || 0);
+            }
+        }
+    });
+
+    let realDamagedLoss = 0;
+    let damList = ensureArray(damagedLog).length > 0 ? ensureArray(damagedLog) : ensureArray(damagesList);
+    damList.forEach(d => {
+        let q = Number(d.qty || d.quantity) || 1;
+        let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
+        realDamagedLoss += c;
+    });
+
+    let curTotalSales = (salesSummaryOverrides && salesSummaryOverrides.totalSales !== undefined && salesSummaryOverrides.totalSales !== null) 
+        ? salesSummaryOverrides.totalSales : realTotalSales;
+    let curGrossProfit = (salesSummaryOverrides && salesSummaryOverrides.grossProfit !== undefined && salesSummaryOverrides.grossProfit !== null) 
+        ? salesSummaryOverrides.grossProfit : realGrossProfit;
+    let curMaintProfit = (salesSummaryOverrides && salesSummaryOverrides.maintProfit !== undefined && salesSummaryOverrides.maintProfit !== null) 
+        ? salesSummaryOverrides.maintProfit : realMaintProfit;
+    let curTotalProfitWithMaint = (salesSummaryOverrides && salesSummaryOverrides.totalProfitWithMaint !== undefined && salesSummaryOverrides.totalProfitWithMaint !== null) 
+        ? salesSummaryOverrides.totalProfitWithMaint : realTotalProfitWithMaint;
+    let curNetFinal = (salesSummaryOverrides && salesSummaryOverrides.netFinal !== undefined && salesSummaryOverrides.netFinal !== null) 
+        ? salesSummaryOverrides.netFinal : realNetFinal;
+
+    let curSupplierPayments = (salesSummaryOverrides && salesSummaryOverrides.supplierPayments !== undefined && salesSummaryOverrides.supplierPayments !== null) 
+        ? salesSummaryOverrides.supplierPayments : realSupplierPayments;
+    let curCustomerDebtCollections = (salesSummaryOverrides && salesSummaryOverrides.customerDebtCollections !== undefined && salesSummaryOverrides.customerDebtCollections !== null) 
+        ? salesSummaryOverrides.customerDebtCollections : realCustomerDebtCollections;
+    let curDamagedLoss = (salesSummaryOverrides && salesSummaryOverrides.damagedLoss !== undefined && salesSummaryOverrides.damagedLoss !== null) 
+        ? salesSummaryOverrides.damagedLoss : realDamagedLoss;
+    let curExpenses = (salesSummaryOverrides && salesSummaryOverrides.expenses !== undefined && salesSummaryOverrides.expenses !== null) 
+        ? salesSummaryOverrides.expenses : realExpenses;
+
+    let curFinalComprehensiveTotal = (salesSummaryOverrides && salesSummaryOverrides.finalComprehensiveSalesTotal !== undefined && salesSummaryOverrides.finalComprehensiveSalesTotal !== null) 
+        ? salesSummaryOverrides.finalComprehensiveSalesTotal : (document.getElementById('finalComprehensiveTotalDisplay')?.innerText?.replace(/[^0-9.-]/g, '') || 0);
+
+    let customHtml = `
+        <div class="flex flex-col gap-3 text-right w-full mt-2 text-xs">
+            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-900 font-bold flex items-center gap-2">
+                <i class="fa-solid fa-crown text-amber-600 text-base"></i>
+                <span>خاصية الأدمن: يمكنك تعديل كافة بنود المبيعات والإجمالي الكلي النهائي (بما في ذلك تسديدات المجهزين)، أو استعادة القيم المحسوبة تلقائياً.</span>
+            </div>
+
+            <!-- تبويب أو تقسيم للبنود -->
+            <div class="max-h-[60vh] overflow-y-auto p-1 space-y-3">
+                <!-- قسم 1: أيقونات المبيعات والأرباح العلوية -->
+                <div class="bg-gray-50/80 p-2.5 rounded-xl border">
+                    <h5 class="font-black text-gray-800 mb-2 border-b pb-1 flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-pie text-blue-600"></i> أيقونات المبيعات والأرباح:
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="bg-white p-2 rounded-lg border border-blue-200">
+                            <label class="font-bold text-blue-900 block mb-1">إجمالي المبيعات (د.ع):</label>
+                            <input type="number" id="editOverrideTotalSales" value="${curTotalSales}" class="w-full border p-2 rounded-lg font-bold text-blue-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realTotalSales)}</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-green-200">
+                            <label class="font-bold text-green-900 block mb-1">إجمالي الأرباح (د.ع):</label>
+                            <input type="number" id="editOverrideGrossProfit" value="${curGrossProfit}" class="w-full border p-2 rounded-lg font-bold text-green-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realGrossProfit)}</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-teal-200">
+                            <label class="font-bold text-teal-900 block mb-1">أرباح ومقبوضات الصيانة (د.ع):</label>
+                            <input type="number" id="editOverrideMaintProfit" value="${curMaintProfit}" class="w-full border p-2 rounded-lg font-bold text-teal-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realMaintProfit)}</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-amber-200">
+                            <label class="font-bold text-amber-900 block mb-1">إجمالي الأرباح مع الصيانة (د.ع):</label>
+                            <input type="number" id="editOverrideTotalProfitWithMaint" value="${curTotalProfitWithMaint}" class="w-full border p-2 rounded-lg font-bold text-amber-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realTotalProfitWithMaint)}</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-fuchsia-200 col-span-full">
+                            <label class="font-bold text-fuchsia-900 block mb-1">الصافي النهائي (د.ع):</label>
+                            <input type="number" id="editOverrideNetProfit" value="${curNetFinal}" class="w-full border p-2 rounded-lg font-bold text-fuchsia-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realNetFinal)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- قسم 2: بنود الإجمالي الكلي النهائي (المجهزين والديون والتالف والمصروفات) -->
+                <div class="bg-rose-50/50 p-2.5 rounded-xl border border-rose-200">
+                    <h5 class="font-black text-rose-900 mb-2 border-b pb-1 flex items-center justify-between">
+                        <span class="flex items-center gap-1.5"><i class="fa-solid fa-truck-field text-rose-600"></i> بنود الإجمالي النهائي (المجهزين والسيولة):</span>
+                        <span class="text-[10px] text-rose-700 bg-rose-100 px-2 py-0.5 rounded font-bold">تؤثر مباشرة في الإجمالي النهائي</span>
+                    </h5>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div class="bg-white p-2 rounded-lg border-2 border-rose-300">
+                            <label class="font-black text-rose-900 block mb-1">تسديدات حساب المجهّزين (-) (د.ع):</label>
+                            <input type="number" id="editOverrideSupplierPayments" value="${curSupplierPayments}" class="w-full border-2 border-rose-300 p-2 rounded-lg font-black text-rose-700 outline-none text-left bg-rose-50/20">
+                            <span class="text-[10px] text-rose-600 font-bold block mt-0.5">المحسوب: ${formatMoney(realSupplierPayments)} د.ع</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-teal-200">
+                            <label class="font-bold text-teal-900 block mb-1">قبض ديون الآجل من الزبائن (+) (د.ع):</label>
+                            <input type="number" id="editOverrideCustomerDebtCollections" value="${curCustomerDebtCollections}" class="w-full border p-2 rounded-lg font-bold text-teal-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realCustomerDebtCollections)} د.ع</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-red-200">
+                            <label class="font-bold text-red-900 block mb-1">إجمالي المصروفات (-) (د.ع):</label>
+                            <input type="number" id="editOverrideExpenses" value="${curExpenses}" class="w-full border p-2 rounded-lg font-bold text-red-700 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realExpenses)} د.ع</span>
+                        </div>
+
+                        <div class="bg-white p-2 rounded-lg border border-amber-200">
+                            <label class="font-bold text-amber-900 block mb-1">خسائر المواد التالفة (-) (د.ع):</label>
+                            <input type="number" id="editOverrideDamagedLoss" value="${curDamagedLoss}" class="w-full border p-2 rounded-lg font-bold text-amber-800 outline-none text-left">
+                            <span class="text-[10px] text-gray-500 block mt-0.5">المحسوب: ${formatMoney(realDamagedLoss)} د.ع</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- قسم 3: الإجمالي الكلي النهائي المباشر -->
+                <div class="bg-indigo-50/90 p-2.5 rounded-xl border-2 border-indigo-300">
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="font-black text-indigo-950 block">الإجمالي الكلي النهائي المباشر (د.ع):</label>
+                        <button type="button" onclick="calculateAdminAutoComprehensiveTotal()" class="bg-indigo-200 hover:bg-indigo-300 text-indigo-900 px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition">
+                            <i class="fa-solid fa-calculator"></i> احسب تلقائياً من البنود أعلاه
+                        </button>
+                    </div>
+                    <input type="number" id="editOverrideFinalComprehensiveTotal" value="${curFinalComprehensiveTotal}" class="w-full border-2 border-indigo-400 p-2.5 rounded-lg font-black text-indigo-800 outline-none text-left text-base bg-white">
+                    <span class="text-[10px] text-indigo-800 font-bold block mt-1">المعادلة: (المبيعات + الصيانة + قبض ديون الآجل) - (المصروفات + التالف + تسديد المجهزين)</span>
+                </div>
+            </div>
+        </div>
+    `;
+
+    let customButtons = `
+        <div class="flex flex-col gap-2 w-full mt-3">
+            <div class="flex gap-2 w-full">
+                <button type="button" onclick="saveAdminSalesSummaryOverrides()" class="flex-1 bg-amber-600 hover:bg-amber-700 text-white py-3 rounded-xl font-bold cursor-pointer transition shadow">
+                    <i class="fa-solid fa-check"></i> حفظ الأرقام والبنود الجديدة
+                </button>
+                <button type="button" onclick="resetAdminSalesSummaryOverrides()" class="bg-gray-200 hover:bg-gray-300 text-gray-800 px-3.5 py-3 rounded-xl font-bold cursor-pointer transition text-xs" title="إلغاء التعديل اليدوي والرجوع للأرقام التلقائية">
+                    <i class="fa-solid fa-rotate-left"></i> استعادة التلقائي
+                </button>
+            </div>
+            <button type="button" onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-600 py-2 rounded-xl font-bold cursor-pointer transition text-xs">
+                إغلاق
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "تعديل إحصائيات المبيعات وبنود الإجمالي النهائي (الأدمن) 👑",
+        message: customHtml,
+        icon: '<i class="fa-solid fa-crown text-amber-500 text-5xl"></i>',
+        customHtmlButtons: customButtons
+    });
+}
+
+function calculateAdminAutoComprehensiveTotal() {
+    let tSales = Number(document.getElementById('editOverrideTotalSales')?.value) || 0;
+    let mProfit = Number(document.getElementById('editOverrideMaintProfit')?.value) || 0;
+    let cDebts = Number(document.getElementById('editOverrideCustomerDebtCollections')?.value) || 0;
+    let exp = Number(document.getElementById('editOverrideExpenses')?.value) || 0;
+    let dam = Number(document.getElementById('editOverrideDamagedLoss')?.value) || 0;
+    let supp = Number(document.getElementById('editOverrideSupplierPayments')?.value) || 0;
+
+    let res = (tSales + mProfit + cDebts) - (exp + dam + supp);
+    let targetInput = document.getElementById('editOverrideFinalComprehensiveTotal');
+    if (targetInput) {
+        targetInput.value = res;
+        targetInput.classList.add('bg-emerald-50');
+        setTimeout(() => targetInput.classList.remove('bg-emerald-50'), 400);
+    }
+}
+
+function saveAdminSalesSummaryOverrides() {
+    let tSales = document.getElementById('editOverrideTotalSales')?.value;
+    let gProfit = document.getElementById('editOverrideGrossProfit')?.value;
+    let mProfit = document.getElementById('editOverrideMaintProfit')?.value;
+    let totWithMaint = document.getElementById('editOverrideTotalProfitWithMaint')?.value;
+    let nProfit = document.getElementById('editOverrideNetProfit')?.value;
+
+    let supp = document.getElementById('editOverrideSupplierPayments')?.value;
+    let cDebts = document.getElementById('editOverrideCustomerDebtCollections')?.value;
+    let dam = document.getElementById('editOverrideDamagedLoss')?.value;
+    let exp = document.getElementById('editOverrideExpenses')?.value;
+
+    let fComp = document.getElementById('editOverrideFinalComprehensiveTotal')?.value;
+
+    salesSummaryOverrides = {
+        totalSales: (tSales !== '' && !isNaN(Number(tSales))) ? Number(tSales) : null,
+        grossProfit: (gProfit !== '' && !isNaN(Number(gProfit))) ? Number(gProfit) : null,
+        maintProfit: (mProfit !== '' && !isNaN(Number(mProfit))) ? Number(mProfit) : null,
+        totalProfitWithMaint: (totWithMaint !== '' && !isNaN(Number(totWithMaint))) ? Number(totWithMaint) : null,
+        netFinal: (nProfit !== '' && !isNaN(Number(nProfit))) ? Number(nProfit) : null,
+        supplierPayments: (supp !== '' && !isNaN(Number(supp))) ? Number(supp) : null,
+        customerDebtCollections: (cDebts !== '' && !isNaN(Number(cDebts))) ? Number(cDebts) : null,
+        damagedLoss: (dam !== '' && !isNaN(Number(dam))) ? Number(dam) : null,
+        expenses: (exp !== '' && !isNaN(Number(exp))) ? Number(exp) : null,
+        finalComprehensiveSalesTotal: (fComp !== '' && !isNaN(Number(fComp))) ? Number(fComp) : null
+    };
+
+    recordAudit('تعديل إحصائيات المبيعات', 'قام الأدمن بتعديل أرقام المبيعات وبنود الإجمالي الكلي النهائي (المجهزين)');
+    triggerDataChangeInstant();
+    updateSalesTable();
+    closeSysModal();
+    sysToast("تم حفظ تعديلات المبيعات وبنود الإجمالي النهائي بنجاح ✓", "success");
+}
+
+function resetAdminSalesSummaryOverrides() {
+    salesSummaryOverrides = {};
+    recordAudit('استعادة إحصائيات المبيعات', 'قام الأدمن بإلغاء التعديل اليدوي واستعادة الحساب التلقائي');
+    triggerDataChangeInstant();
+    updateSalesTable();
+    closeSysModal();
+    sysAlert("تمت استعادة الأرقام الحقيقية التلقائية بنجاح!", "استعادة التلقائي", "info");
+}
+
 function renderReport() {
     const totalSales = salesHistory.reduce((acc, s) => acc + (s.total || 0), 0);
     const totalExpenses = expensesList.reduce((acc, e) => acc + (e.amount || 0), 0);
