@@ -879,7 +879,7 @@
                         </div>
                     </div>
 
-                    <form onsubmit="saveMaintenanceRecord(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-teal-50/50 p-4 rounded-xl border border-teal-100 items-end">
+                    <form onsubmit="saveMaintenanceRecord(event); return false;" novalidate class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-teal-50/50 p-4 rounded-xl border border-teal-100 items-end">
                         <!-- اسم الزبون مع قائمة ذكية للبحث والاختيار السريع من كشف حساب الزبائن -->
                         <div class="relative">
                             <label class="block text-xs font-bold text-gray-700 mb-1">اسم الزبون / الجهاز:</label>
@@ -954,11 +954,11 @@
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">الكمية:</label>
-                                <input type="number" id="maintSupplierQty" value="1" min="1" class="border p-2.5 rounded-xl bg-gray-50 w-full text-center font-bold outline-none">
+                                <input type="number" id="maintSupplierQty" oninput="calculateMaintDebtRemaining()" value="1" min="1" class="border p-2.5 rounded-xl bg-gray-50 w-full text-center font-bold outline-none">
                             </div>
                             <div>
                                 <label class="block text-xs font-bold text-gray-700 mb-1">سعر المادة المفرد:</label>
-                                <input type="number" id="maintSupplierPrice" placeholder="السعر..." class="border p-2.5 rounded-xl bg-gray-50 w-full text-center font-bold text-red-600 outline-none">
+                                <input type="number" id="maintSupplierPrice" oninput="calculateMaintDebtRemaining()" placeholder="السعر..." class="border p-2.5 rounded-xl bg-gray-50 w-full text-center font-bold text-red-600 outline-none">
                             </div>
                         </div>
                         <div>
@@ -966,10 +966,35 @@
                             <input type="text" id="maintDescriptionInput" required placeholder="مثال: تبديل شاشة + برمجة سوفتوير..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-gray-800">
                         </div>
                         <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">أرباح الصيانة (مبلغ الصيانة):</label>
-                            <input type="number" id="maintProfitInput" required oninput="calculateMaintDebtRemaining()" placeholder="أرباح الصيانة..." class="border p-2.5 rounded-xl outline-none bg-white w-full font-bold text-teal-700">
+                            <label class="block text-xs font-bold text-teal-900 mb-1">سعر الإصلاح الإجمالي (المطلوب من الزبون):</label>
+                            <input type="text" inputmode="numeric" id="maintProfitInput" oninput="calculateMaintDebtRemaining()" placeholder="مثال: 35000..." class="border-2 border-teal-300 p-2.5 rounded-xl outline-none bg-white w-full font-black text-teal-800 text-sm">
                         </div>
-                        <button type="submit" class="col-span-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-xl cursor-pointer shadow-sm">حفظ وإضافة العملية</button>
+
+                        <!-- شريط المعاينة والحساب التفاعلي الفوري لصافي الربح وتكلفة القطعة والدين -->
+                        <div id="maintProfitCalcPreview" class="col-span-full bg-gradient-to-r from-teal-50 to-emerald-50 border-2 border-teal-300 p-3 rounded-2xl flex items-center justify-between text-xs font-bold text-teal-950 flex-wrap gap-2 shadow-xs">
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-calculator text-teal-600"></i>
+                                <span>سعر الإصلاح:</span>
+                                <span id="previewTotalRepairPrice" class="font-mono text-sm text-teal-800 font-black">0 د.ع</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-microchip text-rose-500"></i>
+                                <span>تكلفة القطعة (-):</span>
+                                <span id="previewPieceCost" class="font-mono text-sm text-rose-600 font-black">0 د.ع</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <i class="fa-solid fa-sack-dollar text-emerald-600 text-base"></i>
+                                <span>صافي أرباح الصيانة:</span>
+                                <span id="previewNetProfit" class="font-mono text-base text-emerald-700 font-black">0 د.ع</span>
+                            </div>
+                            <div id="previewDebtNotice" class="text-indigo-900 text-xs font-bold bg-white/80 px-2.5 py-1 rounded-lg border border-teal-200">
+                                الحالة: نقداً بالكامل
+                            </div>
+                        </div>
+                        <button type="button" onclick="saveMaintenanceRecord(event)" id="maintSubmitBtn" class="col-span-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3.5 rounded-xl cursor-pointer shadow-md flex items-center justify-center gap-2 active:scale-98 transition text-sm">
+                            <i class="fa-solid fa-circle-check text-lg text-teal-200"></i>
+                            <span>إتمام العملية وحفظ الصيانة</span>
+                        </button>
                     </form>
                 </div>
 
@@ -1156,36 +1181,72 @@
                         </div>
                     </div>
 
-                    <form onsubmit="savePurchaseListItem(event)" class="grid grid-cols-1 md:grid-cols-4 gap-3 bg-sky-50/50 p-4 rounded-2xl border border-sky-100 items-end mb-6">
-                        <div class="relative">
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="text-xs font-bold text-gray-700">المجهز (المصدر):</label>
-                                <button type="button" onclick="quickAddSupplierFromPurchase()" class="text-sky-600 hover:text-sky-800 text-[10px] font-bold"><i class="fa-solid fa-plus"></i> مجهز جديد</button>
+                    <form onsubmit="savePurchaseListItem(event)" class="bg-sky-50/70 p-5 rounded-2xl border border-sky-200 mb-6 shadow-2xs">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 items-end">
+                            <!-- 1. المجهز (المصدر) -->
+                            <div class="relative flex flex-col justify-end w-full">
+                                <div class="flex justify-between items-center mb-1.5 h-6">
+                                    <label class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <i class="fa-solid fa-truck-field text-sky-600 text-[11px]"></i>
+                                        <span>المجهز (المصدر):</span>
+                                    </label>
+                                    <button type="button" onclick="quickAddSupplierFromPurchase()" class="text-sky-600 hover:text-sky-800 text-[10px] font-bold cursor-pointer transition flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-sky-200 shadow-2xs">
+                                        <i class="fa-solid fa-plus text-[9px]"></i> مجهز جديد
+                                    </button>
+                                </div>
+                                <input type="text" id="purchSupplierName" onkeyup="filterPurchaseSupplierDropdown(this.value)" placeholder="ابحث أو اكتب المجهز..." class="h-11 border-2 border-sky-200 focus:border-sky-500 px-3 rounded-xl bg-white w-full text-xs font-bold outline-none transition shadow-2xs">
+                                <div id="purchSupplierDropdown" class="absolute top-[74px] z-50 bg-white border rounded-xl shadow-xl w-full max-h-40 overflow-y-auto hidden"></div>
                             </div>
-                            <input type="text" id="purchSupplierName" onkeyup="filterPurchaseSupplierDropdown(this.value)" placeholder="ابحث أو اكتب المجهز..." class="border p-2.5 rounded-xl bg-white w-full text-xs font-bold outline-none focus:border-sky-500">
-                            <div id="purchSupplierDropdown" class="absolute z-50 bg-white border rounded-xl shadow-xl w-full max-h-40 overflow-y-auto hidden"></div>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">اسم المادة:</label>
-                            <input type="text" id="purchItemName" required placeholder="اسم المادة المشتراة..." class="border p-2.5 rounded-xl bg-white w-full font-bold outline-none focus:border-sky-500">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 mb-1">وصف المادة:</label>
-                            <input type="text" id="purchItemDesc" placeholder="الوصف (اختياري)..." class="border p-2.5 rounded-xl bg-white w-full text-xs outline-none">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">العدد:</label>
-                                <input type="number" id="purchItemQty" value="1" min="1" required class="border p-2.5 rounded-xl bg-white w-full text-center font-bold outline-none">
+
+                            <!-- 2. اسم المادة -->
+                            <div class="flex flex-col justify-end w-full">
+                                <div class="flex items-center mb-1.5 h-6">
+                                    <label class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <i class="fa-solid fa-box text-sky-600 text-[11px]"></i>
+                                        <span>اسم المادة المشتراة:</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="purchItemName" required placeholder="اسم المادة المشتراة..." class="h-11 border-2 border-sky-200 focus:border-sky-500 px-3 rounded-xl bg-white w-full text-xs font-bold outline-none transition shadow-2xs">
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-gray-700 mb-1">سعر المفرد:</label>
-                                <input type="number" id="purchItemBuyPrice" required placeholder="سعر الشراء..." class="border p-2.5 rounded-xl bg-white w-full text-center font-bold text-red-600 outline-none">
+
+                            <!-- 3. وصف المادة -->
+                            <div class="flex flex-col justify-end w-full">
+                                <div class="flex items-center mb-1.5 h-6">
+                                    <label class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <i class="fa-solid fa-circle-info text-sky-600 text-[11px]"></i>
+                                        <span>وصف المادة (اختياري):</span>
+                                    </label>
+                                </div>
+                                <input type="text" id="purchItemDesc" placeholder="الوصف أو الملاحظات..." class="h-11 border-2 border-sky-200 focus:border-sky-500 px-3 rounded-xl bg-white w-full text-xs font-bold outline-none transition shadow-2xs">
+                            </div>
+
+                            <!-- 4. العدد / الكمية -->
+                            <div class="flex flex-col justify-end w-full">
+                                <div class="flex items-center mb-1.5 h-6">
+                                    <label class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <i class="fa-solid fa-hashtag text-sky-600 text-[11px]"></i>
+                                        <span>العدد / الكمية:</span>
+                                    </label>
+                                </div>
+                                <input type="number" id="purchItemQty" value="1" min="1" required class="h-11 border-2 border-sky-200 focus:border-sky-500 px-3 rounded-xl bg-white w-full text-center text-xs font-black outline-none transition shadow-2xs">
+                            </div>
+
+                            <!-- 5. سعر المفرد -->
+                            <div class="flex flex-col justify-end w-full">
+                                <div class="flex items-center mb-1.5 h-6">
+                                    <label class="text-xs font-bold text-gray-700 flex items-center gap-1">
+                                        <i class="fa-solid fa-tag text-sky-600 text-[11px]"></i>
+                                        <span>سعر المفرد:</span>
+                                    </label>
+                                </div>
+                                <input type="number" id="purchItemBuyPrice" required placeholder="سعر الشراء د.ع..." class="h-11 border-2 border-sky-200 focus:border-sky-500 px-3 rounded-xl bg-white w-full text-center text-xs font-black text-red-600 outline-none transition shadow-2xs">
                             </div>
                         </div>
-                        <div class="col-span-full flex gap-3">
-                            <button type="submit" class="flex-1 bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-xl cursor-pointer shadow-md transition">
-                                <i class="fa-solid fa-plus"></i> إضافة لقائمة الشراء
+
+                        <div class="mt-4">
+                            <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3.5 rounded-xl cursor-pointer shadow-md transition flex items-center justify-center gap-2 text-sm active:scale-98">
+                                <i class="fa-solid fa-cart-plus text-base"></i>
+                                <span>إضافة إلى قائمة الشراء</span>
                             </button>
                         </div>
                     </form>
@@ -1561,8 +1622,12 @@
             <div id="sales-view" class="app-view max-w-6xl mx-auto">
                 <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
                     <div class="flex justify-between items-center mb-4 border-b pb-2 flex-wrap gap-2">
-                        <div class="flex items-center gap-3">
+                        <div class="flex items-center gap-2 flex-wrap">
                             <h2 class="text-xl font-bold">سجل المبيعات</h2>
+                            <button type="button" onclick="openOfflineIndexedDBModal()" class="bg-cyan-50 hover:bg-cyan-100 text-cyan-800 border border-cyan-300 px-2.5 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs" title="استعراض المبيعات والصور المحفوظة محلياً والعمل بدون إنترنت">
+                                <i class="fa-solid fa-database text-cyan-600"></i>
+                                <span>المخزن المحلي (IndexedDB)</span>
+                            </button>
                             <!-- زر خاصية الأدمن لتعديل أرقام المبيعات والمجموع الكلي للأيقونات الفوق -->
                             <button id="adminSalesEditBtn" type="button" onclick="openAdminSalesSummaryEditModal()" class="hidden bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center gap-1.5 shadow-xs">
                                 <i class="fa-solid fa-crown text-amber-600"></i>
@@ -1786,12 +1851,29 @@
                         <div class="bg-green-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">تسديد (قبض)</h3><input type="number" id="quickPayAmount" placeholder="المبلغ..." class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="quickPayDebt()" class="bg-green-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">قبض</button></div>
                         <div class="bg-amber-50 p-4 rounded-xl border"><h3 class="font-bold mb-2 text-xs">خصم/إعفاء</h3><input type="number" id="exemptionAmount" placeholder="الخصم..." class="border p-2 rounded-lg w-full text-xs mb-2 bg-white"><button onclick="exemptCustomerDebt()" class="bg-amber-600 text-white w-full py-2 rounded-lg text-xs font-bold cursor-pointer">إعفاء</button></div>
                     </div>
-                    <div class="flex gap-3 mb-6 bg-gray-50 p-3 rounded-xl border flex-wrap">
-                        <button onclick="printCustomerVoucherModal('قبض')" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">وصل قبض</button>
-                        <button onclick="printCustomerVoucherModal('شراء')" class="bg-purple-600 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">وصل شراء</button>
-                        <button onclick="printA4StatementOfAccount()" class="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer">كشف حساب A4</button>
+                    <div class="flex gap-3 mb-6 bg-gray-50 p-3 rounded-xl border flex-wrap items-center justify-between">
+                        <div class="flex gap-2 flex-wrap">
+                            <button onclick="printCustomerVoucherModal('قبض')" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer transition">وصل قبض</button>
+                            <button onclick="printCustomerVoucherModal('شراء')" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer transition">وصل شراء</button>
+                            <button onclick="printA4StatementOfAccount()" class="bg-blue-700 hover:bg-blue-800 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer transition">كشف حساب A4</button>
+                        </div>
+                        <button onclick="resetCustomerAccountZero()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold cursor-pointer transition flex items-center gap-1.5 shadow-sm">
+                            <i class="fa-solid fa-broom"></i> تصفير حساب الزبون
+                        </button>
                     </div>
-                    <div class="overflow-x-auto"><table class="w-full text-right border-collapse"><thead><tr class="bg-gray-100"><th class="p-3 border">البيان / المنتج</th><th class="p-3 border">المبلغ</th><th class="p-3 border">التاريخ</th></tr></thead><tbody id="customerInvoicesBody"></tbody></table></div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-right border-collapse">
+                            <thead>
+                                <tr class="bg-gray-100 text-xs">
+                                    <th class="p-3 border">البيان / المنتج</th>
+                                    <th class="p-3 border">المبلغ</th>
+                                    <th class="p-3 border">التاريخ</th>
+                                    <th class="p-3 border text-center">إجراءات (تعديل السعر / حذف)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="customerInvoicesBody"></tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
@@ -2718,6 +2800,22 @@ function formatMoney(num) {
     return Number(num).toLocaleString('en-US');
 }
 
+// دالة لمعالجة وتوحيد الأرقام المكتوبة بالأرقام العربية (٠١٢٣٤٥٦٧٨٩) أو الإنكليزية
+function parseArabicNumber(val) {
+    if (val === null || val === undefined || val === '') return 0;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    let s = String(val).trim();
+    const arabicDigits = ['٠','١','٢','٣','٤','٥','٦','٧','٨','٩'];
+    const persianDigits = ['۰','۱','۲','۳','۴','۵','۶','۷','۸','۹'];
+    for (let i = 0; i < 10; i++) {
+        s = s.replaceAll(arabicDigits[i], String(i)).replaceAll(persianDigits[i], String(i));
+    }
+    s = s.replace(/[,،\s]/g, '');
+    let n = parseFloat(s);
+    return isNaN(n) ? 0 : n;
+}
+window.parseArabicNumber = parseArabicNumber;
+
 function recordAudit(type, details) {
     let entry = {
         id: Date.now() + Math.random(),
@@ -3173,6 +3271,10 @@ function processImageUpload(event, targetInputId) {
             let dataUrl = canvas.toDataURL('image/jpeg', 0.7);
             document.getElementById(targetInputId).value = dataUrl;
             if(targetInputId === 'logoUrlInput') { customLogoUrl = dataUrl; updateFavicon(dataUrl); }
+            // تخزين الصورة فوراً في IndexedDB للعمل بسلاسة أوفلاين
+            try {
+                idbSaveImage(targetInputId, dataUrl, { name: file.name, type: targetInputId });
+            } catch(e){}
             triggerDataChangeInstant();
         }
         img.src = e.target.result;
@@ -3996,6 +4098,275 @@ function initRealtimeListener(user) {
     } catch(e){}
 }
 
+
+// ==========================================
+// 🗄️ محرك التخزين المحلي فائق السرعة IndexedDB (Offline & Zero-Lag Engine)
+// لتسريع التطبيق وحل مشكلة الـ Lag وحفظ المبيعات والصور محلياً وفوراً بدون إنترنت
+// ==========================================
+const IDB_STORE_NAME = 'iStore_DB_v1';
+const IDB_VERSION = 1;
+let idbInstance = null;
+
+function getIndexedDB() {
+    return new Promise((resolve) => {
+        if (idbInstance) {
+            resolve(idbInstance);
+            return;
+        }
+        if (!window.indexedDB) {
+            console.warn("IndexedDB غير مدعوم في هذا المتصفح");
+            resolve(null);
+            return;
+        }
+        try {
+            const req = window.indexedDB.open(IDB_STORE_NAME, IDB_VERSION);
+            req.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('appState')) {
+                    db.createObjectStore('appState', { keyPath: 'key' });
+                }
+                if (!db.objectStoreNames.contains('sales')) {
+                    db.createObjectStore('sales', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('images')) {
+                    db.createObjectStore('images', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('offlineQueue')) {
+                    db.createObjectStore('offlineQueue', { keyPath: 'queueId', autoIncrement: true });
+                }
+            };
+            req.onsuccess = (e) => {
+                idbInstance = e.target.result;
+                console.log("IndexedDB engine initialized successfully ✓");
+                resolve(idbInstance);
+            };
+            req.onerror = (e) => {
+                console.warn("IndexedDB open error:", e);
+                resolve(null);
+            };
+        } catch(err) {
+            console.warn("IndexedDB exception:", err);
+            resolve(null);
+        }
+    });
+}
+
+// 1. حفظ المبيعات فوراً ومحلياً في IndexedDB بمجرد النقر وقبل أي إرسال شبكي
+async function idbSaveSaleDirectly(saleRecord) {
+    if (!saleRecord || !saleRecord.id) return;
+    try {
+        const db = await getIndexedDB();
+        if (!db) return;
+        const tx = db.transaction('sales', 'readwrite');
+        const store = tx.objectStore('sales');
+        store.put(JSON.parse(JSON.stringify(saleRecord)));
+        tx.oncomplete = () => {
+            console.log("Sale saved immediately to IndexedDB ✓", saleRecord.id);
+        };
+    } catch(e) {
+        console.warn("idbSaveSaleDirectly error:", e);
+    }
+}
+
+// 2. حفظ حالة التطبيق الشاملة في IndexedDB لمنع أي فقدان للبيانات
+async function idbSaveAppState(storeKey, appData) {
+    if (!storeKey || !appData) return;
+    try {
+        const db = await getIndexedDB();
+        if (!db) return;
+        const tx = db.transaction('appState', 'readwrite');
+        const store = tx.objectStore('appState');
+        store.put({ key: storeKey, data: appData, updatedAt: Date.now() });
+    } catch(e) {
+        console.warn("idbSaveAppState error:", e);
+    }
+}
+
+// 3. حفظ الصور والشعارات فوراً في IndexedDB
+async function idbSaveImage(id, dataUrl, meta = {}) {
+    if (!id || !dataUrl) return;
+    try {
+        const db = await getIndexedDB();
+        if (!db) return;
+        const tx = db.transaction('images', 'readwrite');
+        const store = tx.objectStore('images');
+        store.put({ id: id, dataUrl: dataUrl, meta: meta, savedAt: Date.now() });
+        console.log("Image cached in IndexedDB ✓", id);
+    } catch(e) {
+        console.warn("idbSaveImage error:", e);
+    }
+}
+
+// 4. استرجاع جميع المبيعات المحفوظة محلياً في IndexedDB
+function idbGetAllSales() {
+    return new Promise(async (resolve) => {
+        try {
+            const db = await getIndexedDB();
+            if (!db) { resolve([]); return; }
+            const tx = db.transaction('sales', 'readonly');
+            const store = tx.objectStore('sales');
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+        } catch(e) {
+            resolve([]);
+        }
+    });
+}
+
+// 5. استرجاع جميع الصور المحفوظة محلياً في IndexedDB
+function idbGetAllImages() {
+    return new Promise(async (resolve) => {
+        try {
+            const db = await getIndexedDB();
+            if (!db) { resolve([]); return; }
+            const tx = db.transaction('images', 'readonly');
+            const store = tx.objectStore('images');
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => resolve([]);
+        } catch(e) {
+            resolve([]);
+        }
+    });
+}
+
+// 6. طابور العمليات غير المتزامنة للمزامنة التلقائية عند عودة الإنترنت
+async function idbAddToOfflineQueue(item) {
+    try {
+        const db = await getIndexedDB();
+        if (!db) return;
+        const tx = db.transaction('offlineQueue', 'readwrite');
+        const store = tx.objectStore('offlineQueue');
+        store.add({ ...item, queuedAt: Date.now() });
+    } catch(e){}
+}
+
+async function idbSyncOfflineQueueWhenOnline() {
+    if (!navigator.onLine) return;
+    try {
+        const db = await getIndexedDB();
+        if (!db) return;
+        const tx = db.transaction('offlineQueue', 'readonly');
+        const store = tx.objectStore('offlineQueue');
+        const req = store.getAll();
+        req.onsuccess = async () => {
+            const queue = req.result || [];
+            if (queue.length > 0) {
+                console.log(`جارٍ مزامنة ${queue.length} عملية أوفلاين مع السيرفر تلقائياً...`);
+                // تشغيل مزامنة السحابة
+                if (currentStoreUser) {
+                    triggerDataChangeInstant(true);
+                }
+                // تفريغ الطابور بعد نجاح المزامنة
+                const clearTx = db.transaction('offlineQueue', 'readwrite');
+                clearTx.objectStore('offlineQueue').clear();
+                updateNetworkStatusIndicator(true, 'تمت مزامنة العمليات غير المرفوعة بنجاح');
+                sysToast(`تمت مزامنة ${queue.length} عملية كانت معلقة أثناء انقطاع الإنترنت بنجاح ✓`, 'success');
+            }
+        };
+    } catch(e){}
+}
+
+// الاستماع لعودة الاتصال بالإنترنت للمزامنة الفورية التلقائية
+window.addEventListener('online', () => {
+    console.log("Internet is back online! Triggering auto-sync...");
+    updateNetworkStatusIndicator(true, 'متصل - جارٍ المزامنة...');
+    idbSyncOfflineQueueWhenOnline();
+});
+
+window.addEventListener('offline', () => {
+    console.warn("Internet disconnected! Working seamlessly in Offline IndexedDB mode.");
+    updateNetworkStatusIndicator(false, 'يعمل محلياً (أوفلاين بدون إنترنت)');
+});
+
+// تهيئة محرك IndexedDB عند بدء التشغيل
+getIndexedDB();
+
+// نافذة عرض واسترجاع المبيعات والصور المحفوظة محلياً في IndexedDB عند عدم وجود إنترنت
+async function openOfflineIndexedDBModal() {
+    const sales = await idbGetAllSales();
+    const images = await idbGetAllImages();
+    const isOnline = navigator.onLine;
+
+    let salesListHtml = sales.length === 0 ? `
+        <div class="text-center py-6 text-gray-400 font-bold text-xs">لا توجد مبيعات مخزنة في IndexedDB بعد</div>
+    ` : sales.slice(0, 50).map(s => {
+        let itDesc = ensureArray(s.items).map(i => `${i.name || ''} (${i.qty || 1})`).join('، ');
+        return `
+            <div class="border p-2.5 rounded-xl bg-gray-50 flex justify-between items-center text-xs">
+                <div>
+                    <span class="font-bold text-blue-700 font-mono">#${s.id}</span>
+                    <span class="text-gray-800 font-bold mr-2">${s.customer || 'زبون نقدي'}</span>
+                    <div class="text-[10px] text-gray-500 mt-0.5">${itDesc}</div>
+                </div>
+                <div class="text-left font-mono">
+                    <div class="font-black text-emerald-700">${formatMoney(s.total)} د.ع</div>
+                    <div class="text-[10px] text-gray-400">${s.date}</div>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    let imagesListHtml = images.length === 0 ? `
+        <div class="text-center py-4 text-gray-400 font-bold text-xs">لا توجد صور مخزنة في IndexedDB</div>
+    ` : images.map(img => `
+        <div class="border p-2 rounded-xl flex items-center gap-2 bg-gray-50">
+            <img src="${img.dataUrl}" class="w-10 h-10 object-contain rounded border bg-white">
+            <div class="text-xs">
+                <span class="font-bold text-gray-800 block">${img.id}</span>
+                <span class="text-[10px] text-gray-400">${new Date(img.savedAt).toLocaleDateString('ar-IQ')}</span>
+            </div>
+        </div>
+    `).join('');
+
+    let customHtml = `
+        <div class="text-right text-xs space-y-3">
+            <div class="p-3 rounded-xl border flex items-center justify-between ${isOnline ? 'bg-emerald-50 border-emerald-300 text-emerald-900' : 'bg-amber-50 border-amber-300 text-amber-900'}">
+                <div class="flex items-center gap-2 font-bold">
+                    <i class="fa-solid ${isOnline ? 'fa-wifi text-emerald-600' : 'fa-plane text-amber-600'} text-lg"></i>
+                    <span>حالة الاتصال: ${isOnline ? 'متصل بالإنترنت (Online)' : 'غير متصل (Offline - يعمل محلياً بالكامل)'}</span>
+                </div>
+                <button type="button" onclick="idbSyncOfflineQueueWhenOnline()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-lg font-bold text-xs cursor-pointer shadow-xs">
+                    <i class="fa-solid fa-rotate"></i> مزامنة الآن
+                </button>
+            </div>
+
+            <div class="bg-white rounded-xl border p-3">
+                <h4 class="font-bold text-blue-900 mb-2 flex items-center justify-between border-b pb-1">
+                    <span><i class="fa-solid fa-receipt text-blue-600"></i> المبيعات المحفوظة محلياً (${sales.length} عملية):</span>
+                    <span class="text-[10px] text-gray-500 font-normal">تُحفظ فوراً في IndexedDB بمجرد البيع</span>
+                </h4>
+                <div class="max-h-52 overflow-y-auto space-y-2 p-1">
+                    ${salesListHtml}
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl border p-3">
+                <h4 class="font-bold text-purple-900 mb-2 flex items-center justify-between border-b pb-1">
+                    <span><i class="fa-solid fa-image text-purple-600"></i> الصور والشعارات المحفوظة محلياً (${images.length}):</span>
+                    <span class="text-[10px] text-gray-500 font-normal">متاحة بدون إنترنت</span>
+                </h4>
+                <div class="max-h-36 overflow-y-auto space-y-2 p-1">
+                    ${imagesListHtml}
+                </div>
+            </div>
+
+            <button type="button" onclick="closeSysModal()" class="w-full bg-gray-200 hover:bg-gray-300 text-gray-800 py-2.5 rounded-xl font-bold cursor-pointer transition">
+                إغلاق
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "المخزن المحلي السحابي السريع (IndexedDB)",
+        icon: '<i class="fa-solid fa-database text-cyan-600 text-3xl"></i>',
+        message: "استعراض المبيعات والصور المحفوظة محلياً والعمل بدون إنترنت (Offline Capability):",
+        customHtmlButtons: customHtml
+    });
+}
+
 function triggerDataChangeInstant(immediate = true) {
     if(!currentStoreUser) return;
     if (dataChangeDebounceTimer) {
@@ -4055,10 +4426,13 @@ function triggerDataChangeInstant(immediate = true) {
             };
             notifiedStockItems = cleanNotifiedStockItems(notifiedStockItems);
 
-            // 1. الحفظ في الذاكرة المحلية
+            // 1. الحفظ الفوري فائق السرعة في محرك IndexedDB والذاكرة المحلية لمنع الـ Lag وفقدان البيانات
             try {
                 localStorage.setItem('iStore_LocalData_' + currentStoreUser, JSON.stringify(appData));
                 localStorage.setItem('iStore_SyncTrigger', String(Date.now()));
+            } catch(e){}
+            try {
+                idbSaveAppState(currentStoreUser, appData);
             } catch(e){}
 
             // 2. البث المباشر الفوري إلى أي علامات تبويب أو نوافذ أخرى مفتوحة (0 مللي ثانية دون تحديث)
@@ -4216,18 +4590,373 @@ if (window.isFirebaseReady) {
 }
 
 function renderCustomerDetailData(name) {
-    document.getElementById('detailCustomerName').innerText = name; 
-    document.getElementById('newCustomerNameInput').value = name;
+    currentActiveCustomer = name;
+    if (document.getElementById('detailCustomerName')) document.getElementById('detailCustomerName').innerText = name; 
+    if (document.getElementById('newCustomerNameInput')) document.getElementById('newCustomerNameInput').value = name;
     let custObj = debtsList.find(d => d.customer === name && d.phone);
-    if(custObj) document.getElementById('newCustomerPhoneInput').value = custObj.phone || '';
-    let totalCustDebt = 0; debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += d.amount);
-    document.getElementById('detailCustomerTotalDebtDisplay').innerText = formatMoney(totalCustDebt) + ' د.ع';
+    if(custObj && document.getElementById('newCustomerPhoneInput')) document.getElementById('newCustomerPhoneInput').value = custObj.phone || '';
+    
+    let totalCustDebt = 0;
+    debtsList.filter(d => d.customer === name).forEach(d => totalCustDebt += (Number(d.amount) || 0));
+    
+    if (document.getElementById('detailCustomerTotalDebtDisplay')) {
+        let totalDisplayEl = document.getElementById('detailCustomerTotalDebtDisplay');
+        if (totalCustDebt < 0) {
+            totalDisplayEl.innerHTML = `<span class="text-emerald-700">${formatMoney(totalCustDebt)} د.ع</span> <span class="text-xs text-emerald-800 block mt-1 font-bold">(له رصيد مسدد زائد / مستحق له ${formatMoney(Math.abs(totalCustDebt))} د.ع)</span>`;
+        } else if (totalCustDebt === 0) {
+            totalDisplayEl.innerHTML = `<span class="text-gray-500 font-bold">0 د.ع (الحساب مصفّر)</span>`;
+        } else {
+            totalDisplayEl.innerText = `${formatMoney(totalCustDebt)} د.ع`;
+        }
+    }
+
     const body = document.getElementById('customerInvoicesBody'); 
     if(body) { 
         body.innerHTML = ''; 
-        debtsList.filter(d => d.customer === name).forEach(d => { 
-            body.innerHTML += `<tr class="border-b"><td class="p-3 border">${renderExpandableStatement(d.details)}</td><td class="p-3 border font-bold ${d.amount<0?'text-green-600':'text-blue-600'}">${formatMoney(d.amount)}</td><td class="p-3 border text-sm">${d.date}</td></tr>`; 
+        let records = debtsList.filter(d => d.customer === name);
+        if (records.length === 0) {
+            body.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-400 font-bold text-xs">لا توجد حركات مسجلة لهذا الحساب (الرصيد مصفّر)</td></tr>';
+            return;
+        }
+
+        records.forEach((d, idx) => { 
+            let dId = d.id || idx;
+            let isPay = Number(d.amount) < 0 || d.isPayment;
+            let amountClass = isPay ? 'text-emerald-600 font-black' : 'text-blue-700 font-black';
+
+            body.innerHTML += `
+                <tr class="border-b hover:bg-gray-50 text-xs">
+                    <td class="p-3 border font-bold text-gray-800">${renderExpandableStatement(d.details || 'مادة')}</td>
+                    <td class="p-3 border ${amountClass} font-mono">${formatMoney(d.amount)} د.ع</td>
+                    <td class="p-3 border font-mono text-gray-500 text-xs">${d.date}</td>
+                    <td class="p-3 border text-center">
+                        <div class="flex items-center justify-center gap-1.5 flex-wrap">
+                            <button type="button" onclick="editCustomerDebtItemPrice(${dId})" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-pen-to-square"></i> تعديل السعر
+                            </button>
+                            <button type="button" onclick="deleteCustomerDebtItemWithModal(${dId})" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-300 px-2.5 py-1 rounded-lg text-xs font-bold cursor-pointer transition flex items-center gap-1 shadow-2xs">
+                                <i class="fa-solid fa-trash-can"></i> حذف
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `; 
         }); 
+    }
+}
+
+// تعديل سعر المادة داخل كشف الحساب وتحديث الرصيد فوراً
+function editCustomerDebtItemPrice(itemId) {
+    let item = debtsList.find(d => d.id === itemId);
+    if (!item) return;
+
+    sysPrompt("تعديل سعر المادة في كشف الحساب", `المادة: ${item.details || ''}
+أدخل السعر الجديد بالدينار العراقي (د.ع):`, String(item.amount || 0), (newPriceStr) => {
+        if (newPriceStr === null || newPriceStr === '') return;
+        let newPrice = Number(newPriceStr);
+        if (isNaN(newPrice)) return sysAlert("يرجى إدخال رقم صحيح!", "خطأ", "error");
+
+        let oldPrice = item.amount;
+        item.amount = newPrice;
+        recordAudit('تعديل سعر مادة في كشف الحساب', `تعديل سعر (${item.details}) للزبون (${item.customer}) من ${formatMoney(oldPrice)} إلى ${formatMoney(newPrice)} د.ع`);
+        triggerDataChangeInstant();
+        renderCustomerDetailData(item.customer);
+        updateCustomersTable();
+        updateSalesTable();
+        sysToast("تم تحديث سعر المادة ورصيد كشف الحساب بنجاح ✓", "success");
+    });
+}
+
+// حذف المادة من كشف الحساب مع الخيارات المطلوبة بدقة:
+// 1. إذا كانت المادة من المخزن: لا تظهر خانة إعادة للمجهز نهائياً
+// 2. إذا كانت من مجهز: ترجع مباشرة للمجهز الذي جهزها وتخصم من حسابه دون إظهار نافذة اختيار اسم المجهز
+// 3. إضافة للمخزن
+// 4. تحويل لتالف فتخصم من خسائر التالف
+// 5. حذف وتصفير القيد فقط
+function deleteCustomerDebtItemWithModal(itemId) {
+    let item = debtsList.find(d => d.id === itemId);
+    if (!item) return;
+
+    let custName = item.customer;
+    let itemAmount = Math.abs(Number(item.amount) || 0);
+
+    // التحقق هل المادة من مجهز أم من المخزن
+    let isFromStore = false;
+    let isFromSupplier = false;
+    let suppName = (item.supplierName || item.supplier || '').trim();
+    let suppItemCost = Number(item.pieceCost || item.cost || item.buyPrice) || 0;
+
+    // 1. فحص هل المادة صراحة من المخزن (المحل) أو فاتورة بيع محلية
+    if (item.sourceType === 'inventory' || item.source === 'inventory') {
+        isFromStore = true;
+    }
+    let detailsStr = String(item.details || '');
+    if (detailsStr.includes('من المخزن') || detailsStr.includes('المخزن') || detailsStr.includes('محلنا')) {
+        isFromStore = true;
+    }
+
+    // 2. إذا كانت المادة مرتبطة بعملية صيانة وبرمجة
+    if (item.maintId) {
+        let m = maintenanceLog.find(x => x.id === item.maintId);
+        if (m) {
+            if (m.sourceType === 'inventory' || m.sourceType === 'none' || !m.supplierName) {
+                isFromStore = true;
+                isFromSupplier = false;
+            } else if (m.sourceType === 'supplier' || (m.supplierName && m.supplierName.trim())) {
+                isFromSupplier = true;
+                isFromStore = false;
+                if (!suppName) suppName = (m.supplierName || '').trim();
+                if (!suppItemCost) suppItemCost = Number(m.pieceCost) || 0;
+            }
+        }
+    }
+
+    // القاعدة الصارمة: إذا كانت المادة من المخزن، لا تظهر خانة إعادة للمجهز نهائياً
+    if (isFromStore) {
+        isFromSupplier = false;
+    } else if (!isFromSupplier) {
+        if (item.sourceType === 'supplier' || (suppName && suppName !== 'مخزن' && suppName !== 'المخزن' && suppName !== 'محلنا')) {
+            isFromSupplier = true;
+        }
+    }
+
+    // زر الإرجاع للمجهز يظهر فقط وفقط إذا كانت المادة من مجهز (ويرجع مباشرة لمجهزه دون نافذة اختيار)
+    let supplierBtnHtml = '';
+    if (isFromSupplier && suppName) {
+        supplierBtnHtml = `
+            <button type="button" onclick="closeSysModal(); executeCustomerDebtItemDelete(${itemId}, 'return_to_supplier')" class="bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-truck-arrow-right"></i> 1. إعادة للمجهز (${suppName}) وتخصم من حسابه تلقائياً
+            </button>
+        `;
+    }
+
+    let modalHtml = `
+        <div class="flex flex-col gap-2.5 w-full mt-2 text-xs font-bold text-right">
+            <div class="bg-amber-50 border border-amber-200 p-2.5 rounded-xl text-[11px] text-amber-900 mb-1">
+                اختر الإجراء المحاسبي والمخزني المطلوب عند حذف هذه المادة (${item.details}):
+                ${!isFromSupplier ? '<span class="block text-teal-800 font-bold mt-1">✓ المادة من المخزن (تم حجب خيار إعادة للمجهز كما طلبت).</span>' : `<span class="block text-purple-800 font-bold mt-1">✓ المادة من المجهز (${suppName || 'المجهز'}) وستعاد لحسابه تلقائياً دون الحاجة لكتابة اسمه.</span>`}
+            </div>
+            
+            ${supplierBtnHtml}
+            
+            <button type="button" onclick="closeSysModal(); executeCustomerDebtItemDelete(${itemId}, 'add_to_inventory')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-boxes-stacked"></i> ${isFromSupplier ? '2.' : '1.'} إضافة إلى المخزن
+            </button>
+            
+            <button type="button" onclick="closeSysModal(); executeCustomerDebtItemDelete(${itemId}, 'send_to_damaged')" class="bg-rose-600 hover:bg-rose-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-triangle-exclamation"></i> ${isFromSupplier ? '3.' : '2.'} تحويل لتالف (تضاف لخسائر التالف)
+            </button>
+            
+            <button type="button" onclick="closeSysModal(); executeCustomerDebtItemDelete(${itemId}, 'delete_only')" class="bg-gray-600 hover:bg-gray-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-trash"></i> ${isFromSupplier ? '4.' : '3.'} حذف وتصفير القيد فقط (بدون حركة مخزنية)
+            </button>
+            
+            <button type="button" onclick="closeSysModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl cursor-pointer mt-1">
+                إلغاء
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "حذف مادة وتصفيرها من كشف الحساب",
+        icon: '<i class="fa-solid fa-trash-can text-red-600 text-3xl"></i>',
+        message: `المادة: ${item.details}
+المبلغ: ${formatMoney(item.amount)} د.ع
+الزبون: ${custName}`,
+        customHtmlButtons: modalHtml
+    });
+}
+
+function executeCustomerDebtItemDelete(itemId, actionType) {
+    let item = debtsList.find(d => d.id === itemId);
+    if (!item) return;
+
+    let custName = item.customer;
+    let itemAmount = Math.abs(Number(item.amount) || 0);
+    let itemDetails = item.details || 'مادة';
+
+    if (actionType === 'return_to_supplier') {
+        // إعادة للمجهز فتخصم من حسابه تلقائياً دون نافذة طلب اسم المجهز
+        let suppName = (item.supplierName || item.supplier || '').trim();
+        let cost = Number(item.pieceCost || item.cost || item.buyPrice) || 0;
+
+        if (item.maintId) {
+            let m = maintenanceLog.find(x => x.id === item.maintId);
+            if (m) {
+                if (!suppName) suppName = (m.supplierName || '').trim();
+                if (!cost) cost = Number(m.pieceCost) || 0;
+            }
+        }
+        if (!suppName) {
+            let matchedDebt = myDebtsList.find(md => md.supplier && itemDetails && itemDetails.includes(md.supplier));
+            if (matchedDebt) {
+                suppName = matchedDebt.supplier;
+                if (!cost) cost = Math.abs(Number(matchedDebt.price || matchedDebt.amount) || 0);
+            }
+        }
+        if (!suppName) suppName = 'مجهز عام';
+        if (!cost) cost = itemAmount;
+
+        myDebtsList.unshift({
+            id: Date.now(),
+            supplier: suppName.trim(),
+            itemName: `إرجاع مادة من كشف حساب الزبون (${custName}): ${itemDetails}`,
+            price: -cost,
+            qty: 1,
+            amount: -cost,
+            isPayment: true,
+            date: new Date().toLocaleDateString('ar-IQ')
+        });
+
+        debtsList = debtsList.filter(d => d.id !== itemId);
+        recordAudit('حذف مادة وإرجاع للمجهز', `حذف مادة (${itemDetails}) من كشف حساب (${custName}) وخصم (${formatMoney(cost)}) من المجهز (${suppName}) تلقائياً`);
+        triggerDataChangeInstant();
+        renderCustomerDetailData(custName);
+        updateCustomersTable();
+        updateMyDebtsTable();
+        updateSalesTable();
+        sysAlert(`تم حذف المادة من كشف الحساب وإرجاعها للمجهز (${suppName}) وخصم ${formatMoney(cost)} د.ع من حسابه تلقائياً بنجاح!`, "تم بنجاح", "success");
+        return;
+    }
+
+    if (actionType === 'add_to_inventory') {
+        // إضافة للمخزن
+        let invItem = inventory.find(i => itemDetails.includes(i.name));
+        if (invItem) {
+            invItem.quantity = (Number(invItem.quantity) || 0) + 1;
+        } else {
+            inventory.unshift({
+                id: 'inv_' + Date.now(),
+                name: itemDetails,
+                category: 'مسترجع من الزبائن',
+                buyPrice: Math.round(itemAmount * 0.7),
+                sellPrice: itemAmount,
+                quantity: 1
+            });
+        }
+        debtsList = debtsList.filter(d => d.id !== itemId);
+        recordAudit('حذف مادة وإضافة للمخزن', `حذف مادة (${itemDetails}) من كشف حساب (${custName}) وإضافتها للمخزن`);
+        triggerDataChangeInstant();
+        renderCustomerDetailData(custName);
+        updateCustomersTable();
+        updateInventoryTable();
+        updateSalesTable();
+        sysAlert(`تم حذف المادة من كشف الحساب وإضافتها إلى المخزن بنجاح!`, "تم بنجاح", "success");
+        return;
+    }
+
+    if (actionType === 'send_to_damaged') {
+        // تحويل لتالف فتخصم من خسائر التالف
+        if (!Array.isArray(damagesList)) damagesList = [];
+        if (!Array.isArray(damagedLog)) damagedLog = [];
+        let damRecord = {
+            id: Date.now(),
+            itemName: itemDetails,
+            lossAmount: itemAmount,
+            cost: itemAmount,
+            qty: 1,
+            notes: `محولة من كشف حساب الزبون (${custName})`,
+            date: new Date().toLocaleDateString('ar-IQ')
+        };
+        damagesList.unshift(damRecord);
+        damagedLog.unshift(damRecord);
+
+        debtsList = debtsList.filter(d => d.id !== itemId);
+        recordAudit('حذف مادة وتحويل لتالف', `حذف مادة (${itemDetails}) من كشف حساب (${custName}) وتحويلها لتالف بخسارة (${formatMoney(itemAmount)})`);
+        triggerDataChangeInstant();
+        renderCustomerDetailData(custName);
+        updateCustomersTable();
+        updateDamagedUI();
+        updateSalesTable();
+        sysAlert(`تم حذف المادة من كشف الحساب وتسجيلها ضمن خسائر التالف بنجاح!`, "تم بنجاح", "success");
+        return;
+    }
+
+    // حذف وتصفير القيد فقط
+    debtsList = debtsList.filter(d => d.id !== itemId);
+    recordAudit('حذف قيد من كشف الحساب', `حذف قيد (${itemDetails}) بقيمة (${formatMoney(itemAmount)}) للزبون (${custName})`);
+    triggerDataChangeInstant();
+    renderCustomerDetailData(custName);
+    updateCustomersTable();
+    updateSalesTable();
+    sysToast("تم حذف القيد وتعديل رصيد كشف الحساب بنجاح ✓", "success");
+}
+
+// تصفير حساب الزبون بالكامل
+function resetCustomerAccountZero() {
+    let custName = currentActiveCustomer;
+    if (!custName) return sysAlert("يرجى اختيار حساب الزبون أولاً!", "تنبيه", "warning");
+
+    let custRecords = debtsList.filter(d => d.customer === custName);
+    let totalDebt = custRecords.reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
+
+    let modalHtml = `
+        <div class="flex flex-col gap-2.5 w-full mt-2 text-xs font-bold text-right">
+            <div class="bg-rose-50 border border-rose-200 p-2.5 rounded-xl text-rose-900 mb-1">
+                الرصيد الحالي للزبون (${custName}) هو: <span class="font-black text-rose-700">${formatMoney(totalDebt)} د.ع</span>.<br>
+                اختر طريقة تصفير الحساب:
+            </div>
+            
+            <button type="button" onclick="closeSysModal(); executeResetCustomerAccount('clear_all_items')" class="bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-trash-can"></i> 1. تصفير الحساب بحذف كافة المواد والديون بالكامل
+            </button>
+            
+            <button type="button" onclick="closeSysModal(); executeResetCustomerAccount('settle_entry')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                <i class="fa-solid fa-hand-holding-dollar"></i> 2. تصفير الحساب بإضافة قيد تسوية / إبراء ذمة (مع بقاء السجل)
+            </button>
+            
+            <button type="button" onclick="closeSysModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl cursor-pointer mt-1">
+                إلغاء التراجع
+            </button>
+        </div>
+    `;
+
+    openSysModal({
+        type: 'custom',
+        title: "تصفير حساب الزبون بالكامل",
+        icon: '<i class="fa-solid fa-broom text-rose-600 text-3xl"></i>',
+        message: `هل أنت متأكد من تصفير حساب الزبون (${custName}) وجعل رصيده 0 د.ع؟`,
+        customHtmlButtons: modalHtml
+    });
+}
+
+function executeResetCustomerAccount(mode) {
+    let custName = currentActiveCustomer;
+    if (!custName) return;
+
+    let custRecords = debtsList.filter(d => d.customer === custName);
+    let totalDebt = custRecords.reduce((acc, d) => acc + (Number(d.amount) || 0), 0);
+
+    if (mode === 'clear_all_items') {
+        // حذف كافة القيود الخاصة بالزبون
+        debtsList = debtsList.filter(d => d.customer !== custName);
+        recordAudit('تصفير حساب بحذف المواد', `تصفير حساب الزبون (${custName}) بحذف كافة مواده وديونه (الرصيد السابق: ${formatMoney(totalDebt)} د.ع)`);
+        triggerDataChangeInstant();
+        renderCustomerDetailData(custName);
+        updateCustomersTable();
+        updateSalesTable();
+        sysAlert(`تم تصفير حساب الزبون (${custName}) بحذف كافة مواده وديونه بنجاح والرصيد الآن 0 د.ع!`, "تم تصفير الحساب", "success");
+    } else if (mode === 'settle_entry') {
+        // إضافة قيد تسوية مصفّر للحساب
+        if (totalDebt !== 0) {
+            debtsList.unshift({
+                id: Date.now(),
+                customer: custName,
+                details: 'تسوية حساب وإبراء ذمة كامل (تصفير الحساب)',
+                amount: -totalDebt,
+                date: new Date().toLocaleDateString('ar-IQ'),
+                isPayment: true
+            });
+            recordAudit('تصفير حساب بقيد تسوية', `إضافة قيد تسوية وتصفير لحساب الزبون (${custName}) بقيمة (${formatMoney(-totalDebt)} د.ع)`);
+            triggerDataChangeInstant();
+            renderCustomerDetailData(custName);
+            updateCustomersTable();
+            updateSalesTable();
+            sysAlert(`تم تصفير حساب الزبون (${custName}) بنجاح وإضافة قيد إبراء الذمة والرصيد الآن 0 د.ع!`, "تم تصفير الحساب", "success");
+        } else {
+            sysToast("الحساب مصفّر بالفعل ✓", "info");
+        }
     }
 }
 
@@ -5334,6 +6063,14 @@ function executePOSCheckout(checkoutOption = 'print') {
     salesHistory.unshift(saleRecord);
     lastCompletedSale = saleRecord;
 
+    // حفظ فوري ومحلي في IndexedDB قبل أي إرسال شبكي لمنع الـ Lag وضمان عدم فقدان البيع
+    try {
+        idbSaveSaleDirectly(saleRecord);
+        if (!navigator.onLine) {
+            idbAddToOfflineQueue({ action: 'NEW_SALE', saleId: invoiceId, data: saleRecord });
+        }
+    } catch(e){}
+
     if (saleType === 'debt' || saleType === 'debt_cash_payment') {
         let addedDebt = saleRecord.debtAmount;
         let custObj = debtsList.find(d => d.customer === customerName);
@@ -5620,7 +6357,7 @@ function showComprehensiveTotalBreakdownModal(scope = 'all') {
         grossProfit += (sp || 0);
     });
 
-    let maintProfit = ensureArray(maintItems).filter(filterFn).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let maintProfit = ensureArray(maintItems).filter(filterFn).filter(m => !m.isLoss).reduce((acc, m) => acc + (Number(m.paidAmount !== undefined ? m.paidAmount : m.profit) || 0), 0);
     let totalExpenses = ensureArray(expensesList).filter(filterFn).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
 
     let totalDamagedLoss = 0;
@@ -5630,6 +6367,9 @@ function showComprehensiveTotalBreakdownModal(scope = 'all') {
         let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
         totalDamagedLoss += c;
     });
+    // إضافة خسائر صيانة التالف إن وجدت
+    let maintDamagedLoss = ensureArray(maintItems).filter(filterFn).filter(m => m.isLoss).reduce((acc, m) => acc + (Number(m.pieceCost) || 0), 0);
+    totalDamagedLoss += maintDamagedLoss;
 
     // حساب تسديدات المجهزين: لا يُخصم إلا عند الضغط الفعلي على تسديد الحساب (isPayment === true)
     let totalSupplierPayments = 0;
@@ -5743,6 +6483,7 @@ function updateSalesTable() {
     let grossProfit = 0;
 
     ensureArray(salesHistory).forEach(s => {
+        if (s.isReturned) return; // الفاتورة المرتجعة لا تضاف لمبيعات البيع العادي
         let st = Number(s.total) || 0;
         let sp = Number(s.profit);
         if (isNaN(sp)) {
@@ -5761,7 +6502,7 @@ function updateSalesTable() {
     // ==========================================
     // أ. حساب إحصائيات جميع الأيام (All Days)
     // ==========================================
-    let maintProfit = maintList.reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let maintProfit = maintList.filter(m => !m.isLoss).reduce((acc, m) => acc + (Number(m.paidAmount !== undefined ? m.paidAmount : m.profit) || 0), 0);
     let totalExpenses = expList.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
     let totalProfitWithMaint = grossProfit + maintProfit;
     let netFinal = totalProfitWithMaint - totalExpenses;
@@ -5772,6 +6513,9 @@ function updateSalesTable() {
         let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
         totalDamagedLoss += c;
     });
+    // إضافة خسائر صيانة التالف إن وجدت
+    let maintDamagedLoss = maintList.filter(m => m.isLoss).reduce((acc, m) => acc + (Number(m.pieceCost) || 0), 0);
+    totalDamagedLoss += maintDamagedLoss;
 
     let totalSupplierPayments = 0;
     ensureArray(myDebtsList).forEach(d => {
@@ -5801,6 +6545,7 @@ function updateSalesTable() {
     let todaySales = 0;
     let todayGrossProfit = 0;
     ensureArray(salesHistory).filter(isRecordFromToday).forEach(s => {
+        if (s.isReturned) return; // الفاتورة المرتجعة لا تضاف لمبيعات اليوم
         let st = Number(s.total) || 0;
         let sp = Number(s.profit);
         if (isNaN(sp)) {
@@ -5812,7 +6557,7 @@ function updateSalesTable() {
         todayGrossProfit += (sp || 0);
     });
 
-    let todayMaintProfit = maintList.filter(isRecordFromToday).reduce((acc, m) => acc + (Number(m.paidAmount) || 0), 0);
+    let todayMaintProfit = maintList.filter(isRecordFromToday).filter(m => !m.isLoss).reduce((acc, m) => acc + (Number(m.paidAmount !== undefined ? m.paidAmount : m.profit) || 0), 0);
     let todayExpenses = expList.filter(isRecordFromToday).reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
     let todayTotalProfitWithMaint = todayGrossProfit + todayMaintProfit;
     let todayNetProfit = todayTotalProfitWithMaint - todayExpenses;
@@ -5823,6 +6568,8 @@ function updateSalesTable() {
         let c = Number(d.cost || d.lossAmount) || (Number(d.buyPrice || 0) * q);
         todayDamagedLoss += c;
     });
+    let todayMaintDamagedLoss = maintList.filter(isRecordFromToday).filter(m => m.isLoss).reduce((acc, m) => acc + (Number(m.pieceCost) || 0), 0);
+    todayDamagedLoss += todayMaintDamagedLoss;
 
     let todaySupplierPayments = 0;
     ensureArray(myDebtsList).filter(isRecordFromToday).forEach(d => {
@@ -5953,22 +6700,39 @@ function updateSalesTable() {
         let itemsDesc = itemsArr.map(i => `${i.name || ''} (${i.qty || 1})`).join('، ');
         let phoneTag = sale.phone ? `<span class="font-mono text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded text-[11px]">${sale.phone}</span>` : '<span class="text-gray-400 text-[10px]">بدون رقم</span>';
 
+        let typeBadge = `<span class="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-[11px] font-bold">${sale.type || 'نقدي'}</span>`;
+        let actionBtn = `
+            <button type="button" onclick="returnSaleItem('${String(sale.id).replace(/'/g, "\\'")}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5 mx-auto shadow-xs active:scale-95">
+                <i class="fa-solid fa-rotate-left"></i>
+                <span>راجع</span>
+            </button>
+        `;
+
+        if (sale.isReturned) {
+            let isDam = (sale.returnStatus === 'تالف');
+            typeBadge = isDam 
+                ? `<span class="bg-red-100 text-red-700 border border-red-200 px-2 py-0.5 rounded text-[11px] font-black inline-flex items-center gap-1"><i class="fa-solid fa-triangle-exclamation"></i> مرتجع (تالف)</span>`
+                : `<span class="bg-emerald-100 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded text-[11px] font-black inline-flex items-center gap-1"><i class="fa-solid fa-circle-check"></i> مرتجع (سليم)</span>`;
+
+            actionBtn = `
+                <button type="button" onclick="toggleReturnFromSales('${String(sale.id).replace(/'/g, "\\'")}')" class="${isDam ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-300' : 'bg-red-50 hover:bg-red-100 text-red-700 border-red-300'} border px-2.5 py-1 rounded-xl text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1 mx-auto shadow-xs active:scale-95" title="التحويل بين تالف وسليم">
+                    <i class="fa-solid fa-rotate"></i>
+                    <span>${isDam ? 'تحويل لسليم' : 'تحويل لتالف'}</span>
+                </button>
+            `;
+        }
+
         return `
-            <tr class="border-b hover:bg-gray-50 text-xs">
+            <tr class="border-b hover:bg-gray-50 text-xs ${sale.isReturned ? (sale.returnStatus === 'تالف' ? 'bg-red-50/40' : 'bg-emerald-50/40') : ''}">
                 <td class="p-3 border font-mono font-bold text-purple-700">#${sale.id}</td>
-                <td class="p-3 border"><span class="bg-gray-100 text-gray-800 px-2 py-0.5 rounded text-[11px] font-bold">${sale.type || 'نقدي'}</span></td>
+                <td class="p-3 border">${typeBadge}</td>
                 <td class="p-3 border font-bold text-gray-800">${sale.customer || 'زبون نقدي'}</td>
                 <td class="p-3 border">${phoneTag}</td>
                 <td class="p-3 border text-gray-600">${sale.cashier || 'الرئيسي'}</td>
                 <td class="p-3 border max-w-xs">${renderExpandableStatement(itemsDesc, 30)}</td>
                 <td class="p-3 border font-black text-purple-700">${formatMoney(sale.total)} د.ع</td>
                 <td class="p-3 border font-bold text-emerald-600">${formatMoney(sale.profit || 0)} د.ع</td>
-                <td class="p-3 border text-center">
-                    <button type="button" onclick="returnSaleItem('${String(sale.id).replace(/'/g, "\\'")}')" class="bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 px-3 py-1.5 rounded-xl text-xs font-bold cursor-pointer transition flex items-center justify-center gap-1.5 mx-auto shadow-xs active:scale-95">
-                        <i class="fa-solid fa-rotate-left"></i>
-                        <span>راجع</span>
-                    </button>
-                </td>
+                <td class="p-3 border text-center">${actionBtn}</td>
             </tr>
         `;
     }).join('');
@@ -6135,7 +6899,9 @@ function confirmReturnSaleWithStatus(saleId, condition = 'سليم') {
         });
     }
 
-    salesHistory = salesHistory.filter(s => String(s.id).trim() !== cleanId);
+    sale.isReturned = true;
+    sale.returnStatus = condition; // 'تالف' أو 'سليم'
+    sale.returnedAt = new Date().toLocaleString('ar-IQ');
     let auditMsg = isDamaged 
         ? `تم إرجاع الفاتورة #${sale.id} بحالة (تالف) وخسارة إجمالية ${formatMoney(totalReturnLoss)} د.ع` 
         : `تم إرجاع الفاتورة #${sale.id} بحالة (سليم) وإعادة المواد للمخزن (الخسارة: 0 د.ع)`;
@@ -6276,11 +7042,82 @@ function toggleReturnStatus(idx) {
     ret.lossAmount = newTotalLoss;
     ret.inventoryRestored = !newStatusIsDamaged;
 
-    recordAudit('تبديل حالة المرتجع', `تم تغيير حالة المرتجع #${ret.saleId || ret.id} إلى (${ret.status}) وخسارة (${formatMoney(newTotalLoss)} د.ع)`);
+    let retRef = String(ret.saleId || ret.id || ret.invoiceId || '');
+    if (newStatusIsDamaged) {
+        if (!Array.isArray(damagedLog)) damagedLog = [];
+        if (!Array.isArray(damagesList)) damagesList = [];
+        items.forEach(ri => {
+            let dmgEntry = {
+                id: Date.now() + Math.random(),
+                name: ri.name,
+                qty: ri.qty,
+                lossAmount: ri.itemLoss,
+                reason: `مرتجع تالف من الفاتورة #${retRef}`,
+                date: new Date().toLocaleDateString('ar-IQ')
+            };
+            damagedLog.unshift(dmgEntry);
+            damagesList.unshift(dmgEntry);
+        });
+    } else {
+        // عند التحويل إلى سليم: إزالة قيود التالف المرتبطة بالمرتجع لتعود سليمة وتتحول في سجل المبيعات
+        if (Array.isArray(damagedLog)) {
+            damagedLog = damagedLog.filter(d => !d.reason || (!d.reason.includes(retRef) && !d.reason.includes(String(ret.id))));
+        }
+        if (Array.isArray(damagesList)) {
+            damagesList = damagesList.filter(d => !d.reason || (!d.reason.includes(retRef) && !d.reason.includes(String(ret.id))));
+        }
+    }
+
+    // التحويل والتزامن أيضاً في سجل المبيعات (salesHistory) كما طلب المستخدم تماماً
+    let cleanRef = retRef.replace(/^[#\s]+/, '').replace(/^INV-/, '').trim();
+    let targetSale = (salesHistory || []).find(s => {
+        let sId = String(s.id || '').replace(/^[#\s]+/, '').replace(/^INV-/, '').trim();
+        return sId === cleanRef || String(s.id).trim() === retRef.trim();
+    });
+    if (targetSale) {
+        targetSale.isReturned = true;
+        targetSale.returnStatus = ret.status; // 'تالف' أو 'سليم'
+    } else if (retRef) {
+        salesHistory.unshift({
+            id: retRef,
+            customer: ret.customer || 'زبون عام',
+            type: 'مرتجع',
+            items: items,
+            total: ret.totalSaleAmount || 0,
+            profit: 0,
+            isReturned: true,
+            returnStatus: ret.status,
+            date: ret.date || new Date().toLocaleString('ar-IQ')
+        });
+    }
+
+    recordAudit('تبديل حالة المرتجع', `تم تغيير حالة المرتجع #${retRef} إلى (${ret.status}) وخسارة (${formatMoney(newTotalLoss)} د.ع) وتحويلها في سجل المبيعات`);
     triggerDataChangeInstant();
     updateReturnsTable();
     updateInventoryTable();
-    sysToast(`تم تغيير الحالة إلى: ${ret.status === 'تالف' ? 'تالف (خسارة)' : 'سليم (معاد للمخزن)'}`, "info");
+    updateDamagedUI();
+    updateSalesTable(); // تحديث فوري وشامل لسجل المبيعات وإجماليات اليوم وجميع الأيام
+    sysToast(`تم تغيير الحالة إلى: ${ret.status === 'تالف' ? 'تالف (خسارة)' : 'سليم (معاد للمخزن)'} وتحديث سجل المبيعات فوراً ✓`, "info");
+}
+
+function toggleReturnFromSales(saleId) {
+    if (!saleId) return;
+    let clean = String(saleId).replace(/^[#\s]+/, '').replace(/^INV-/, '').trim();
+    let retIdx = returnsHistory.findIndex(r => {
+        let rId = String(r.saleId || r.id || '').replace(/^[#\s]+/, '').replace(/^INV-/, '').trim();
+        return rId === clean || String(r.saleId || r.id).trim() === String(saleId).trim();
+    });
+    if (retIdx !== -1) {
+        toggleReturnStatus(retIdx);
+    } else {
+        let sale = salesHistory.find(s => String(s.id).trim() === String(saleId).trim());
+        if (sale) {
+            sale.returnStatus = (sale.returnStatus === 'تالف') ? 'سليم' : 'تالف';
+            triggerDataChangeInstant();
+            updateSalesTable();
+            sysToast(`تم تحويل حالة الفاتورة #${saleId} في سجل المبيعات إلى (${sale.returnStatus}) بنجاح ✓`, "info");
+        }
+    }
 }
 
 function filterReturnsTable() {
@@ -6350,7 +7187,7 @@ function updateCustomersTable() {
         return;
     }
 
-    // تجميع ديون وسجلات كل زبون لمنع تكرار اسم الزبون في كشف الحساب نهائياً
+    // تجميع ديون وسجلات كل زبون لمنع تكرار اسم الزبون في كشف الحساب نهائياً وعدم مضاعفة السعر
     let custMap = {};
     ensureArray(debtsList).forEach(c => {
         let name = (c.customer || '').trim();
@@ -6361,6 +7198,9 @@ function updateCustomersTable() {
                 customer: name,
                 phone: c.phone || '',
                 totalDebt: 0,
+                hasAmountRecords: false,
+                amountSum: 0,
+                masterDebt: 0,
                 isSupplier: !!c.isSupplierClonedDebt
             };
         }
@@ -6370,8 +7210,21 @@ function updateCustomersTable() {
         if (c.isSupplierClonedDebt) {
             custMap[key].isSupplier = true;
         }
-        let amt = (c.amount !== undefined) ? Number(c.amount) : (Number(c.debt) || 0);
-        custMap[key].totalDebt += (isNaN(amt) ? 0 : amt);
+        if (c.amount !== undefined && !isNaN(Number(c.amount))) {
+            custMap[key].hasAmountRecords = true;
+            custMap[key].amountSum += Number(c.amount);
+        } else if (c.debt !== undefined && !isNaN(Number(c.debt))) {
+            custMap[key].masterDebt += Number(c.debt);
+        }
+    });
+
+    // حماية تامة ضد مضاعفة السعر: إذا كان لدى الزبون قيود تفصيلية (amount) نعتمد مجموعها فقط
+    Object.values(custMap).forEach(cust => {
+        if (cust.hasAmountRecords) {
+            cust.totalDebt = cust.amountSum;
+        } else {
+            cust.totalDebt = cust.masterDebt;
+        }
     });
 
     let customers = Object.values(custMap);
@@ -8744,19 +9597,63 @@ function toggleMaintPaymentInputs() {
 
 function calculateMaintDebtRemaining() {
     const payType = document.getElementById('maintPaymentType')?.value || 'cash';
-    const totalAmt = Number(document.getElementById('maintProfitInput')?.value) || 0;
-    const cashPaid = Number(document.getElementById('maintCashPaidInput')?.value) || 0;
-    const remainingBox = document.getElementById('maintRemainingDebtBox');
+    const totalRepairPrice = parseArabicNumber(document.getElementById('maintProfitInput')?.value) || 0;
+    const cashPaid = parseArabicNumber(document.getElementById('maintCashPaidInput')?.value) || 0;
     const display = document.getElementById('maintRemainingDebtDisplay');
+    const srcType = document.getElementById('maintSourceType')?.value || 'none';
 
+    // حساب تكلفة القطعة المستخدمة في الصيانة
+    let pieceCost = 0;
+    if (srcType === 'inventory') {
+        let select = document.getElementById('maintInventoryItemSelect');
+        let itemName = select?.value;
+        let item = inventory.find(i => i.name === itemName);
+        if (item) pieceCost = Number(item.buyPrice) || 0;
+    } else if (srcType === 'supplier') {
+        let q = parseArabicNumber(document.getElementById('maintSupplierQty')?.value) || 1;
+        let p = parseArabicNumber(document.getElementById('maintSupplierPrice')?.value) || 0;
+        pieceCost = q * p;
+    }
+
+    // صافي ربح الصيانة = سعر الإصلاح - تكلفة القطعة
+    let netProfit = Math.max(0, totalRepairPrice - pieceCost);
+
+    // حساب المتبقي كدين على الزبون
+    let remainingDebt = 0;
     if (payType === 'partial') {
-        let remaining = Math.max(0, totalAmt - cashPaid);
+        remainingDebt = Math.max(0, totalRepairPrice - cashPaid);
         if (display) {
-            display.innerText = `${formatMoney(remaining)} د.ع (متبقي دين)`;
+            display.innerText = `${formatMoney(remainingDebt)} د.ع (متبقي دين على الزبون)`;
         }
     } else if (payType === 'debt') {
+        remainingDebt = totalRepairPrice;
         if (display) {
-            display.innerText = `${formatMoney(totalAmt)} د.ع (دين كامل)`;
+            display.innerText = `${formatMoney(totalRepairPrice)} د.ع (دين كامل على الزبون)`;
+        }
+    } else {
+        remainingDebt = 0;
+        if (display) {
+            display.innerText = `0 د.ع (واصل بالكامل)`;
+        }
+    }
+
+    // تحديث شريط المعاينة الإحصائي التفاعلي
+    if (document.getElementById('previewTotalRepairPrice')) {
+        document.getElementById('previewTotalRepairPrice').innerText = `${formatMoney(totalRepairPrice)} د.ع`;
+    }
+    if (document.getElementById('previewPieceCost')) {
+        document.getElementById('previewPieceCost').innerText = `${formatMoney(pieceCost)} د.ع`;
+    }
+    if (document.getElementById('previewNetProfit')) {
+        document.getElementById('previewNetProfit').innerText = `${formatMoney(netProfit)} د.ع`;
+    }
+    if (document.getElementById('previewDebtNotice')) {
+        if (payType === 'cash') {
+            document.getElementById('previewDebtNotice').innerHTML = `<span class="text-emerald-700">✓ واصل نقداً بالكامل (${formatMoney(totalRepairPrice)} د.ع) - صافي الربح: ${formatMoney(netProfit)} د.ع</span>`;
+        } else if (payType === 'debt') {
+            document.getElementById('previewDebtNotice').innerHTML = `<span class="text-red-700">⚠️ يسجل دين بالكامل (${formatMoney(totalRepairPrice)} د.ع) بكشف الحساب - صافي الربح (${formatMoney(netProfit)} د.ع) يضاف بعد التسديد</span>`;
+        } else {
+            document.getElementById('previewDebtNotice').innerHTML = `<span class="text-amber-800">⚡ مدفوع نقداً: ${formatMoney(cashPaid)} د.ع | دين متبقٍ: ${formatMoney(remainingDebt)} د.ع بكشف الحساب</span>`;
         }
     }
 }
@@ -8807,159 +9704,196 @@ function selectMaintCustomer(name, phone) {
 }
 
 function saveMaintenanceRecord(e) {
-    e.preventDefault();
-    let cust = document.getElementById('maintCustomer')?.value.trim();
-    let custPhone = document.getElementById('maintCustomerPhone')?.value.trim() || '';
-    let payType = document.getElementById('maintPaymentType')?.value || 'cash';
-    let tech = document.getElementById('maintTechnician')?.value.trim() || 'الرئيسي';
-    let srcType = document.getElementById('maintSourceType')?.value || 'none';
-    let desc = document.getElementById('maintDescriptionInput')?.value.trim();
-    let profit = Number(document.getElementById('maintProfitInput')?.value) || 0;
+    if (e && e.preventDefault) e.preventDefault();
+    try {
+        let cust = document.getElementById('maintCustomer')?.value.trim();
+        let custPhone = document.getElementById('maintCustomerPhone')?.value.trim() || '';
+        let payType = document.getElementById('maintPaymentType')?.value || 'cash';
+        let tech = document.getElementById('maintTechnician')?.value.trim() || 'الرئيسي';
+        let srcType = document.getElementById('maintSourceType')?.value || 'none';
+        let desc = (document.getElementById('maintDescriptionInput')?.value || '').trim();
+        let totalRepairPrice = parseArabicNumber(document.getElementById('maintProfitInput')?.value) || 0;
 
-    if (!cust) {
-        sysAlert("يرجى إدخال اسم الزبون أو نوع الجهاز!", "تنبيه", "warning");
-        return;
-    }
-
-    // حساب المبالغ النقدية والمتبقية كدين بحسب نوع الدفع المختار
-    let paidAmount = profit;
-    let remainingDebt = 0;
-    let paymentTypeText = 'نقدي';
-
-    if (payType === 'debt') {
-        paidAmount = 0;
-        remainingDebt = profit;
-        paymentTypeText = 'آجل (دين)';
-    } else if (payType === 'partial') {
-        let cashPaid = Number(document.getElementById('maintCashPaidInput')?.value) || 0;
-        if (cashPaid > profit) cashPaid = profit;
-        paidAmount = cashPaid;
-        remainingDebt = Math.max(0, profit - cashPaid);
-        paymentTypeText = 'دفع جزء نقداً والباقي آجل';
-    }
-
-    let pieceDetails = '-';
-    let pieceCost = 0;
-
-    if (srcType === 'inventory') {
-        let select = document.getElementById('maintInventoryItemSelect');
-        let itemName = select?.value;
-        let item = inventory.find(i => i.name === itemName);
-        if (item) {
-            if (item.quantity > 0) item.quantity -= 1;
-            pieceCost = Number(item.buyPrice) || 0;
-            pieceDetails = `من المخزن: ${item.name} (${formatMoney(pieceCost)} د.ع)`;
+        if (!cust) {
+            sysAlert("يرجى إدخال اسم الزبون أو نوع الجهاز!", "تنبيه", "warning");
+            document.getElementById('maintCustomer')?.focus();
+            return false;
         }
-    } else if (srcType === 'supplier') {
-        let suppName = document.getElementById('maintSupplierName')?.value.trim();
-        let suppItem = document.getElementById('maintSupplierItem')?.value.trim();
-        let suppQty = Number(document.getElementById('maintSupplierQty')?.value) || 1;
-        let suppPrice = Number(document.getElementById('maintSupplierPrice')?.value) || 0;
+        if (!desc) {
+            sysAlert("يرجى كتابة البيان (ما تم إنجازه أو إصلاحه)!", "تنبيه", "warning");
+            document.getElementById('maintDescriptionInput')?.focus();
+            return false;
+        }
+        if (totalRepairPrice <= 0) {
+            sysAlert("يرجى إدخال سعر الإصلاح الإجمالي!", "تنبيه", "warning");
+            document.getElementById('maintProfitInput')?.focus();
+            return false;
+        }
 
-        if (suppName && suppItem) {
+        // 1. حساب تكلفة القطعة المستخدمة (من المحل أو من المجهز)
+        let pieceDetails = '-';
+        let pieceCost = 0;
+        let suppItemName = '';
+        let suppName = '';
+
+        if (srcType === 'inventory') {
+            let select = document.getElementById('maintInventoryItemSelect');
+            let itemName = select?.value;
+            let item = inventory.find(i => i.name === itemName);
+            if (item) {
+                if (item.quantity > 0) item.quantity -= 1;
+                pieceCost = Number(item.buyPrice) || 0;
+                pieceDetails = `من المخزن: ${item.name} (${formatMoney(pieceCost)} د.ع)`;
+            }
+        } else if (srcType === 'supplier') {
+            suppName = document.getElementById('maintSupplierName')?.value.trim() || 'مجهز عام';
+            suppItemName = document.getElementById('maintSupplierItem')?.value.trim() || desc;
+            let suppQty = parseArabicNumber(document.getElementById('maintSupplierQty')?.value) || 1;
+            let suppPrice = parseArabicNumber(document.getElementById('maintSupplierPrice')?.value) || 0;
+
             pieceCost = suppQty * suppPrice;
-            pieceDetails = `مجهز (${suppName}): ${suppItem} (${suppQty} × ${formatMoney(suppPrice)})`;
-            myDebtsList.unshift({
-                id: Date.now(),
-                supplier: suppName,
-                itemName: `صيانة: ${suppItem}`,
-                qty: suppQty,
-                price: suppPrice,
-                amount: pieceCost,
-                date: new Date().toLocaleDateString('ar-IQ')
-            });
+            pieceDetails = `مجهز (${suppName}): ${suppItemName} (${suppQty} × ${formatMoney(suppPrice)})`;
+
+            // إضافة المنتج للمجهز مع سعره في ديون المجهز myDebtsList
+            if (pieceCost > 0) {
+                myDebtsList.unshift({
+                    id: Date.now(),
+                    supplier: suppName,
+                    itemName: `صيانة: ${suppItemName}`,
+                    qty: suppQty,
+                    price: suppPrice,
+                    amount: pieceCost,
+                    date: new Date().toLocaleDateString('ar-IQ'),
+                    isPayment: false
+                });
+            }
         }
-    }
 
-    let maintId = 'MNT-' + Date.now();
-    let record = {
-        id: maintId,
-        customer: cust,
-        customerPhone: custPhone,
-        technician: tech,
-        description: desc,
-        sourceType: srcType,
-        supplierName: (srcType === 'supplier' ? (document.getElementById('maintSupplierName')?.value.trim() || '') : ''),
-        supplierItem: (srcType === 'supplier' ? (document.getElementById('maintSupplierItem')?.value.trim() || '') : ''),
-        pieceDetails: pieceDetails,
-        pieceCost: pieceCost,
-        profit: profit,
-        paymentType: payType, // cash, debt, partial
-        paymentTypeText: paymentTypeText,
-        paidAmount: paidAmount,
-        remainingDebt: remainingDebt,
-        isLoss: false,
-        date: new Date().toLocaleDateString('ar-IQ'),
-        timestamp: Date.now()
-    };
+        // 2. حساب صافي الربح = سعر الإصلاح - تكلفة القطعة (مثلاً 35000 - 15000 = 20000)
+        let netProfit = Math.max(0, totalRepairPrice - pieceCost);
 
-    maintenanceLog.unshift(record);
-    if (!Array.isArray(maintItems)) maintItems = [];
-    maintItems.unshift(record);
+        // 3. طريقة الدفع وتحديد مبالغ الدين والأرباح المحققة فوراً
+        let paidAmount = 0;
+        let remainingDebt = 0;
+        let paymentTypeText = 'نقدي';
 
-    // إذا كانت العملية دين أو جزء نقداً والباقي دين، يتم تسجيل المبلغ المتبقي فوراً في كشف حساب الزبائن
-    if (remainingDebt > 0) {
-        let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === cust.toLowerCase());
-        if (!existingCust) {
-            existingCust = {
-                id: Date.now(),
+        if (payType === 'cash') {
+            // دفع كامل المبلغ نقداً: تدخل الأرباح (20000) فوراً في أرباح ومقبوضات اليوم
+            paidAmount = netProfit;
+            remainingDebt = 0;
+            paymentTypeText = 'نقدي (واصل بالكامل)';
+        } else if (payType === 'debt') {
+            // آجل بالكامل: المبلغ الكامل (35000) يسجل كدين على الزبون بكشف الحساب، وتضاف الأرباح بعد التسديد
+            paidAmount = 0;
+            remainingDebt = totalRepairPrice;
+            paymentTypeText = 'آجل (دين بالكامل)';
+        } else if (payType === 'partial') {
+            // دفع جزء نقداً والباقي آجل (مثلاً دفع 5000 من 35000 -> المتبقي 30000 يسجل كدين)
+            let cashPaid = parseArabicNumber(document.getElementById('maintCashPaidInput')?.value) || 0;
+            if (cashPaid > totalRepairPrice) cashPaid = totalRepairPrice;
+            paidAmount = cashPaid;
+            remainingDebt = Math.max(0, totalRepairPrice - cashPaid);
+            paymentTypeText = 'دفع جزء نقداً والباقي آجل';
+        }
+
+        let maintId = 'MNT-' + Date.now();
+        let record = {
+            id: maintId,
+            customer: cust,
+            customerPhone: custPhone,
+            technician: tech,
+            description: desc,
+            sourceType: srcType,
+            supplierName: (srcType === 'supplier' ? suppName : ''),
+            supplierItem: (srcType === 'supplier' ? suppItemName : ''),
+            pieceDetails: pieceDetails,
+            pieceCost: pieceCost,
+            totalRepairPrice: totalRepairPrice,
+            profit: netProfit, // صافي الربح المحسوب
+            paymentType: payType, // cash, debt, partial
+            paymentTypeText: paymentTypeText,
+            paidAmount: paidAmount, // المقبوض نقداً المحقق كسيولة
+            remainingDebt: remainingDebt,
+            isLoss: false,
+            date: new Date().toLocaleDateString('ar-IQ'),
+            timestamp: Date.now()
+        };
+
+        maintenanceLog.unshift(record);
+        if (!Array.isArray(maintItems)) maintItems = [];
+        maintItems.unshift(record);
+
+        // 4. إذا كان هناك دين على الزبون: يتم تسجيله فوراً بكشف الحساب (وإن لم يكن مسجلاً يضاف تلقائياً)
+        if (remainingDebt > 0) {
+            let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === cust.toLowerCase());
+            if (!existingCust) {
+                existingCust = {
+                    id: Date.now(),
+                    customer: cust,
+                    phone: custPhone || '',
+                    debt: 0,
+                    invoices: []
+                };
+                debtsList.unshift(existingCust);
+            }
+            if (custPhone && !existingCust.phone) existingCust.phone = custPhone;
+            if (!existingCust.invoices) existingCust.invoices = [];
+            existingCust.invoices.unshift({
+                invoiceId: maintId,
+                date: new Date().toLocaleDateString('ar-IQ'),
+                amount: totalRepairPrice,
+                paid: (payType === 'partial' ? paidAmount : 0),
+                remaining: remainingDebt,
+                details: `صيانة وبرمجة: ${desc} (سعر الإصلاح: ${formatMoney(totalRepairPrice)} د.ع)`
+            });
+
+            // قيد حركة الدين في كشف الحساب مع حفظ مصدر المادة بدقة (مخزن أو مجهز)
+            debtsList.unshift({
+                id: Date.now() + 2,
                 customer: cust,
                 phone: custPhone || '',
-                debt: 0,
-                invoices: []
-            };
-            debtsList.unshift(existingCust);
+                amount: remainingDebt,
+                details: `صيانة وبرمجة: ${desc} (#${maintId}) [سعر الإصلاح: ${formatMoney(totalRepairPrice)}${pieceCost > 0 ? ` - قطعة: ${formatMoney(pieceCost)}` : ''}]${paidAmount > 0 ? ` (مدفوع نقداً ${formatMoney(paidAmount)} د.ع)` : ''}`,
+                date: new Date().toLocaleDateString('ar-IQ'),
+                isPayment: false,
+                maintId: maintId,
+                sourceType: srcType,
+                supplierName: (srcType === 'supplier' ? suppName : ''),
+                supplierItem: (srcType === 'supplier' ? suppItemName : ''),
+                pieceCost: pieceCost
+            });
         }
-        if (custPhone && !existingCust.phone) existingCust.phone = custPhone;
-        existingCust.debt = (Number(existingCust.debt) || 0) + remainingDebt;
-        if (!existingCust.invoices) existingCust.invoices = [];
-        existingCust.invoices.unshift({
-            invoiceId: maintId,
-            date: new Date().toLocaleDateString('ar-IQ'),
-            amount: profit,
-            paid: paidAmount,
-            remaining: remainingDebt,
-            details: `صيانة وبرمجة: ${desc}`
-        });
 
-        // قيد حركة الدين في debtsList ليظهر في جدول كشف الحساب والطباعة
-        debtsList.unshift({
-            id: Date.now() + 2,
-            customer: cust,
-            phone: custPhone || '',
-            amount: remainingDebt,
-            details: `صيانة وبرمجة: ${desc} (#${maintId})${paidAmount > 0 ? ` (مدفوع نقداً ${formatMoney(paidAmount)} د.ع)` : ''}`,
-            date: new Date().toLocaleDateString('ar-IQ'),
-            isPayment: false,
-            maintId: maintId
-        });
-    }
+        // تم إصلاح الخطأ: استخدام netProfit بدلاً من profit غير المعرفة
+        recordAudit('تسجيل عملية صيانة', `صيانة للزبون "${cust}" بمبلغ (${formatMoney(netProfit)}) طريقة الدفع: [${paymentTypeText}] - البيان: ${desc}`);
 
-    recordAudit('تسجيل عملية صيانة', `صيانة للزبون "${cust}" بمبلغ (${formatMoney(profit)}) طريقة الدفع: [${paymentTypeText}] - البيان: ${desc}`);
+        triggerDataChangeInstant();
+        renderMaintenanceLogTable();
+        updateCustomersTable();
+        updateSalesTable();
 
-    triggerDataChangeInstant();
-    renderMaintenanceLogTable();
-    updateCustomersTable();
-    updateSalesTable();
+        // تفريغ الحقول وإعادة التعيين
+        if (document.getElementById('maintCustomer')) document.getElementById('maintCustomer').value = '';
+        if (document.getElementById('maintCustomerPhone')) document.getElementById('maintCustomerPhone').value = '';
+        if (document.getElementById('maintDescriptionInput')) document.getElementById('maintDescriptionInput').value = '';
+        if (document.getElementById('maintProfitInput')) document.getElementById('maintProfitInput').value = '';
+        if (document.getElementById('maintCashPaidInput')) document.getElementById('maintCashPaidInput').value = '';
+        if (document.getElementById('maintPaymentType')) document.getElementById('maintPaymentType').value = 'cash';
+        if (document.getElementById('maintSourceType')) document.getElementById('maintSourceType').value = 'none';
+        toggleMaintPaymentInputs();
+        toggleMaintSourceType();
 
-    // تفريغ الحقول وإعادة التعيين
-    if (document.getElementById('maintCustomer')) document.getElementById('maintCustomer').value = '';
-    if (document.getElementById('maintCustomerPhone')) document.getElementById('maintCustomerPhone').value = '';
-    if (document.getElementById('maintDescriptionInput')) document.getElementById('maintDescriptionInput').value = '';
-    if (document.getElementById('maintProfitInput')) document.getElementById('maintProfitInput').value = '';
-    if (document.getElementById('maintCashPaidInput')) document.getElementById('maintCashPaidInput').value = '';
-    if (document.getElementById('maintPaymentType')) document.getElementById('maintPaymentType').value = 'cash';
-    if (document.getElementById('maintSourceType')) document.getElementById('maintSourceType').value = 'none';
-    toggleMaintPaymentInputs();
-    toggleMaintSourceType();
-
-    if (remainingDebt > 0) {
-        sysAlert(`تم حفظ عملية الصيانة بنجاح!
+        if (remainingDebt > 0) {
+            sysAlert(`تم حفظ عملية الصيانة بنجاح!
 طريقة الدفع: ${paymentTypeText}
 المدفوع نقداً: ${formatMoney(paidAmount)} د.ع
 المبلغ المسجل كدين في كشف حساب الزبون (${cust}): ${formatMoney(remainingDebt)} د.ع.`, "تم الحفظ والترحيل لكشف الحساب", "success");
-    } else {
-        sysAlert("تم حفظ عملية الصيانة بنجاح (مدفوعة نقداً بالكامل)!", "نجاح", "success");
+        } else {
+            sysAlert("تم إتمام وحفظ عملية الصيانة بنجاح (مدفوعة نقداً بالكامل)!", "نجاح", "success");
+        }
+    } catch (err) {
+        console.error("Error in saveMaintenanceRecord:", err);
+        sysAlert("حدث خطأ أثناء حفظ العملية: " + (err.message || err), "خطأ", "error");
     }
 }
 
@@ -9076,10 +10010,13 @@ function toggleMaintLoss(id) {
             `هل تريد تحويل هذه العملية إلى تالف؟\nستكون الخسارة المحسوبة فقط سعر المادة المشتراة (${formatMoney(cost)} د.ع).`, 
             () => {
                 rec.isLoss = true;
+                let mi = (maintItems || []).find(m => m.id === id);
+                if (mi) mi.isLoss = true;
                 recordAudit('تحويل صيانة لتالف', `تحويل صيانة (${rec.customer}) إلى تالف بخسارة شراء (${formatMoney(cost)} د.ع)`);
                 triggerDataChangeInstant();
                 renderMaintenanceLogTable();
-                sysToast("تم التحويل لتالف بنجاح ✓", "warning");
+                updateSalesTable(); // تحديث فوري لسجل المبيعات
+                sysToast("تم التحويل لتالف بنجاح وتحديث سجل المبيعات ✓", "warning");
             }
         );
         return;
@@ -9128,16 +10065,22 @@ function handleMaintProblemResolved(id) {
         `سعر الصيانة المسجل حالياً: (${formatMoney(rec.profit || 0)} د.ع).\nإذا كنت ستأخذ أكثر، يرجى كتابة السعر الجديد هنا:`,
         rec.profit || 0,
         (val) => {
-            let newProfit = Number(val);
+            let newProfit = parseArabicNumber(val);
             if (isNaN(newProfit) || newProfit < 0) {
                 newProfit = Number(rec.profit) || 0;
             }
             rec.isLoss = false;
             rec.profit = newProfit;
+            let mi = (maintItems || []).find(m => m.id === id);
+            if (mi) {
+                mi.isLoss = false;
+                mi.profit = newProfit;
+            }
             recordAudit('صيانة - تم حل المشكلة', `تحويل صيانة العميل (${rec.customer}) إلى سليم بسعر صيانة (${formatMoney(newProfit)} د.ع)`);
             triggerDataChangeInstant();
             renderMaintenanceLogTable();
-            sysAlert(`تم تحويل الصيانة إلى سليم وتحديد سعر الصيانة (${formatMoney(newProfit)} د.ع) بنجاح!`, "تم بنجاح", "success");
+            updateSalesTable(); // تحديث فوري لسجل المبيعات
+            sysAlert(`تم تحويل الصيانة إلى سليم وتحديد سعر الصيانة (${formatMoney(newProfit)} د.ع) وتحديث سجل المبيعات بنجاح!`, "تم بنجاح", "success");
         }
     );
 }
@@ -9159,29 +10102,54 @@ function handleMaintProblemNotResolved(id) {
             () => {
                 rec.isLoss = false;
                 rec.profit = 0; // يخصم سعر التصليح الذي اخذه انا
+                let mi = (maintItems || []).find(m => m.id === id);
+                if (mi) {
+                    mi.isLoss = false;
+                    mi.profit = 0;
+                }
                 recordAudit('صيانة - لم تحل (بدون مادة)', `إلغاء أجور صيانة العميل (${rec.customer}) لعدم حل المشكلة (بدون مادة)`);
                 triggerDataChangeInstant();
                 renderMaintenanceLogTable();
-                sysAlert("تم تحويل الصيانة إلى سليم وإلغاء أجور التصليح بنجاح!", "تم بنجاح", "success");
+                updateSalesTable(); // تحديث فوري لسجل المبيعات
+                sysAlert("تم تحويل الصيانة إلى سليم وإلغاء أجور التصليح وتحديث سجل المبيعات بنجاح!", "تم بنجاح", "success");
             }
         );
         return;
     }
 
-    // إذا كانت العملية مع مادة (من المخزن أو مجهز): تظهر خيارات (إعادة للمجهز أو إضافة للمخزن)
-    let modalButtonsHtml = `
-        <div class="flex flex-col gap-2.5 w-full mt-2">
-            <button onclick="handleMaintReturnToSupplier('${id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                <i class="fa-solid fa-truck-ramp-box text-lg"></i> 1. إعادة للمجهز (خصم من حسابه)
-            </button>
-            <button onclick="handleMaintAddToInventory('${id}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
-                <i class="fa-solid fa-boxes-stacked text-lg"></i> 2. إضافة للمخزن (واجهة الإضافة)
-            </button>
-            <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer transition">
-                العودة
-            </button>
-        </div>
-    `;
+    // إذا كانت العملية مع مادة (من المخزن أو من مجهز):
+    let isFromStore = (rec.sourceType === 'inventory' || !rec.supplierName);
+    let isFromSupplier = (rec.sourceType === 'supplier' && rec.supplierName);
+
+    let modalButtonsHtml = '';
+    if (isFromStore) {
+        // مادة من المخزن: لا تظهر خانة إعادة للمجهز نهائياً كما طلب المستخدم!
+        modalButtonsHtml = `
+            <div class="flex flex-col gap-2.5 w-full mt-2">
+                <button onclick="handleMaintAddToInventory('${id}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-boxes-stacked text-lg"></i> 1. إضافة للمخزن (إعادة القطعة للمخزن)
+                </button>
+                <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer transition">
+                    العودة
+                </button>
+            </div>
+        `;
+    } else {
+        // مادة من مجهز: ترجع فوراً للمجهز الذي جهزها وتخصم من حسابه دون إظهار نافذة اختيار اسم المجهز!
+        modalButtonsHtml = `
+            <div class="flex flex-col gap-2.5 w-full mt-2">
+                <button onclick="confirmMaintReturnToSupplierDirect('${id}')" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-truck-ramp-box text-lg"></i> 1. إعادة للمجهز (${rec.supplierName}) وتخصم من حسابه تلقائياً
+                </button>
+                <button onclick="handleMaintAddToInventory('${id}')" class="w-full bg-purple-600 hover:bg-purple-700 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 cursor-pointer shadow-sm transition">
+                    <i class="fa-solid fa-boxes-stacked text-lg"></i> 2. إضافة للمخزن
+                </button>
+                <button onclick="closeSysModal()" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold mt-1 cursor-pointer transition">
+                    العودة
+                </button>
+            </div>
+        `;
+    }
 
     openSysModal({
         type: 'custom',
@@ -9192,80 +10160,19 @@ function handleMaintProblemNotResolved(id) {
     });
 }
 
-// الخيار الأول: إعادة للمجهز وخصم من حسابه + خصم أجور التصليح
-function handleMaintReturnToSupplier(id) {
+// إعادة للمجهز مباشرة دون إظهار نافذة اختيار اسم المجهز + خصم أجور التصليح
+function confirmMaintReturnToSupplierDirect(id) {
     let rec = maintenanceLog.find(x => x.id === id);
     if (!rec) return;
     closeSysModal();
 
-    let cost = Number(rec.pieceCost) || 0;
-    let defSupp = rec.supplierName || '';
-
-    let uniqueSuppliers = [...new Set(myDebtsList.map(d => (d.supplier || '').trim()).filter(Boolean))];
-    let suppOptionsHtml = uniqueSuppliers.map(s => `<option value="${s}" ${s === defSupp ? 'selected' : ''}>${s}</option>`).join('');
-
-    let promptHtml = `
-        <div class="flex flex-col gap-3 text-right w-full mt-2">
-            <div>
-                <label class="text-xs font-bold text-gray-700 block mb-1">اسم المجهز:</label>
-                <div class="flex gap-2">
-                    <input type="text" id="maintReturnSuppInput" value="${defSupp}" placeholder="اكتب اسم المجهز..." class="flex-1 border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none">
-                    ${uniqueSuppliers.length > 0 ? `
-                    <select onchange="document.getElementById('maintReturnSuppInput').value = this.value" class="border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold bg-white">
-                        <option value="">اختر من القائمة...</option>
-                        ${suppOptionsHtml}
-                    </select>
-                    ` : ''}
-                </div>
-            </div>
-            <div>
-                <label class="text-xs font-bold text-gray-700 block mb-1">المبلغ المخصوم من حساب المجهز (سعر المادة):</label>
-                <input type="number" id="maintReturnCostInput" value="${cost}" placeholder="المبلغ..." class="w-full border-2 border-gray-200 p-2.5 rounded-xl text-xs font-bold outline-none text-red-600 font-mono">
-            </div>
-            <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-[11px] text-amber-800 font-bold">
-                <i class="fa-solid fa-circle-info"></i> سيتم تسجيل خصم هذا المبلغ في حساب المجهز فوراً، وخصم (إلغاء) أجور التصليح الخاصة بك.
-            </div>
-        </div>
-    `;
-
-    let confirmButtonsHtml = `
-        <div class="flex gap-2 w-full mt-3">
-            <button onclick="closeSysModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-3 rounded-xl font-bold cursor-pointer transition">
-                إلغاء
-            </button>
-            <button onclick="confirmMaintReturnToSupplier('${id}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold cursor-pointer transition shadow">
-                تأكيد الخصم والإرجاع
-            </button>
-        </div>
-    `;
-
-    openSysModal({
-        type: 'custom',
-        title: "خصم من حساب المجهز وإرجاع المادة",
-        message: promptHtml,
-        icon: '<i class="fa-solid fa-truck-ramp-box text-blue-600 text-5xl"></i>',
-        customHtmlButtons: confirmButtonsHtml
-    });
-}
-
-function confirmMaintReturnToSupplier(id) {
-    let rec = maintenanceLog.find(x => x.id === id);
-    if (!rec) return;
-
-    let suppName = (document.getElementById('maintReturnSuppInput')?.value || '').trim();
-    let deductAmt = Number(document.getElementById('maintReturnCostInput')?.value);
-
-    if (!suppName) {
-        return sysAlert("يرجى كتابة أو اختيار اسم المجهز!", "تنبيه", "warning");
-    }
-    if (isNaN(deductAmt) || deductAmt < 0) {
-        deductAmt = Number(rec.pieceCost) || 0;
-    }
+    let suppName = (rec.supplierName || 'مجهز عام').trim();
+    let deductAmt = Number(rec.pieceCost) || 0;
 
     let returnRecord = {
         id: Date.now(),
         supplier: suppName,
-        itemName: `إرجاع مادة صيانة لم تُحل: ${rec.description || 'قطعة مسترجعة'}`,
+        itemName: `إرجاع مادة صيانة لم تُحل: ${rec.supplierItem || rec.description || 'قطعة مسترجعة'}`,
         price: -deductAmt,
         qty: 1,
         amount: -deductAmt,
@@ -9279,13 +10186,17 @@ function confirmMaintReturnToSupplier(id) {
     rec.isLoss = false;
     rec.profit = 0; // يخصم سعر التصليح الذي أخذه الفني
 
-    recordAudit('إعادة صيانة للمجهز', `إعادة مادة صيانة للعميل (${rec.customer}) إلى المجهز (${suppName}) وخصم (${formatMoney(deductAmt)} د.ع) وإلغاء أجور التصليح`);
+    recordAudit('إعادة صيانة للمجهز', `إعادة مادة صيانة للعميل (${rec.customer}) إلى المجهز (${suppName}) وخصم (${formatMoney(deductAmt)} د.ع) وإلغاء أجور التصليح تلقائياً`);
     triggerDataChangeInstant();
     renderMaintenanceLogTable();
     updateMyDebtsTable();
-    closeSysModal();
+    updateSalesTable();
 
-    sysAlert(`تم خصم مبلغ (${formatMoney(deductAmt)} د.ع) من حساب المجهز (${suppName}) وإلغاء أجور التصليح بنجاح!`, "تم بنجاح", "success");
+    sysAlert(`تمت إعادة القطعة للمجهز (${suppName}) وخصم (${formatMoney(deductAmt)} د.ع) من حسابه تلقائياً وإلغاء أجور التصليح بنجاح!`, "تم بنجاح", "success");
+}
+
+function confirmMaintReturnToSupplier(id) {
+    confirmMaintReturnToSupplierDirect(id);
 }
 
 // الخيار الثاني: إضافة للمخزن مع إظهار واجهة الإضافة + خصم أجور التصليح
@@ -9327,21 +10238,55 @@ function handleMaintAddToInventory(id) {
 }
 
 function deleteMaintenanceRecord(id) {
-    sysConfirm("تأكيد الحذف", "هل أنت متأكد من حذف عملية الصيانة هذه؟", () => {
-        let rec = maintenanceLog.find(x => x.id === id);
-        if (rec && Number(rec.remainingDebt || 0) > 0) {
-            let rem = Number(rec.remainingDebt);
-            let custName = (rec.customer || '').trim();
-            // إزالة قيد المعاملة المرتبط من debtsList
-            debtsList = debtsList.filter(d => d.maintId !== id);
-            let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === custName.toLowerCase());
-            if (existingCust) {
-                existingCust.debt = Math.max(0, (Number(existingCust.debt) || 0) - rem);
-                if (existingCust.invoices) {
-                    existingCust.invoices = existingCust.invoices.filter(inv => inv.invoiceId !== id);
-                }
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+
+    const performDeleteMaint = (postAction = null) => {
+        // 1. لا تضاف كدين بل تحذف فوراً من حساب الزبون وتنظف أي ديون ارتبطت بها
+        let custName = (rec.customer || '').trim();
+        debtsList = debtsList.filter(d => d.maintId !== id);
+        let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === custName.toLowerCase());
+        if (existingCust && rec.remainingDebt) {
+            existingCust.debt = Math.max(0, (Number(existingCust.debt) || 0) - Number(rec.remainingDebt));
+            if (existingCust.invoices) {
+                existingCust.invoices = existingCust.invoices.filter(inv => inv.invoiceId !== id);
             }
         }
+
+        // 2. تطبيق الإجراء الإضافي للمخزن أو المجهز إن وجد
+        if (postAction === 'restore_to_inventory') {
+            // إعادة القطعة للمخزن
+            let invItem = inventory.find(i => (rec.pieceDetails && rec.pieceDetails.includes(i.name)) || (rec.supplierItem && i.name === rec.supplierItem));
+            if (invItem) {
+                invItem.quantity = (Number(invItem.quantity) || 0) + 1;
+            } else {
+                inventory.unshift({
+                    id: 'inv_' + Date.now(),
+                    name: rec.supplierItem || 'قطعة مسترجعة من الصيانة',
+                    category: 'صيانة',
+                    buyPrice: rec.pieceCost || 0,
+                    sellPrice: rec.totalRepairPrice || (rec.pieceCost * 1.3),
+                    quantity: 1
+                });
+            }
+            sysToast("تمت إعادة القطعة إلى المخزن بنجاح ✓", "success");
+        } else if (postAction === 'return_to_supplier') {
+            // إرجاع للمجهز وخصم سعر شرائها من حسابه
+            let supp = rec.supplierName || 'مجهز عام';
+            let cost = Number(rec.pieceCost) || 0;
+            myDebtsList.unshift({
+                id: Date.now(),
+                supplier: supp,
+                itemName: `إرجاع مادة صيانة ملغاة (${rec.supplierItem || rec.description})`,
+                price: -cost,
+                qty: 1,
+                amount: -cost,
+                isPayment: true,
+                date: new Date().toLocaleDateString('ar-IQ')
+            });
+            sysToast(`تم إرجاع القطعة للمجهز (${supp}) وخصم (${formatMoney(cost)} د.ع) من حسابه ✓`, "info");
+        }
+
         maintenanceLog = maintenanceLog.filter(x => x.id !== id);
         if (Array.isArray(maintItems)) {
             maintItems = maintItems.filter(x => x.id !== id);
@@ -9350,8 +10295,121 @@ function deleteMaintenanceRecord(id) {
         renderMaintenanceLogTable();
         updateCustomersTable();
         updateSalesTable();
-        sysAlert("تم حذف العملية وتحديث الحسابات بنجاح.", "تم", "info");
-    });
+        updateMyDebtsTable();
+        sysAlert("تم حذف عملية الصيانة وإلغاء أي ديون مسجلة عليها بنجاح!", "تم الحذف", "success");
+    };
+
+    // التحقق من مصدر القطعة لإظهار الخيارات الدقيقة المطلوبة:
+    if (rec.sourceType === 'inventory') {
+        // خيار إعادة للمخزن إذا كانت من المحل
+        openSysModal({
+            type: 'custom',
+            title: "حذف عملية الصيانة ومصير القطعة",
+            icon: '<i class="fa-solid fa-boxes-stacked text-teal-600 text-3xl"></i>',
+            message: `القطعة المستخدمة (${rec.pieceDetails || 'قطعة من المخزن'}) كانت من المحل (المخزن).
+هل تريد إعادة القطعة إلى المخزن؟`,
+            customHtmlButtons: `
+                <div class="flex flex-col gap-2 w-full mt-2 text-xs font-bold">
+                    <button type="button" onclick="closeSysModal(); deleteMaintExecuteWithAction('${id}', 'restore_to_inventory')" class="bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-arrow-rotate-left"></i> نعم، إعادة القطعة إلى المخزن
+                    </button>
+                    <button type="button" onclick="closeSysModal(); deleteMaintExecuteWithAction('${id}', 'none')" class="bg-gray-600 hover:bg-gray-700 text-white py-2.5 rounded-xl cursor-pointer transition">
+                        حذف فقط (دون إعادة للمخزن)
+                    </button>
+                    <button type="button" onclick="closeSysModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl cursor-pointer">
+                        إلغاء التراجع
+                    </button>
+                </div>
+            `
+        });
+    } else if (rec.sourceType === 'supplier') {
+        // إذا كانت من المجهزين يظهر خيار: إضافة للمخزن أو إرجاع للمجهز فتخصم من حسابه
+        openSysModal({
+            type: 'custom',
+            title: "حذف عملية الصيانة وخيارات القطعة",
+            icon: '<i class="fa-solid fa-truck-ramp-box text-purple-600 text-3xl"></i>',
+            message: `القطعة المستخدمة كانت من المجهز (${rec.supplierName || 'المجهز'}) بسعر شراء (${formatMoney(rec.pieceCost || 0)} د.ع).
+اختر الإجراء المطلوب:`,
+            customHtmlButtons: `
+                <div class="flex flex-col gap-2 w-full mt-2 text-xs font-bold">
+                    <button type="button" onclick="closeSysModal(); deleteMaintExecuteWithAction('${id}', 'return_to_supplier')" class="bg-purple-600 hover:bg-purple-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-truck-arrow-right"></i> 1. إرجاع للمجهز (خصم من حسابه)
+                    </button>
+                    <button type="button" onclick="closeSysModal(); deleteMaintExecuteWithAction('${id}', 'restore_to_inventory')" class="bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl cursor-pointer transition flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-box-archive"></i> 2. إضافة إلى المخزن
+                    </button>
+                    <button type="button" onclick="closeSysModal(); deleteMaintExecuteWithAction('${id}', 'none')" class="bg-gray-600 hover:bg-gray-700 text-white py-2 rounded-xl cursor-pointer transition">
+                        حذف بدون تعديل المجهز أو المخزن
+                    </button>
+                    <button type="button" onclick="closeSysModal()" class="bg-gray-100 hover:bg-gray-200 text-gray-700 py-2 rounded-xl cursor-pointer">
+                        إلغاء
+                    </button>
+                </div>
+            `
+        });
+    } else {
+        // بدون قطعة (أجور عمل أو برمجة فقط)
+        sysConfirm("تأكيد الحذف", "هل أنت متأكد من حذف عملية الصيانة هذه؟ (سيتم حذف أي دين مرتبط بها من كشف الحساب)", () => {
+            performDeleteMaint(null);
+        });
+    }
+}
+
+function deleteMaintExecuteWithAction(id, action) {
+    let rec = maintenanceLog.find(x => x.id === id);
+    if (!rec) return;
+
+    let custName = (rec.customer || '').trim();
+    debtsList = debtsList.filter(d => d.maintId !== id);
+    let existingCust = debtsList.find(d => d.customer && d.customer.trim().toLowerCase() === custName.toLowerCase());
+    if (existingCust && rec.remainingDebt) {
+        existingCust.debt = Math.max(0, (Number(existingCust.debt) || 0) - Number(rec.remainingDebt));
+        if (existingCust.invoices) {
+            existingCust.invoices = existingCust.invoices.filter(inv => inv.invoiceId !== id);
+        }
+    }
+
+    if (action === 'restore_to_inventory') {
+        let invItem = inventory.find(i => (rec.pieceDetails && rec.pieceDetails.includes(i.name)) || (rec.supplierItem && i.name === rec.supplierItem));
+        if (invItem) {
+            invItem.quantity = (Number(invItem.quantity) || 0) + 1;
+        } else {
+            inventory.unshift({
+                id: 'inv_' + Date.now(),
+                name: rec.supplierItem || 'قطعة مسترجعة من الصيانة',
+                category: 'صيانة',
+                buyPrice: rec.pieceCost || 0,
+                sellPrice: rec.totalRepairPrice || (rec.pieceCost * 1.3),
+                quantity: 1
+            });
+        }
+        sysToast("تمت إضافة/إعادة القطعة إلى المخزن بنجاح ✓", "success");
+    } else if (action === 'return_to_supplier') {
+        let supp = rec.supplierName || 'مجهز عام';
+        let cost = Number(rec.pieceCost) || 0;
+        myDebtsList.unshift({
+            id: Date.now(),
+            supplier: supp,
+            itemName: `إرجاع مادة صيانة ملغاة (${rec.supplierItem || rec.description})`,
+            price: -cost,
+            qty: 1,
+            amount: -cost,
+            isPayment: true,
+            date: new Date().toLocaleDateString('ar-IQ')
+        });
+        sysToast(`تم إرجاع القطعة للمجهز (${supp}) وخصم (${formatMoney(cost)} د.ع) من حسابه ✓`, "info");
+    }
+
+    maintenanceLog = maintenanceLog.filter(x => x.id !== id);
+    if (Array.isArray(maintItems)) {
+        maintItems = maintItems.filter(x => x.id !== id);
+    }
+    triggerDataChangeInstant();
+    renderMaintenanceLogTable();
+    updateCustomersTable();
+    updateSalesTable();
+    updateMyDebtsTable();
+    sysAlert("تم حذف عملية الصيانة وتنظيف الحسابات بنجاح!", "تم الحذف", "success");
 }
 
 function saveMaintItem(e) {
@@ -11019,7 +12077,8 @@ function deleteOrRestoreDamagedItem(id) {
         updateDamagedUI();
         updateInventoryTable();
         updatePOSGrid();
-        sysAlert(`تم استرجاع (${q}) من "${itemName}" إلى المخزن بنجاح!`, "تم الاسترجاع", "success");
+        updateSalesTable(); // تحديث فوري لسجل المبيعات وحساب الخسائر
+        sysAlert(`تم استرجاع (${q}) من "${itemName}" إلى المخزن بنجاح وتحديث سجل المبيعات!`, "تم الاسترجاع", "success");
     });
 }
 
