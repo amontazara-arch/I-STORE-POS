@@ -41,34 +41,40 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, get, child } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+        window.isFirebaseReady = false;
+        try {
+            const { initializeApp } = await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js");
+            const { getDatabase, ref, set, onValue, get, child } = await import("https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js");
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyCiLG_AUDzMOQh1Yf8yTwzz4-Dmk7wXa2M",
-            authDomain: "posistore-18462.firebaseapp.com",
-            databaseURL: "https://posistore-18462-default-rtdb.firebaseio.com",
-            projectId: "posistore-18462",
-            storageBucket: "posistore-18462.firebasestorage.app",
-            messagingSenderId: "705995178904",
-            appId: "1:705995178904:web:5a27aeca82515a889661ed",
-            measurementId: "G-G5H1HEX6H8"
-        };
+            const firebaseConfig = {
+                apiKey: "AIzaSyCiLG_AUDzMOQh1Yf8yTwzz4-Dmk7wXa2M",
+                authDomain: "posistore-18462.firebaseapp.com",
+                databaseURL: "https://posistore-18462-default-rtdb.firebaseio.com",
+                projectId: "posistore-18462",
+                storageBucket: "posistore-18462.firebasestorage.app",
+                messagingSenderId: "705995178904",
+                appId: "1:705995178904:web:5a27aeca82515a889661ed",
+                measurementId: "G-G5H1HEX6H8"
+            };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+            const app = initializeApp(firebaseConfig);
+            const db = getDatabase(app);
 
-        window.fbDB = db;
-        window.fbRef = ref;
-        window.fbSet = set;
-        window.fbOnValue = onValue;
-        window.fbGet = get;
-        window.fbChild = child;
+            window.fbDB = db;
+            window.fbRef = ref;
+            window.fbSet = set;
+            window.fbOnValue = onValue;
+            window.fbGet = get;
+            window.fbChild = child;
 
-        window.isFirebaseReady = true;
-        window.dispatchEvent(new Event('firebase-ready'));
-        if (typeof window.onFirebaseInitialized === 'function') {
-            try { window.onFirebaseInitialized(); } catch(e){ console.error("Firebase init hook error:", e); }
+            window.isFirebaseReady = true;
+            window.dispatchEvent(new Event('firebase-ready'));
+            if (typeof window.onFirebaseInitialized === 'function') {
+                try { window.onFirebaseInitialized(); } catch(e){ console.error("Firebase init hook error:", e); }
+            }
+        } catch (err) {
+            console.log("ℹ️ يعمل التطبيق في الوضع المحلي المستقل أوفلاين (Offline Native Mode)");
+            window.isFirebaseReady = false;
         }
     </script>
 
@@ -179,8 +185,8 @@
                 <i class="fa-solid fa-user-shield text-amber-500"></i>
             </div>
             <h3 class="text-xl font-black text-gray-800 mb-1">صفحة الأدمن السرية</h3>
-            <p class="text-xs text-gray-500 mb-4">أدخل رمز الأدمن السري الرسمي (<span class="font-mono font-bold text-purple-700">07773774773</span>) للوصول لصفحة الإدارة السرية وتغيير الرمز الرئيسي لأي حساب بدون كلمة السر:</p>
-            <input type="password" id="adminSecretPinInput" placeholder="أدخل رمز الأدمن السري (07773774773)..." class="w-full border-2 border-purple-300 p-3 rounded-xl mb-4 text-center font-bold text-lg outline-none focus:border-purple-600 bg-purple-50/20" onkeyup="if(event.key==='Enter') verifyAdminSecretPin()">
+            <p class="text-xs text-gray-500 mb-4">أدخل رمز الأدمن السري للوصول لصفحة الإدارة وتغيير الرمز الرئيسي لأي حساب بدون كلمة السر:</p>
+            <input type="password" id="adminSecretPinInput" placeholder="أدخل رمز الأدمن السري..." class="w-full border-2 border-purple-300 p-3 rounded-xl mb-4 text-center font-bold text-lg outline-none focus:border-purple-600 bg-purple-50/20" onkeyup="if(event.key==='Enter') verifyAdminSecretPin()">
             <div class="flex gap-2.5">
                 <button type="button" onclick="closeAdminPinModal()" class="flex-1 bg-gray-100 hover:bg-gray-200 text-gray-700 py-2.5 rounded-xl font-bold text-xs cursor-pointer transition">إلغاء</button>
                 <button type="button" onclick="verifyAdminSecretPin()" class="flex-1 bg-purple-700 hover:bg-purple-800 text-white py-2.5 rounded-xl font-bold text-xs cursor-pointer shadow-md transition">دخول الأدمن 👑</button>
@@ -618,7 +624,7 @@
                 </button>
                 <div class="pt-2 text-center border-t border-gray-100">
                     <button type="button" onclick="openAdminPinModalFromLogin()" class="text-xs text-gray-400 hover:text-purple-600 transition flex items-center justify-center gap-1.5 mx-auto cursor-pointer">
-                        <i class="fa-solid fa-user-shield text-xs"></i> دخول الأدمن السري (07773774773)
+                        <i class="fa-solid fa-user-shield text-xs"></i> دخول الأدمن السري
                     </button>
                 </div>
             </div>
@@ -2126,7 +2132,7 @@
                                 </h2>
                                 <div class="flex items-center gap-2 mt-1">
                                     <span class="bg-purple-100 text-purple-900 border border-purple-300 text-xs px-2.5 py-0.5 rounded-full font-bold">
-                                        👑 دخول سري مصرح برمز الأدمن الرسمي (07773774773)
+                                        👑 دخول مصرح برمز الأدمن السري
                                     </span>
                                 </div>
                             </div>
@@ -2151,7 +2157,7 @@
                             </h3>
                         </div>
                         <p class="text-xs text-gray-600 mb-4 leading-relaxed font-bold">
-                            بصفتك مديراً للنظام وتم التحقق برمز الأدمن السري (07773774773)، يمكنك هنا اختيار أي حساب وتعيين رمز رئيسي جديد له فوراً بدون كتابة أو معرفة كلمة السر القديمة.
+                            بصفتك مديراً للنظام وتم التحقق برمز الأدمن السري، يمكنك هنا اختيار أي حساب وتعيين رمز رئيسي جديد له فوراً بدون كتابة أو معرفة كلمة السر القديمة.
                         </p>
                         
                         <div class="bg-white p-5 rounded-2xl border border-purple-200 shadow-sm max-w-xl">
@@ -2193,7 +2199,7 @@
                     <div class="bg-gradient-to-br from-gray-50 to-purple-50/40 border-2 border-gray-300 rounded-2xl p-6 shadow-sm max-w-xl">
                         <div class="flex items-center gap-2 mb-2">
                             <i class="fa-solid fa-shield-halved text-amber-500 text-xl"></i>
-                            <h4 class="font-bold text-base text-gray-900">تغيير رمز الأدمن السري نفسه (رسمياً 07773774773)</h4>
+                            <h4 class="font-bold text-base text-gray-900">تغيير رمز الأدمن السري نفسه</h4>
                         </div>
                         <p class="text-xs text-gray-600 mb-3 leading-relaxed">
                             وفقاً للطلب: <strong>يمكن تغيير هذا الرمز عند الدخول من هذا الرمز حصراً</strong>. عند حفظ رمز جديد، سيصبح هو الرمز المطلوب لفتح صفحة الأدمن السرية.
@@ -2456,8 +2462,14 @@
     <script>
 // iStore POS & ERP Engine v5.11
 try {
-    if ('serviceWorker' in navigator && window.location.protocol.startsWith('http') && window.isSecureContext) {
-        // service worker init
+    if ('serviceWorker' in navigator && (window.location.protocol.startsWith('http') || window.location.protocol === 'https:')) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js', { scope: '/' }).then((reg) => {
+                console.log("PWA Native Offline ServiceWorker registered successfully ✓", reg.scope);
+            }).catch((swErr) => {
+                console.warn("ServiceWorker registration notice:", swErr);
+            });
+        });
     }
 } catch (swErr) {
     console.warn("ServiceWorker skipped:", swErr);
@@ -3355,7 +3367,7 @@ function handleLogin() {
         let targetStoreCandidate = (u !== adminMasterPassword && u !== ADMIN_SECRET_MASTER_PASSWORD && u) ? u : (currentStoreUser || 'الرئيسي');
         populateAdminStoreList(targetStoreCandidate);
         switchView('admin-view');
-        sysAlert("تم التحقق بنجاح برمز الأدمن السري (07773774773)! أهلاً بك في صفحة الأدمن السرية 👑", "دخول الأدمن", "success");
+        sysAlert("تم التحقق بنجاح برمز الأدمن السري! أهلاً بك في صفحة الأدمن السرية 👑", "دخول الأدمن", "success");
         return;
     }
 
@@ -3508,7 +3520,7 @@ function verifyAdminSecretPin() {
         let currentU = (document.getElementById('loginUsername')?.value || currentStoreUser || '').trim();
         populateAdminStoreList(currentU);
         switchView('admin-view');
-        sysAlert("تم التحقق بنجاح برمز الأدمن السري (07773774773)! أهلاً بك في صفحة الأدمن السرية 👑", "دخول الأدمن", "success");
+        sysAlert("تم التحقق بنجاح برمز الأدمن السري! أهلاً بك في صفحة الأدمن السرية 👑", "دخول الأدمن", "success");
     } else {
         sysAlert("رمز الأدمن السري غير صحيح! يرجى التأكد والمحاولة مجدداً.", "خطأ", "error");
     }
@@ -3621,7 +3633,7 @@ function togglePasswordVisibility(inputId, btn) {
 
 function saveStorePasswordFromAdmin() {
     if(!isLoggedInViaAdminSecretPin) {
-        return sysAlert("هذه الميزة مخصصة حصراً للدخول بالرمز السري للأدمن (07773774773)!", "خطأ", "error");
+        return sysAlert("هذه الميزة مخصصة حصراً للدخول بالرمز السري للأدمن!", "خطأ", "error");
     }
     let targetStore = getAdminSelectedStore();
     if(!targetStore) return sysAlert("يرجى تحديد أو إدخال اسم الحساب المراد تعديل رمزه!", "تنبيه", "error");
@@ -3657,7 +3669,7 @@ function saveStorePasswordFromAdmin() {
 
 function saveAdminMasterPinFromAdmin() {
     if(!isLoggedInViaAdminSecretPin) {
-        return sysAlert("يمكن تغيير هذا الرمز عند الدخول من هذا الرمز حصراً (07773774773)!", "خطأ", "error");
+        return sysAlert("يمكن تغيير هذا الرمز عند الدخول برمز الأدمن حصراً!", "خطأ", "error");
     }
     let newPin = (document.getElementById('adminNewMasterPinInput')?.value || '').trim();
     if(!newPin) return sysAlert("يرجى إدخال رمز الأدمن السري الجديد!", "تنبيه", "error");
@@ -4182,6 +4194,31 @@ async function idbSaveAppState(storeKey, appData) {
     }
 }
 
+// 2.ب استرجاع حالة التطبيق بالكامل من IndexedDB لقراءة فورية فائقة السرعة بدون سقف حجم (0ms Lag)
+function idbGetAppState(storeKey) {
+    return new Promise(async (resolve) => {
+        if (!storeKey) { resolve(null); return; }
+        try {
+            const db = await getIndexedDB();
+            if (!db) { resolve(null); return; }
+            const tx = db.transaction('appState', 'readonly');
+            const store = tx.objectStore('appState');
+            const req = store.get(storeKey);
+            req.onsuccess = () => {
+                if (req.result && req.result.data) {
+                    resolve(req.result.data);
+                } else {
+                    resolve(null);
+                }
+            };
+            req.onerror = () => resolve(null);
+        } catch(e) {
+            console.warn("idbGetAppState error:", e);
+            resolve(null);
+        }
+    });
+}
+
 // 3. حفظ الصور والشعارات فوراً في IndexedDB
 async function idbSaveImage(id, dataUrl, meta = {}) {
     if (!id || !dataUrl) return;
@@ -4505,13 +4542,24 @@ function restoreSessionOnStartup() {
                 }
             }
 
+            // استرجاع فوري متكامل من قاعدة بيانات IndexedDB لقراءة كامل المخزن بدون سقف حجم (0ms Lag)
+            try {
+                idbGetAppState(store).then((idbData) => {
+                    if (idbData && typeof idbData === 'object') {
+                        loadDataFromServerData(idbData);
+                        refreshAllUI();
+                    }
+                });
+            } catch(e){}
+
             if (window.fbDB) {
                 initRealtimeListener(store);
                 window.fbGet(window.fbRef(window.fbDB, 'stores/' + store)).then((snapshot) => {
                     if (snapshot.exists()) {
                         let remoteData = snapshot.val();
                         loadDataFromServerData(remoteData);
-                        localStorage.setItem('iStore_LocalData_' + store, JSON.stringify(remoteData));
+                        try { localStorage.setItem('iStore_LocalData_' + store, JSON.stringify(remoteData)); } catch(e){}
+                        try { idbSaveAppState(store, remoteData); } catch(e){}
                         updateNetworkStatusIndicator(true, 'متزامن لحظياً');
                     }
                 }).catch(() => {
@@ -4552,12 +4600,22 @@ function handleFirebaseStoreSync(targetUser) {
     let localSaved = localStorage.getItem('iStore_LocalData_' + store);
     if(localSaved) { try { loadDataFromServerData(JSON.parse(localSaved)); } catch(e){} }
     
+    try {
+        idbGetAppState(store).then((idbData) => {
+            if (idbData && typeof idbData === 'object') {
+                loadDataFromServerData(idbData);
+                refreshAllUI();
+            }
+        });
+    } catch(e){}
+
     if(window.fbDB) {
         window.fbGet(window.fbRef(window.fbDB, 'stores/' + store)).then((snapshot) => {
             if (snapshot.exists()) { 
                 let remoteData = snapshot.val();
                 loadDataFromServerData(remoteData); 
-                localStorage.setItem('iStore_LocalData_' + store, JSON.stringify(remoteData));
+                try { localStorage.setItem('iStore_LocalData_' + store, JSON.stringify(remoteData)); } catch(e){}
+                try { idbSaveAppState(store, remoteData); } catch(e){}
                 initRealtimeListener(store); 
                 updateNetworkStatusIndicator(true, 'متزامن لحظياً');
             } else {
